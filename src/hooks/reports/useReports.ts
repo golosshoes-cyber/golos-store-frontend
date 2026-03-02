@@ -1,0 +1,107 @@
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { productService } from '../../services/productService'
+import { api } from '../../services/api'
+import type { ProductVariant } from '../../types'
+import { extractApiErrorMessage } from '../../utils/apiError'
+
+interface UseReportsProps {
+  showSuccess: (message: string) => void
+  showError: (message: string) => void
+}
+
+export const useReports = ({ showSuccess, showError }: UseReportsProps) => {
+  const queryClient = useQueryClient()
+
+  // Inventory History Params
+  const [inventoryHistoryParams, setInventoryHistoryParams] = useState<{
+    start_date?: string
+    end_date?: string
+    product?: string
+    variant?: string
+    movement_type?: string
+  }>({})
+
+  // Query for variants to map IDs to details
+  const variantsQuery = useQuery({
+    queryKey: ['variants'],
+    queryFn: async () => {
+      let allVariants: ProductVariant[] = []
+      let url = '/api/product-variants/?limit=1000'
+      while (url) {
+        const response = await api.get(url)
+        allVariants.push(...(response.data.results as ProductVariant[]))
+        url = response.data.next
+      }
+      return { count: allVariants.length, results: allVariants, next: null, previous: null }
+    },
+  })
+
+  // Inventory Snapshots Query
+  const snapshotsQuery = useQuery({
+    queryKey: ['inventory-snapshots'],
+    queryFn: () => api.get('/api/inventory-snapshots/').then(r => r.data),
+  })
+
+  // Inventory History Query
+  const inventoryHistoryQuery = useQuery({
+    queryKey: ['inventory-history', inventoryHistoryParams],
+    queryFn: () => productService.inventoryHistory(inventoryHistoryParams),
+    enabled: true,
+  })
+
+  // Create Monthly Snapshot Mutation
+  const createSnapshotMutation = useMutation({
+    mutationFn: productService.createMonthlySnapshot,
+    onSuccess: () => {
+      showSuccess('Snapshot mensual creado exitosamente')
+      queryClient.invalidateQueries({ queryKey: ['inventory-history'] })
+    },
+    onError: (error: any) => {
+      const errorMessage = extractApiErrorMessage(error, 'Error al crear el snapshot mensual')
+      showError(errorMessage)
+    },
+  })
+
+  // Low Stock Variants Query
+  const lowStockQuery = useQuery({
+    queryKey: ['low-stock-variants'],
+    queryFn: productService.lowStockVariants,
+    enabled: false,
+  })
+
+  const fetchInventoryHistory = (params: typeof inventoryHistoryParams) => {
+    setInventoryHistoryParams(params)
+    inventoryHistoryQuery.refetch()
+  }
+
+  const createMonthlySnapshot = (data?: { month?: string }) => createSnapshotMutation.mutate(data)
+
+  const fetchLowStockVariants = () => {
+    lowStockQuery.refetch()
+  }
+
+  return {
+    // Variants for mapping
+    variants: variantsQuery.data,
+
+    // Inventory History
+    inventoryHistory: inventoryHistoryQuery.data,
+    isInventoryHistoryLoading: inventoryHistoryQuery.isLoading,
+    inventoryHistoryError: inventoryHistoryQuery.error,
+    fetchInventoryHistory,
+
+    // Monthly Snapshot
+    snapshots: snapshotsQuery.data,
+    isSnapshotsLoading: snapshotsQuery.isLoading,
+    snapshotsError: snapshotsQuery.error,
+    createMonthlySnapshot,
+    isCreatingSnapshot: createSnapshotMutation.isPending,
+
+    // Low Stock
+    lowStockVariants: lowStockQuery.data,
+    isLowStockLoading: lowStockQuery.isLoading,
+    lowStockError: lowStockQuery.error,
+    fetchLowStockVariants,
+  }
+}

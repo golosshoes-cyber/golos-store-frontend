@@ -1,0 +1,1 @@
+const r=t=>`$${(typeof t=="string"?parseFloat(t.replace(/[^0-9.-]/g,"")):t||0).toLocaleString("es-CO",{minimumFractionDigits:0,maximumFractionDigits:0})}`,n=t=>(typeof t=="string"?parseFloat(t.replace(/[^0-9.-]/g,"")):t).toLocaleString("es-CO",{minimumFractionDigits:0,maximumFractionDigits:0});export{r as a,n as f};
