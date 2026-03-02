@@ -9,14 +9,15 @@ export default defineConfig({
     allowedHosts: ['.trycloudflare.com'],
     port: 3000,
     hmr: {
-    clientPort: 443,
+      clientPort: 443,
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'https://api.golosshoes.shop',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       }
     }
   }
 })
+
