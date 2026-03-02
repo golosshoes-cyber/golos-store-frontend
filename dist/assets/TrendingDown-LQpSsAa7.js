@@ -1,1 +1,0 @@
-import{c as o,j as n}from"./index-EGKLHfLA.js";const a=o(n.jsx("path",{d:"M6.99 11 3 15l3.99 4v-3H14v-2H6.99zM21 9l-3.99-4v3H10v2h7.01v3z"}),"SwapHoriz"),r=o(n.jsx("path",{d:"m16 18 2.29-2.29-4.88-4.88-4 4L2 7.41 3.41 6l6 6 4-4 6.3 6.29L22 12v6z"}),"TrendingDown");export{a as S,r as T};
