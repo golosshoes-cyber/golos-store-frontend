@@ -12,6 +12,7 @@ import ProductDialog from '../../components/products/ProductDialog'
 import ProductViewDialog from '../../components/products/ProductViewDialog'
 import VariantDialog from '../../components/products/VariantDialog'
 import VariantViewDialog from '../../components/products/VariantViewDialog'
+import ProductWizardDialog from '../../components/products/ProductWizardDialog'
 import PageShell from '../../components/common/PageShell'
 
 const ProductsPage: React.FC = () => {
@@ -36,6 +37,7 @@ const ProductsPage: React.FC = () => {
     productImages,
     variantsLoading,
     imagesLoading,
+    wizardOpen,
     dialogOpen,
     editingProduct,
     viewDialogOpen,
@@ -52,6 +54,7 @@ const ProductsPage: React.FC = () => {
     createVariantMutation,
     updateVariantMutation,
     fetchError,
+    setWizardOpen,
     setDialogOpen,
     setEditingProduct,
     setViewDialogOpen,
@@ -152,6 +155,13 @@ const ProductsPage: React.FC = () => {
           setViewDialogOpen(false)
           setViewingProduct(null)
         }}
+      />
+
+      {/* Wizard de crear producto */}
+      <ProductWizardDialog
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onComplete={() => setWizardOpen(false)}
       />
 
       {/* Diálogo de crear/editar producto */}

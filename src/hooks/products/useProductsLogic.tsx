@@ -14,6 +14,7 @@ export const useProductsLogic = () => {
   const theme = useTheme()
   
   // States
+  const [wizardOpen, setWizardOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -249,7 +250,7 @@ export const useProductsLogic = () => {
   // Event handlers
   const handleCreateProduct = () => {
     blurActiveElement()
-    setDialogOpen(true)
+    setWizardOpen(true)
   }
 
   const handleViewProduct = (product: Product) => {
@@ -364,6 +365,7 @@ export const useProductsLogic = () => {
 
   return {
     // States
+    wizardOpen,
     page,
     dialogOpen,
     editingProduct,
@@ -411,6 +413,7 @@ export const useProductsLogic = () => {
     fetchError,
     
     // Setters
+    setWizardOpen,
     setPage,
     setDialogOpen,
     setEditingProduct,
