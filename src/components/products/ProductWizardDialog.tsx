@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,6 @@ import {
   CircularProgress,
   Box,
   Typography,
-  IconButton,
   List,
   ListItem,
   ListItemText,
@@ -35,7 +34,7 @@ const steps = ['Producto Base', 'Añadir Variantes', 'Subir Imágenes']
 const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose, onComplete }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  
+
   const {
     step,
     createdProduct,
@@ -72,6 +71,26 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
     active: true,
   })
 
+  useEffect(() => {
+    if (open) {
+      setProductData({
+        name: '',
+        description: '',
+        brand: '',
+        product_type: 'sneakers',
+        active: true,
+      })
+      setVariantData({
+        size: '',
+        gender: 'unisex',
+        color: '',
+        price: 0,
+        cost: 0,
+        active: true,
+      })
+    }
+  }, [open])
+
   const productTypeOptions = [
     { value: 'sneakers', label: 'Tenis' },
     { value: 'heels', label: 'Tacones' },
@@ -104,7 +123,7 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
       <Box sx={{ p: 2, background: theme.palette.background.paper }}>
         <ProductFormHeader isEditing={false} />
       </Box>
-      
+
       <Box sx={{ width: '100%', pt: 3, pb: 1, px: { xs: 2, sm: 4 } }}>
         <Stepper activeStep={step} alternativeLabel>
           {steps.map((label) => (
@@ -189,9 +208,11 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
               <form id="wizard-variant-form" onSubmit={(e: React.FormEvent) => {
                 e.preventDefault()
                 handleVariantSubmit({
-                   ...variantData,
-                   price: parseFloat(variantData.price.toString()),
-                   cost: parseFloat(variantData.cost.toString())
+                  ...variantData,
+                  price: parseFloat(variantData.price.toString()),
+                  cost: parseFloat(variantData.cost.toString())
+                }, () => {
+                  setVariantData(prev => ({ ...prev, size: '', color: '' }))
                 })
               }}>
                 <Box display="flex" gap={2}>
@@ -254,10 +275,10 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                     disabled={isCreatingVariant}
                   />
                 </Box>
-                <Button 
-                  type="submit" 
-                  variant="outlined" 
-                  fullWidth 
+                <Button
+                  type="submit"
+                  variant="outlined"
+                  fullWidth
                   sx={{ mt: 2 }}
                   disabled={isCreatingVariant}
                 >
@@ -280,9 +301,9 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                 ) : (
                   addedVariants.map((v, i) => (
                     <ListItem key={i} divider>
-                      <ListItemText 
-                        primary={`Talla: ${v.size} ${v.color ? `| Color: ${v.color}` : ''}`} 
-                        secondary={`Precio: $${v.price}`} 
+                      <ListItemText
+                        primary={`Talla: ${v.size} ${v.color ? `| Color: ${v.color}` : ''}`}
+                        secondary={`Precio: $${v.price}`}
                       />
                       <CheckCircleIcon color="success" fontSize="small" />
                     </ListItem>
@@ -324,7 +345,7 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                 }}
               />
             </Button>
-            
+
             {addedVariants.length > 0 && (
               <Alert severity="success" sx={{ mt: 4 }}>
                 Producto creado con {addedVariants.length} variante(s). ¡Ya casi terminas!
@@ -340,10 +361,10 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
         </Button>
         <Box>
           {step === 0 && (
-            <Button 
-              type="submit" 
-              form="wizard-product-form" 
-              variant="contained" 
+            <Button
+              type="submit"
+              form="wizard-product-form"
+              variant="contained"
               disabled={isCreatingProduct}
             >
               {isCreatingProduct ? <CircularProgress size={24} color="inherit" /> : 'Siguiente'}

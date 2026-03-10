@@ -46,9 +46,16 @@ export const useProductWizard = (onComplete: () => void) => {
     createProductMutation.mutate(productData)
   }
 
-  const handleVariantSubmit = (variantData: Partial<ProductVariant>) => {
+  const handleVariantSubmit = (variantData: Partial<ProductVariant>, onSuccessCb?: () => void) => {
     if (!createdProduct) return
-    createVariantMutation.mutate({ ...variantData, product: createdProduct.id })
+    createVariantMutation.mutate(
+      { ...variantData, product: createdProduct.id },
+      {
+        onSuccess: () => {
+          onSuccessCb?.()
+        }
+      }
+    )
   }
 
   const handleImageUpload = (files: FileList | null) => {
