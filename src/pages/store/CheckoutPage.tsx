@@ -9,7 +9,6 @@ import {
   CircularProgress,
   Container,
   Divider,
-  MenuItem,
   Paper,
   Step,
   StepLabel,
@@ -33,6 +32,10 @@ import { useAuth } from '../../contexts/AuthContext'
 import { storeService } from '../../services/storeService'
 import type { StoreCartValidationItem, StoreCommercialSummary, StoreShippingAddress } from '../../types/store'
 import { clearStoreCart, getStoreCartItems } from '../../utils/storeCart'
+import ShippingAddressForm from '../../components/shipping/ShippingAddressForm'
+import ShippingQuoteCalculator from '../../components/shipping/ShippingQuoteCalculator'
+import PickupPointsSelector from '../../components/shipping/PickupPointsSelector'
+import type { ShippingQuoteService } from '../../hooks/useShipping'
 
 const currencyFormatter = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -58,16 +61,27 @@ export default function CheckoutPage() {
   const [shippingZone, setShippingZone] = useState<'local' | 'regional' | 'national'>('regional')
   const [estimatedWeightGrams, setEstimatedWeightGrams] = useState<number>(900)
   const [acceptTerms, setAcceptTerms] = useState(false)
-  const [shippingAddress, setShippingAddress] = useState<StoreShippingAddress>({
-    department: '',
-    city: '',
-    address_line1: '',
-    address_line2: '',
-    reference: '',
-    postal_code: '',
-    recipient_name: '',
-    recipient_phone: '',
+  const [shippingAddress, setShippingAddress] = useState<StoreShippingAddress>(() => {
+    const saved = localStorage.getItem('store_shipping_address')
+    if (saved) {
+      try { return JSON.parse(saved) } catch (e) {}
+    }
+    return {
+      department: '',
+      city: '',
+      address_line1: '',
+      address_line2: '',
+      reference: '',
+      postal_code: '',
+      recipient_name: '',
+      recipient_phone: '',
+    }
   })
+
+  const [selectedShippingService, setSelectedShippingService] = useState<ShippingQuoteService | null>(null)
+  const [selectedPickupPoint, setSelectedPickupPoint] = useState<any | null>(null)
+
+  const displayTotal = String((Number(total) || 0) + (selectedShippingService ? Number(selectedShippingService.cost) : 0))
 
   useEffect(() => {
     if (authLoading) return
@@ -104,12 +118,19 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!user) return
-    setShippingAddress((prev) => ({
-      ...prev,
-      recipient_name: prev.recipient_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username,
-      recipient_phone: prev.recipient_phone || (isLikelyPhone(user.username || '') ? user.username : ''),
-    }))
+    setShippingAddress((prev) => {
+      const recipient_name = prev.recipient_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
+      const recipient_phone = prev.recipient_phone || (isLikelyPhone(user.username || '') ? user.username : '')
+      const newAddr = { ...prev, recipient_name, recipient_phone }
+      localStorage.setItem('store_shipping_address', JSON.stringify(newAddr))
+      return newAddr
+    })
   }, [user])
+
+  const handleAddressChange = (newAddress: StoreShippingAddress) => {
+    setShippingAddress(newAddress)
+    localStorage.setItem('store_shipping_address', JSON.stringify(newAddress))
+  }
 
   const handleCheckout = async () => {
     if (!user) {
@@ -138,7 +159,7 @@ export default function CheckoutPage() {
       const customerName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
       const customerContact = shippingAddress.recipient_phone.trim()
       const cartItems = getStoreCartItems()
-      const response = await storeService.checkout({
+      const checkoutPayload: any = {
         customer_name: customerName,
         customer_contact: customerContact,
         items: cartItems,
@@ -146,7 +167,10 @@ export default function CheckoutPage() {
         shipping_zone: shippingZone,
         estimated_weight_grams: estimatedWeightGrams,
         shipping_address: shippingAddress,
-      })
+        shipping_service: selectedShippingService?.name,
+        pickup_point_id: selectedPickupPoint?.id,
+      }
+      const response = await storeService.checkout(checkoutPayload)
 
       clearStoreCart()
       setSuccessMessage(`Pedido creado: #${response.order.sale_id}`)
@@ -225,93 +249,25 @@ export default function CheckoutPage() {
               <Typography variant="caption" color="text.secondary">
                 Para reducir errores, esta pantalla usa automaticamente los datos de tu cuenta.
               </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-                <TextField
-                  select
-                  label="Zona de envio"
-                  value={shippingZone}
-                  onChange={(event) => setShippingZone(event.target.value as 'local' | 'regional' | 'national')}
-                  size="small"
-                  sx={{ minWidth: 180 }}
-                >
-                  <MenuItem value="local">Local</MenuItem>
-                  <MenuItem value="regional">Regional</MenuItem>
-                  <MenuItem value="national">Nacional</MenuItem>
-                </TextField>
-                <TextField
-                  label="Peso estimado (g)"
-                  type="number"
-                  size="small"
-                  value={estimatedWeightGrams}
-                  onChange={(event) => setEstimatedWeightGrams(Math.max(1, Number(event.target.value) || 1))}
-                  sx={{ minWidth: 180 }}
-                />
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ display: 'none' }}>
+                <TextField select label="Zona de envio" value={shippingZone} onChange={(event) => setShippingZone(event.target.value as 'local' | 'regional' | 'national')} size="small" />
+                <TextField label="Peso estimado (g)" type="number" size="small" value={estimatedWeightGrams} onChange={(event) => setEstimatedWeightGrams(Math.max(1, Number(event.target.value) || 1))} />
               </Stack>
-              <Stack spacing={1.5}>
-                <Typography variant="subtitle2">Direccion de envio</Typography>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-                  <TextField
-                    label="Departamento"
-                    size="small"
-                    value={shippingAddress.department}
-                    onChange={(event) => setShippingAddress((prev) => ({ ...prev, department: event.target.value }))}
-                    fullWidth
-                  />
-                  <TextField
-                    label="Ciudad"
-                    size="small"
-                    value={shippingAddress.city}
-                    onChange={(event) => setShippingAddress((prev) => ({ ...prev, city: event.target.value }))}
-                    fullWidth
-                  />
-                </Stack>
-                <TextField
-                  label="Direccion principal"
-                  size="small"
-                  value={shippingAddress.address_line1}
-                  onChange={(event) => setShippingAddress((prev) => ({ ...prev, address_line1: event.target.value }))}
-                  fullWidth
-                />
-                <TextField
-                  label="Complemento (opcional)"
-                  size="small"
-                  value={shippingAddress.address_line2 || ''}
-                  onChange={(event) => setShippingAddress((prev) => ({ ...prev, address_line2: event.target.value }))}
-                  fullWidth
-                />
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-                  <TextField
-                    label="Nombre receptor"
-                    size="small"
-                    value={shippingAddress.recipient_name}
-                    onChange={(event) => setShippingAddress((prev) => ({ ...prev, recipient_name: event.target.value }))}
-                    fullWidth
-                  />
-                  <TextField
-                    label="Telefono receptor"
-                    size="small"
-                    value={shippingAddress.recipient_phone}
-                    onChange={(event) => setShippingAddress((prev) => ({ ...prev, recipient_phone: event.target.value }))}
-                    fullWidth
-                  />
-                </Stack>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-                  <TextField
-                    label="Referencia (opcional)"
-                    size="small"
-                    value={shippingAddress.reference || ''}
-                    onChange={(event) => setShippingAddress((prev) => ({ ...prev, reference: event.target.value }))}
-                    fullWidth
-                  />
-                  <TextField
-                    label="Codigo postal (opcional)"
-                    size="small"
-                    value={shippingAddress.postal_code || ''}
-                    onChange={(event) => setShippingAddress((prev) => ({ ...prev, postal_code: event.target.value }))}
-                    fullWidth
-                  />
-                </Stack>
-              </Stack>
+              <ShippingAddressForm
+                initialAddress={shippingAddress}
+                onChange={handleAddressChange}
+              />
+              <ShippingQuoteCalculator
+                destinationCode={shippingAddress.city}
+                weightGrams={estimatedWeightGrams}
+                selectedService={selectedShippingService}
+                onSelectService={setSelectedShippingService}
+              />
+              <PickupPointsSelector
+                destinationCode={shippingAddress.city}
+                departmentCode={shippingAddress.department}
+                onPickupPointSelected={setSelectedPickupPoint}
+              />
             </Stack>
           </CardContent>
         </Card>
@@ -331,8 +287,8 @@ export default function CheckoutPage() {
             </Stack>
 
             <Box mt={2} display="flex" justifyContent="space-between">
-              <Typography variant="h6">Total</Typography>
-              <Typography variant="h6" color="primary.main">{money(total)}</Typography>
+              <Typography variant="h6">Total (con envío)</Typography>
+              <Typography variant="h6" color="primary.main">{money(displayTotal)}</Typography>
             </Box>
             {commercial && (
               <Stack mt={2} spacing={0.75}>

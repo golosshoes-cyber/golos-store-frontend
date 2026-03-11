@@ -25,6 +25,8 @@ import { Link as RouterLink, useSearchParams } from 'react-router-dom'
 import { storeService } from '../../services/storeService'
 import { useAuth } from '../../contexts/AuthContext'
 import type { StoreOrder } from '../../types/store'
+import ShipmentStatus from '../../components/shipping/ShipmentStatus'
+import ShipmentTracker from '../../components/shipping/ShipmentTracker'
 
 const currencyFormatter = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -436,6 +438,17 @@ export default function OrderStatusPage() {
                   </Stack>
                 </CardContent>
               </Card>
+
+              {selectedOrder.shipment && (
+                <Stack spacing={2}>
+                  <ShipmentStatus
+                    status={selectedOrder.shipment.status}
+                    trackingNumber={selectedOrder.shipment.tracking_number}
+                    labelUrl={selectedOrder.shipment.label_url}
+                  />
+                  <ShipmentTracker trackingNumber={selectedOrder.shipment.tracking_number} />
+                </Stack>
+              )}
             </Stack>
           )}
         </Stack>
