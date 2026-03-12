@@ -55,7 +55,7 @@ const drawerWidth = 220
 
 const menuSections = [
   {
-    label: 'General',
+    label: '',
     items: [
       { text: 'Dashboard', icon: <GridViewIcon />, path: 'dashboard' },
       { text: 'Productos', icon: <AddBoxIcon />, path: 'products' },
@@ -76,6 +76,7 @@ const menuSections = [
     items: [
       { text: 'Proveedores', icon: <ProveedoresIcon />, path: 'suppliers' },
       { text: 'Notificaciones', icon: <NotificacionesIcon />, path: 'notifications' },
+      { text: 'Gestionar tienda', icon: <InventarioIcon />, path: 'store/ops' },
     ]
   }
 ]
@@ -169,18 +170,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       opacity: selected ? 1 : 0.7,
     },
     '& .MuiListItemText-primary': {
-      fontSize: '0.75rem',
+      fontSize: '13px',
       fontWeight: selected ? 500 : 400,
       color: selected ? theme.palette.text.primary : theme.palette.text.secondary,
     },
     '&.Mui-selected': {
-      backgroundColor: mode === 'light' ? alpha('#000', 0.04) : alpha('#fff', 0.04),
+      backgroundColor: mode === 'light' ? theme.palette.action.hover : alpha('#fff', 0.04),
+      color: theme.palette.text.primary,
+      fontWeight: 500,
       '&:hover': {
-        backgroundColor: mode === 'light' ? alpha('#000', 0.06) : alpha('#fff', 0.06),
+        backgroundColor: mode === 'light' ? theme.palette.action.selected : alpha('#fff', 0.06),
       },
     },
     '&:hover': {
-      backgroundColor: mode === 'light' ? alpha('#000', 0.03) : alpha('#fff', 0.03),
+      backgroundColor: mode === 'light' ? theme.palette.action.hover : alpha('#fff', 0.03),
+      color: theme.palette.text.primary,
     },
   })
 
@@ -209,21 +213,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         borderBottom: `1px solid ${theme.palette.divider}`
       }}>
         <Box sx={{
-          width: 24,
-          height: 24,
+          width: 26,
+          height: 26,
           bgcolor: 'text.primary',
           color: 'background.default',
-          borderRadius: 0.8, // More square
+          borderRadius: 1.5, // 6px
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '10px',
-          fontWeight: 700,
+          fontSize: '11px',
+          fontWeight: 600,
           letterSpacing: '-0.5px'
         }}>
           GS
         </Box>
-        <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '13px', letterSpacing: '-0.3px' }}>
+        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '13px', letterSpacing: '-0.3px' }}>
           Golos Store
         </Typography>
       </Box>
@@ -231,19 +235,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <Box sx={{ flex: 1, py: 0.5, overflowY: 'auto' }}>
         {visibleSections.map((section) => (
           <Box key={section.label} sx={{ mb: 0.8 }}>
-            <Typography variant="caption" sx={{
-              px: 2,
-              py: 0.2,
-              display: 'block',
-              fontSize: '9px',
-              fontWeight: 600,
-              color: 'text.secondary',
-              opacity: 0.35,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase'
-            }}>
-              {section.label}
-            </Typography>
+            {section.label && (
+              <Typography variant="caption" sx={{
+                px: 2,
+                py: 0.2,
+                display: 'block',
+                fontSize: '10px',
+                fontWeight: 500,
+                color: 'text.secondary',
+                opacity: 0.5,
+                letterSpacing: '0.6px',
+                textTransform: 'uppercase'
+              }}>
+                {section.label}
+              </Typography>
+            )}
             <List sx={{ px: 0, py: 0.1 }}>
               {section.items.map((item: any) => (
                 <ListItem key={item.text} disablePadding sx={{ mb: 0 }}>
@@ -437,16 +443,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               onClick={() => window.open('https://tienda.golosshoes.shop', '_blank')}
               variant="outlined"
               size="small"
-              startIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
+              startIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}
               sx={{
-                fontSize: '11px',
+                fontSize: '12px',
                 height: 32,
                 px: 1.5,
                 borderRadius: 1.5,
                 color: 'text.secondary',
                 borderColor: theme.palette.divider,
                 textTransform: 'none',
-                '&:hover': { borderColor: 'text.primary', bgcolor: 'transparent' }
+                fontWeight: 400,
+                bgcolor: 'background.paper',
+                '&:hover': { borderColor: theme.palette.text.disabled, bgcolor: 'background.paper', color: 'text.primary' }
               }}
             >
               Tienda
@@ -465,7 +473,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 color: 'background.default',
                 textTransform: 'none',
                 fontWeight: 600,
-                '&:hover': { bgcolor: 'text.secondary' }
+                boxShadow: 'none',
+                '&:hover': { bgcolor: 'text.secondary', boxShadow: 'none' }
               }}
             >
               + Producto
@@ -484,7 +493,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 color: 'background.default',
                 textTransform: 'none',
                 fontWeight: 600,
-                '&:hover': { bgcolor: 'text.secondary' }
+                boxShadow: 'none',
+                '&:hover': { bgcolor: 'text.secondary', boxShadow: 'none' }
               }}
             >
               + Venta
@@ -495,9 +505,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               height: 32,
               borderRadius: 1.5,
               border: `1px solid ${theme.palette.divider}`,
-              color: 'text.secondary'
+              color: 'text.secondary',
+              '&:hover': { borderColor: theme.palette.text.disabled, color: 'text.primary' }
             }}>
-              {mode === 'dark' ? <LightMode sx={{ fontSize: 16 }} /> : <DarkMode sx={{ fontSize: 16 }} />}
+              {mode === 'dark' ? <LightMode style={{ fontSize: 14 }} /> : <DarkMode style={{ fontSize: 14 }} />}
             </IconButton>
           </Box>
         </Toolbar>

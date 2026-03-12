@@ -3,19 +3,9 @@ import {
   Grid,
   Box,
   CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
   Typography,
 } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import {
-  TrendingUp,
-  TrendingDown,
-  SwapHoriz,
-} from '@mui/icons-material'
 import type { RecentMovementsProps } from '../../types/dashboard'
 
 const RecentMovements: React.FC<RecentMovementsProps> = ({ movements, loading }) => {
@@ -25,161 +15,109 @@ const RecentMovements: React.FC<RecentMovementsProps> = ({ movements, loading })
     <Grid item xs={12} lg={6}>
       <Box
         sx={{
-          p: 2.5,
-          height: '100%',
+          height: 280,
           display: 'flex',
           flexDirection: 'column',
           borderRadius: 2,
           border: `1px solid ${theme.palette.divider}`,
           bgcolor: 'background.paper',
-          boxShadow: 'none',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+          overflow: 'hidden'
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2.5}>
-          <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-            Movimientos Recientes
+        <Box sx={{ 
+          px: 2, 
+          py: 1.5, 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          borderBottom: `1px solid ${theme.palette.divider}`
+        }}>
+          <Typography sx={{ fontSize: '12px', fontWeight: 600, color: 'text.primary', letterSpacing: '-0.1px' }}>
+            Movimientos recientes
           </Typography>
-          <SwapHoriz sx={{ fontSize: 18, color: 'text.secondary' }} />
+          <Typography sx={{ fontSize: '11px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}>
+            Ver todos →
+          </Typography>
         </Box>
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center" height={200}>
             <CircularProgress size={24} />
           </Box>
         ) : (
-          <List
+          <Box
             sx={{
               flex: 1,
               minHeight: 0,
               overflowY: 'auto',
-              overflowX: 'hidden',
-              pr: 0.5,
               scrollbarWidth: 'thin',
               scrollbarColor: 'transparent transparent',
-              '&::-webkit-scrollbar': { width: 5, height: 5 },
+              '&::-webkit-scrollbar': { width: 4 },
               '&::-webkit-scrollbar-track': { background: 'transparent' },
               '&::-webkit-scrollbar-thumb': {
-                background: 'transparent',
-                borderRadius: 8,
-              },
-              '&:hover': {
-                scrollbarColor:
-                  theme.palette.mode === 'light'
-                    ? alpha('#0f172a', 0.24) + ' transparent'
-                    : alpha('#e2e8f0', 0.26) + ' transparent',
-              },
-              '&:hover::-webkit-scrollbar-thumb': {
-                background:
-                  theme.palette.mode === 'light'
-                    ? alpha('#0f172a', 0.2)
-                    : alpha('#e2e8f0', 0.24),
+                background: theme.palette.divider,
+                borderRadius: 2,
               },
             }}
           >
-            {movements?.map((movement, index: number) => (
-              <React.Fragment key={movement.id}>
-                <ListItem
-                  sx={{
-                    px: 0,
-                    transition: 'all 0.2s ease',
-                    '@media (hover: hover) and (pointer: fine)': {
-                      '&:hover': {
-                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                        borderRadius: 2,
-                        px: 1,
-                      },
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 36 }}>
-                    {movement.type === 'purchase' || movement.type_display?.includes('compra') ? (
-                      <TrendingUp sx={{ fontSize: 18, color: 'success.main' }} />
-                    ) : movement.type_display?.includes('venta') || movement.type_display?.includes('salida') ? (
-                      <TrendingDown sx={{ fontSize: 18, color: 'error.main' }} />
-                    ) : (
-                      <SwapHoriz sx={{ fontSize: 18, color: 'info.main' }} />
-                    )}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Box
-                        display="flex"
-                        justifyContent="space-between"
-                        alignItems={{ xs: 'flex-start', sm: 'center' }}
-                        flexDirection={{ xs: 'column', sm: 'row' }}
-                        gap={0.8}
-                        sx={{ minWidth: 0 }}
-                      >
-                        <Typography
-                          variant="body2"
-                          fontWeight="medium"
-                          sx={{
-                            minWidth: 0,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            fontSize: { xs: '0.84rem', sm: '0.9rem' },
-                          }}
-                        >
-                          {movement.product_name}
-                        </Typography>
-                        <Box sx={{ 
-                          display: 'inline-flex', 
-                          px: 1, 
-                          py: 0.25, 
-                          borderRadius: '999px',
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          bgcolor: (movement.type === 'purchase' || movement.type_display?.includes('compra')) 
-                            ? alpha(theme.palette.success.main, 0.08) 
-                            : (movement.type_display?.includes('venta') || movement.type_display?.includes('salida'))
-                              ? alpha(theme.palette.error.main, 0.08)
-                              : alpha(theme.palette.info.main, 0.08),
-                          color: (movement.type === 'purchase' || movement.type_display?.includes('compra')) 
-                            ? theme.palette.success.main 
-                            : (movement.type_display?.includes('venta') || movement.type_display?.includes('salida'))
-                              ? theme.palette.error.main
-                              : theme.palette.info.main,
-                          border: `1px solid ${(movement.type === 'purchase' || movement.type_display?.includes('compra')) 
-                            ? alpha(theme.palette.success.main, 0.2) 
-                            : (movement.type_display?.includes('venta') || movement.type_display?.includes('salida'))
-                              ? alpha(theme.palette.error.main, 0.2)
-                              : alpha(theme.palette.info.main, 0.2)}`
-                        }}>
-                          {movement.type_display}
-                        </Box>
-                      </Box>
-                    }
-                    secondary={
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{
-                          display: 'block',
-                          fontSize: { xs: '0.72rem', sm: '0.75rem' },
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {movement.variant_info} • Cantidad: {Math.abs(movement.quantity)} • {new Date(movement.created_at).toLocaleDateString()}
-                      </Typography>
-                    }
-                  />
-                </ListItem>
-                {index < (movements?.length || 0) - 1 && (
-                  <Divider variant="inset" component="li" />
-                )}
-              </React.Fragment>
-            ))}
+            {movements?.map((movement, index) => {
+              const isPurchase = movement.type === 'purchase' || movement.type_display?.toLowerCase().includes('compra')
+              const isSale = movement.type_display?.toLowerCase().includes('venta') || movement.type_display?.toLowerCase().includes('salida')
+              
+              return (
+                <Box key={movement.id} sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.2,
+                  px: 2,
+                  py: 1.2,
+                  borderBottom: index === movements.length - 1 ? 'none' : `1px solid ${theme.palette.divider}`,
+                  transition: 'background 0.1s',
+                  '&:hover': { bgcolor: 'action.hover' }
+                }}>
+                  <Box sx={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    flexShrink: 0,
+                    bgcolor: isPurchase ? 'success.main' : isSale ? 'error.main' : 'info.main'
+                  }} />
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontSize: '12px', fontWeight: 500, color: 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {movement.product_name}
+                    </Typography>
+                    <Typography sx={{ fontSize: '11px', color: 'text.secondary', mt: 0.1 }}>
+                      {movement.variant_info}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                    <Box sx={{ 
+                      display: 'inline-flex', 
+                      px: 0.8, 
+                      py: 0.2, 
+                      borderRadius: 0.5,
+                      fontSize: '10px',
+                      fontWeight: 500,
+                      bgcolor: isPurchase ? alpha(theme.palette.success.main, 0.08) : isSale ? alpha(theme.palette.error.main, 0.08) : alpha(theme.palette.info.main, 0.08),
+                      color: isPurchase ? 'success.main' : isSale ? 'error.main' : 'info.main',
+                    }}>
+                      {movement.type_display}
+                    </Box>
+                    <Typography sx={{ fontSize: '11px', color: 'text.secondary', mt: 0.3 }}>
+                      {new Date(movement.created_at).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+                </Box>
+              )
+            })}
             {(!movements || movements.length === 0) && (
-              <ListItem sx={{ px: 0 }}>
-                <ListItemText
-                  primary="No hay movimientos recientes"
-                  secondary="Los movimientos de inventario aparecerán aquí"
-                />
-              </ListItem>
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>
+                  No hay movimientos recientes
+                </Typography>
+              </Box>
             )}
-          </List>
+          </Box>
         )}
       </Box>
     </Grid>
@@ -187,6 +125,3 @@ const RecentMovements: React.FC<RecentMovementsProps> = ({ movements, loading })
 }
 
 export default RecentMovements
-
-
-

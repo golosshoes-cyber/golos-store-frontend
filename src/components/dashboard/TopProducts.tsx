@@ -3,19 +3,10 @@ import {
   Grid,
   Box,
   CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
   Typography,
 } from '@mui/material'
-import { alpha, useTheme } from '@mui/material/styles'
-import {
-  EmojiEvents,
-  MilitaryTech,
-  WorkspacePremium,
-} from '@mui/icons-material'
+import { useTheme } from '@mui/material/styles'
+import { StarOutline } from '@mui/icons-material'
 import type { TopProductsProps } from '../../types/dashboard'
 
 const TopProducts: React.FC<TopProductsProps> = ({ products, loading }) => {
@@ -25,111 +16,80 @@ const TopProducts: React.FC<TopProductsProps> = ({ products, loading }) => {
     <Grid item xs={12} lg={6}>
       <Box
         sx={{
-          p: 2.5,
-          height: 300,
+          height: 280,
+          display: 'flex',
+          flexDirection: 'column',
           borderRadius: 2,
           border: `1px solid ${theme.palette.divider}`,
           bgcolor: 'background.paper',
-          boxShadow: 'none',
-          display: 'flex',
-          flexDirection: 'column',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
           overflow: 'hidden',
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2.5}>
-          <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-            Top Productos
+        <Box sx={{ 
+          px: 2, 
+          py: 1.5, 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          borderBottom: `1px solid ${theme.palette.divider}`
+        }}>
+          <Typography sx={{ fontSize: '12px', fontWeight: 600, color: 'text.primary', letterSpacing: '-0.1px' }}>
+            Top productos
           </Typography>
-          <EmojiEvents sx={{ fontSize: 18, color: 'text.secondary' }} />
+          <Typography sx={{ fontSize: '11px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}>
+            Ver reportes →
+          </Typography>
         </Box>
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center" height={200}>
             <CircularProgress size={24} />
           </Box>
         ) : (
-          <List
-            sx={{
-              maxHeight: 220,
-              overflow: 'auto',
-              scrollbarWidth: 'thin',
-              scrollbarColor: 'transparent transparent',
-              '&::-webkit-scrollbar': { width: 5, height: 5 },
-              '&::-webkit-scrollbar-track': { background: 'transparent' },
-              '&::-webkit-scrollbar-thumb': {
-                background: 'transparent',
-                borderRadius: 8,
-              },
-              '&:hover': {
-                scrollbarColor:
-                  theme.palette.mode === 'light'
-                    ? alpha('#0f172a', 0.24) + ' transparent'
-                    : alpha('#e2e8f0', 0.26) + ' transparent',
-              },
-              '&:hover::-webkit-scrollbar-thumb': {
-                background:
-                  theme.palette.mode === 'light'
-                    ? alpha('#0f172a', 0.2)
-                    : alpha('#e2e8f0', 0.24),
-              },
-            }}
-          >
-            {products?.map((product, index: number) => (
-              <React.Fragment key={product.id}>
-                <ListItem
-                  sx={{
-                    px: 0,
-                    transition: 'all 0.2s ease',
-                    '@media (hover: hover) and (pointer: fine)': {
-                      '&:hover': {
-                        backgroundColor: alpha(theme.palette.warning.main, 0.1),
-                        borderRadius: 2,
-                        px: 1,
-                      },
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 40 }}>
-                    {index === 0 && <MilitaryTech color="warning" />}
-                    {index === 1 && <WorkspacePremium color="action" />}
-                    {index === 2 && <WorkspacePremium color="disabled" />}
-                    {index > 2 && (
-                      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'bold' }}>
-                        #{index + 1}
-                      </Typography>
-                    )}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Box display="flex" justifyContent="space-between" alignItems="center" gap={1}>
-                        <Typography variant="body2" fontWeight="medium">
-                          {product.product_name}
-                        </Typography>
-                        <Typography variant="body2" fontWeight="bold" color="primary">
-                          {product.total_sold} uds
-                        </Typography>
-                      </Box>
-                    }
-                    secondary={
-                      <Typography variant="caption" color="text.secondary">
-                        Ingresos: ${product.revenue?.toFixed(2) || '0.00'}
-                      </Typography>
-                    }
-                  />
-                </ListItem>
-                {index < (products?.length || 0) - 1 && (
-                  <Divider variant="inset" component="li" />
-                )}
-              </React.Fragment>
+          <Box sx={{ flex: 1, overflow: 'auto', '&::-webkit-scrollbar': { width: 4 } }}>
+            {products?.map((product, index) => (
+              <Box key={product.id} sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.2,
+                px: 2,
+                py: 1.2,
+                borderBottom: index === products.length - 1 ? 'none' : `1px solid ${theme.palette.divider}`,
+                transition: 'background 0.1s',
+                '&:hover': { bgcolor: 'action.hover' }
+              }}>
+                <Box sx={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  flexShrink: 0,
+                  bgcolor: index === 0 ? 'warning.main' : index === 1 ? 'action.disabled' : 'action.disabled',
+                  opacity: index > 2 ? 0.3 : 1
+                }} />
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontSize: '12px', fontWeight: 500, color: 'text.primary' }}>
+                    {product.product_name}
+                  </Typography>
+                  <Typography sx={{ fontSize: '11px', color: 'text.secondary', mt: 0.1 }}>
+                    Ingresos: ${product.revenue?.toLocaleString()}
+                  </Typography>
+                </Box>
+                <Box sx={{ textAlign: 'right', flexShrink: 0, color: 'primary.main' }}>
+                  <Typography sx={{ fontSize: '12px', fontWeight: 600 }}>
+                    {product.total_sold} uds
+                  </Typography>
+                </Box>
+              </Box>
             ))}
             {(!products || products.length === 0) && (
-              <ListItem sx={{ px: 0 }}>
-                <ListItemText
-                  primary="No hay ventas registradas"
-                  secondary="Los productos más vendidos aparecerán aquí"
-                />
-              </ListItem>
+              <Box sx={{ p: '32px 16px', textAlign: 'center' }}>
+                <StarOutline sx={{ fontSize: 24, mb: 1, opacity: 0.3, color: 'text.secondary' }} />
+                <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>
+                  Sin ventas registradas aún
+                </Typography>
+              </Box>
             )}
-          </List>
+          </Box>
         )}
       </Box>
     </Grid>
@@ -137,6 +97,3 @@ const TopProducts: React.FC<TopProductsProps> = ({ products, loading }) => {
 }
 
 export default TopProducts
-
-
-

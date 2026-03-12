@@ -5,23 +5,22 @@ import {
   Typography,
   Box,
 } from '@mui/material'
-import { alpha, useTheme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 
 interface StatCardProps {
   title: string
   value: string | number
-  icon: React.ReactNode
   color: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'
-  isCurrency?: boolean  // Nuevo prop para identificar valores de moneda
+  isCurrency?: boolean
+  meta?: React.ReactNode
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, isCurrency = false }) => {
+const StatCard: React.FC<StatCardProps> = ({ title, value, isCurrency = false, meta }) => {
   const theme = useTheme()
 
   // Formatear valor para COP (sin decimales)
   const formatValue = (val: string | number) => {
     if (isCurrency) {
-      // Si es moneda, quitar decimales y formatear con separadores de miles
       const numValue = typeof val === 'string' ? parseFloat(val.replace(/[^0-9.-]/g, '')) : val
       return `$${numValue.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
     }
@@ -31,76 +30,56 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, isCurren
   return (
     <Card sx={{ 
       height: '100%',
-      borderRadius: 2,
+      borderRadius: 2, // 8px
       border: `1px solid ${theme.palette.divider}`,
       bgcolor: 'background.paper',
-      boxShadow: 'none',
-      transition: 'all 0.2s ease',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
       overflow: 'hidden',
-      '&:hover': {
-        border: `1px solid ${alpha(theme.palette[color].main, 0.3)}`,
-        bgcolor: alpha(theme.palette[color].main, 0.02),
-      }
     }}>
       <CardContent sx={{ 
-        p: 1.2,
+        p: 2, // 16px
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center'
       }}>
-        <Box 
-          display="flex" 
-          alignItems="center" 
-          justifyContent="space-between"
-          gap={1}
+        <Typography 
+          sx={{ 
+            fontSize: '11px',
+            fontWeight: 500,
+            textTransform: 'uppercase',
+            letterSpacing: '0.4px',
+            mb: 1,
+            display: 'block',
+            color: 'text.secondary'
+          }}
         >
-          <Box sx={{ textAlign: 'left', flex: 1 }}>
-            <Typography 
-              color="textSecondary" 
-              variant="caption"
-              sx={{ 
-                fontSize: '9px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                mb: 0.2,
-                display: 'block',
-                opacity: 0.7
-              }}
-            >
-              {title}
-            </Typography>
-            <Typography 
-              variant="h5" 
-              component="h2" 
-              sx={{ 
-                fontSize: '1.25rem',
-                fontWeight: 700,
-                lineHeight: 1,
-                letterSpacing: '-0.5px'
-              }}
-            >
-              {formatValue(value)}
-            </Typography>
+          {title}
+        </Typography>
+        <Typography 
+          variant="h5" 
+          component="h2" 
+          sx={{ 
+            fontSize: '22px',
+            fontWeight: 600,
+            lineHeight: 1,
+            letterSpacing: '-0.8px',
+            color: 'text.primary',
+            mb: 0.8
+          }}
+        >
+          {formatValue(value)}
+        </Typography>
+        {meta && (
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 0.5,
+            fontSize: '11px', 
+            color: 'text.secondary' 
+          }}>
+            {meta}
           </Box>
-          <Box
-            sx={{
-              backgroundColor: alpha(theme.palette[color].main, 0.05),
-              color: `${color}.main`,
-              borderRadius: 1,
-              p: 0.75,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              '& .MuiSvgIcon-root': {
-                fontSize: 18
-              }
-            }}
-          >
-            {icon}
-          </Box>
-        </Box>
+        )}
       </CardContent>
     </Card>
   )
