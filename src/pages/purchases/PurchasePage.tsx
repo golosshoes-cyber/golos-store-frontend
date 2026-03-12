@@ -6,8 +6,9 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import { alpha } from '@mui/material/styles'
-import { AddShoppingCart } from '@mui/icons-material'
+import {
+  AddShoppingCart
+} from '@mui/icons-material'
 import PurchaseFilters from '../../components/purchases/PurchaseFilters'
 import PurchasesTable from '../../components/purchases/PurchasesTable'
 import PurchasesCards from '../../components/purchases/PurchasesCards'
@@ -61,15 +62,6 @@ const PurchasePage: React.FC = () => {
           <GradientButton
             startIcon={<AddShoppingCart />}
             onClick={() => setCreateModalOpen(true)}
-            sx={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              color: 'white',
-              border: `1px solid ${alpha('#ffffff', 0.3)}`,
-              '&:hover': {
-                backgroundColor: alpha('#ffffff', 0.3),
-                transform: 'translateY(-1px)',
-              },
-            }}
           >
             Crear Compra
           </GradientButton>

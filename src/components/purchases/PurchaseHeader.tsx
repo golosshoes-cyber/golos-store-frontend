@@ -77,11 +77,11 @@ const PurchaseHeader: React.FC<PurchaseHeaderProps> = ({
               onClick={onClearAll}
               fullWidth={isMobile}
               sx={{
-                borderColor: 'rgba(255,255,255,0.3)',
+                borderColor: 'rgba(255,255,255,0.5)',
                 color: 'white',
                 '&:hover': {
-                  borderColor: 'rgba(255,255,255,0.5)',
-                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  borderColor: '#ffffff',
+                  backgroundColor: 'rgba(255,255,255,0.15)',
                 }
               }}
             >
@@ -92,13 +92,6 @@ const PurchaseHeader: React.FC<PurchaseHeaderProps> = ({
             startIcon={<InventoryIcon />}
             onClick={onAddItem}
             fullWidth={isMobile}
-            sx={{ 
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.3)',
-              }
-            }}
           >
             Agregar Item
           </GradientButton>

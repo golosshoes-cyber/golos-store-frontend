@@ -180,13 +180,6 @@ const SuppliersPage: React.FC = () => {
           <GradientButton
             startIcon={<AddIcon />}
             onClick={handleCreateSupplier}
-            sx={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.3)',
-              },
-            }}
           >
             Crear Proveedor
           </GradientButton>

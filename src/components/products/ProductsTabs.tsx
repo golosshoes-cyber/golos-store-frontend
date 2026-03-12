@@ -9,7 +9,6 @@ import {
   Divider,
 } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
-import { alpha } from '@mui/material/styles'
 import type { Product, ProductVariant, ProductImage } from '../../types'
 import ProductsTable from './ProductsTable'
 import VariantsTable from './VariantsTable'
@@ -155,14 +154,7 @@ const ProductsTabs: React.FC<ProductsTabsProps> = ({
               onClick={onCreateVariant}
               sx={{ 
                 width: { xs: '100%', sm: 'auto' },
-                minWidth: { xs: 'auto', sm: '120px' },
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                color: 'white',
-                border: `1px solid ${alpha('#ffffff', 0.3)}`,
-                '&:hover': {
-                  backgroundColor: alpha('#ffffff', 0.3),
-                  transform: 'translateY(-1px)',
-                },
+                minWidth: { xs: 'auto', sm: '120px' }
               }}
             >
               Nueva Variante

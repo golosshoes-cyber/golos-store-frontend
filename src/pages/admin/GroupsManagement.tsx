@@ -17,7 +17,6 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import { alpha } from '@mui/material/styles'
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -145,15 +144,6 @@ const GroupsManagement: React.FC = () => {
           <GradientButton
             startIcon={<AddIcon />}
             onClick={handleCreate}
-            sx={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              color: 'white',
-              border: `1px solid ${alpha('#ffffff', 0.3)}`,
-              '&:hover': {
-                backgroundColor: alpha('#ffffff', 0.3),
-                transform: 'translateY(-1px)',
-              },
-            }}
           >
             Nuevo Grupo
           </GradientButton>

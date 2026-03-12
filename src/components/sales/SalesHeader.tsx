@@ -8,7 +8,7 @@ import {
   Search as SearchIcon,
   ShoppingCart as ShoppingCartIcon,
 } from '@mui/icons-material'
-import { alpha } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import GradientButton from '../../components/common/GradientButton'
 import GlobalSectionHeader from '../common/GlobalSectionHeader'
 
@@ -27,6 +27,8 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
   isMobile,
   filterComponent,
 }) => {
+  const theme = useTheme()
+  const isLight = theme.palette.mode === 'light'
   return (
     <GlobalSectionHeader
       title="Gestión de Ventas"
@@ -37,14 +39,6 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
           startIcon={<AddIcon />}
           onClick={onCreateSale}
           fullWidth={isMobile}
-          sx={{
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            color: 'white',
-            border: `1px solid ${alpha('#ffffff', 0.3)}`,
-            '&:hover': {
-              backgroundColor: alpha('#ffffff', 0.3),
-            },
-          }}
         >
           Crear Venta
         </GradientButton>
@@ -61,23 +55,23 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
             size="small"
             fullWidth
             sx={{
-              backgroundColor: 'rgba(255,255,255,0.1)',
+              backgroundColor: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
               '& .MuiOutlinedInput-root': {
                 '& fieldset': {
-                  borderColor: 'rgba(255,255,255,0.3)',
+                  borderColor: isLight ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)',
                 },
                 '&:hover fieldset': {
-                  borderColor: 'rgba(255,255,255,0.5)',
+                  borderColor: 'rgba(255,255,255,0.6)',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: 'rgba(255,255,255,0.7)',
+                  borderColor: '#ffffff',
                 },
                 '& input': {
                   color: 'white',
                   fontSize: { xs: '0.82rem', sm: '0.9rem' },
                 },
                 '& input::placeholder': {
-                  color: 'rgba(255,255,255,0.7)',
+                  color: 'rgba(255,255,255,0.8)',
                 },
               },
             }}

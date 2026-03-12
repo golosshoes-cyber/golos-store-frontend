@@ -12,7 +12,6 @@ import {
   Button,
   Divider,
 } from '@mui/material'
-import { alpha } from '@mui/material/styles'
 import { Add as AddIcon, Group as GroupIcon, Person as PersonIcon } from '@mui/icons-material'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { userService } from '../../services/userService'
@@ -193,15 +192,6 @@ const UsersManagement: React.FC = () => {
           <GradientButton
             startIcon={<AddIcon />}
             onClick={handleCreateUser}
-            sx={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              color: 'white',
-              border: `1px solid ${alpha('#ffffff', 0.3)}`,
-              '&:hover': {
-                backgroundColor: alpha('#ffffff', 0.3),
-                transform: 'translateY(-1px)',
-              },
-            }}
           >
             Nuevo Usuario
           </GradientButton>
