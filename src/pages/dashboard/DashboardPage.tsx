@@ -14,8 +14,8 @@ import RecentMovements from '../../components/dashboard/RecentMovements'
 import TopProducts from '../../components/dashboard/TopProducts'
 import SupplierPerformance from '../../components/dashboard/SupplierPerformance'
 import SalesChart from '../../components/dashboard/SalesChart'
-import GradientButton from '../../components/common/GradientButton'
 import { storeService } from '../../services/storeService'
+import { Button } from '@mui/material'
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
@@ -68,37 +68,7 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        isolation: 'isolate',
-        borderRadius: 4,
-        p: { xs: 0.75, sm: 1, md: 1.5 },
-        overflow: 'hidden',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `linear-gradient(${alpha(theme.palette.primary.main, 0.08)} 1px, transparent 1px), linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.08)} 1px, transparent 1px)`,
-          backgroundSize: '34px 34px',
-          zIndex: -1,
-          pointerEvents: 'none',
-          opacity: theme.palette.mode === 'light' ? 0.4 : 0.2,
-        },
-        '&::after': {
-          content: '""',
-          position: 'absolute',
-          width: 280,
-          height: 280,
-          top: -130,
-          right: -110,
-          borderRadius: '50%',
-          background: `radial-gradient(circle, ${alpha(theme.palette.secondary.main, 0.2)} 0%, transparent 72%)`,
-          zIndex: -1,
-          pointerEvents: 'none',
-        },
-      }}
-    >
+    <Box sx={{ py: 1 }}>
       {/* Header Principal del Dashboard */}
       <DashboardHeader
         searchValue={searchValue}
@@ -140,82 +110,62 @@ const DashboardPage: React.FC = () => {
 
         {canViewReports && (
           <Grid item xs={12} md={6} lg={4}>
-            <Paper
-              variant="outlined"
+            <Box
               sx={{
                 p: 2,
-                borderRadius: 3,
-                background: alpha(theme.palette.background.paper, 0.92),
-                borderColor: alpha(theme.palette.primary.main, 0.25),
+                borderRadius: 2,
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: 'background.paper',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <StorefrontIcon color="primary" />
-                  <Typography variant="subtitle1" fontWeight={700}>
-                    Wompi
+                  <StorefrontIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    Estado Wompi
                   </Typography>
                 </Box>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    px: 1,
-                    py: 0.4,
-                    borderRadius: 99,
-                    backgroundColor: wompiHealth?.configured
-                      ? alpha(theme.palette.success.main, 0.14)
-                      : alpha(theme.palette.warning.main, 0.16),
-                    color: wompiHealth?.configured ? 'success.main' : 'warning.main',
-                    fontWeight: 700,
-                  }}
-                >
-                  {wompiLoading ? 'Cargando...' : wompiHealth?.configured ? 'OK' : 'Incompleto'}
-                </Typography>
+                <Box sx={{ 
+                  px: 1, 
+                  py: 0.25, 
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  bgcolor: wompiHealth?.configured ? alpha(theme.palette.success.main, 0.08) : alpha(theme.palette.warning.main, 0.08),
+                  color: wompiHealth?.configured ? 'success.main' : 'warning.main',
+                  border: `1px solid ${wompiHealth?.configured ? alpha(theme.palette.success.main, 0.2) : alpha(theme.palette.warning.main, 0.2)}`
+                }}>
+                  {wompiLoading ? '...' : wompiHealth?.configured ? 'Conectado' : 'Incompleto'}
+                </Box>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
                 {wompiLoading
-                  ? 'Consultando estado de configuración...'
+                  ? 'Consultando configuración...'
                   : wompiHealth?.configured
-                    ? `Ambiente: ${wompiHealth.environment}`
-                    : `Faltan: ${(wompiHealth?.missing || []).join(', ') || 'Variables de Wompi'}`}
+                    ? `Ambiente activo: ${wompiHealth.environment}`
+                    : `Pendiente: ${(wompiHealth?.missing || []).join(', ')}`}
               </Typography>
 
-              <Box sx={{ mt: 1.5 }}>
-                <GradientButton
+              <Box sx={{ mt: 2 }}>
+                <Button
                   size="small"
+                  variant="outlined"
                   onClick={() => navigate('/store/ops')}
                   sx={{
-                    px: 1.6,
-                    py: 0.35,
-                    fontSize: '0.75rem',
-                    borderRadius: 999,
-                    backgroundColor:
-                      theme.palette.mode === 'light'
-                        ? alpha(theme.palette.primary.main, 0.14)
-                        : alpha('#ffffff', 0.2),
-                    color:
-                      theme.palette.mode === 'light'
-                        ? theme.palette.primary.dark
-                        : 'white',
-                    border: `1px solid ${
-                      theme.palette.mode === 'light'
-                        ? alpha(theme.palette.primary.main, 0.28)
-                        : alpha('#ffffff', 0.3)
-                    }`,
-                    '&:hover': {
-                      backgroundColor:
-                        theme.palette.mode === 'light'
-                          ? alpha(theme.palette.primary.main, 0.22)
-                          : alpha('#ffffff', 0.3),
-                      transform: 'translateY(-1px)',
-                    },
+                    fontSize: '11px',
+                    py: 0.4,
+                    px: 1.5,
+                    borderRadius: 1.5,
                   }}
                 >
-                  Ir a Store Ops
-                </GradientButton>
+                  Configurar
+                </Button>
               </Box>
-            </Paper>
+            </Box>
           </Grid>
         )}
 

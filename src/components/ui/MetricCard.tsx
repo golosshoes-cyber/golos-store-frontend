@@ -25,26 +25,16 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <Paper sx={{ 
-      p: { xs: 2, sm: 2.5, md: 3 },
+      p: 2.5,
       height: '100%',
-      minHeight: { xs: '140px', sm: '140px', md: '140px' },
-      borderRadius: 4,
-      border: `1px solid ${alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.12 : 0.26)}`,
-      background:
-        theme.palette.mode === 'light'
-          ? alpha('#ffffff', 0.96)
-          : alpha('#0b1220', 0.86),
-      transition: 'all 0.25s ease',
-      boxShadow:
-        theme.palette.mode === 'light'
-          ? `0 6px 16px ${alpha('#0f172a', 0.07)}`
-          : `0 10px 24px ${alpha('#000000', 0.42)}`,
+      borderRadius: 2,
+      border: `1px solid ${theme.palette.divider}`,
+      bgcolor: 'background.paper',
+      boxShadow: 'none',
+      transition: 'all 0.2s ease',
       '&:hover': {
-        transform: 'translateY(-2px)',
-        boxShadow:
-          theme.palette.mode === 'light'
-            ? `0 10px 22px ${alpha(theme.palette.primary.main, 0.14)}`
-            : `0 14px 28px ${alpha('#000000', 0.52)}`,
+        borderColor: alpha(theme.palette.primary.main, 0.2),
+        boxShadow: `0 4px 12px ${alpha('#000', 0.03)}`,
       }
     }}>
     <Typography 

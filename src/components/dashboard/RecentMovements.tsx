@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   Grid,
-  Paper,
   Box,
   CircularProgress,
   List,
@@ -10,7 +9,6 @@ import {
   ListItemIcon,
   Divider,
   Typography,
-  Chip,
 } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import {
@@ -25,29 +23,23 @@ const RecentMovements: React.FC<RecentMovementsProps> = ({ movements, loading })
 
   return (
     <Grid item xs={12} lg={6}>
-      <Paper
+      <Box
         sx={{
-          p: { xs: 1.5, sm: 2 },
-          height: { xs: 320, sm: 300 },
+          p: 2.5,
+          height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          minHeight: 0,
-          overflow: 'hidden',
-          borderRadius: 4,
-          border: `1px solid ${alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.18 : 0.28)}`,
-          background:
-            theme.palette.mode === 'light'
-              ? alpha('#ffffff', 0.96)
-              : alpha('#0b1220', 0.86),
-          boxShadow:
-            theme.palette.mode === 'light'
-              ? `0 8px 22px ${alpha('#0f172a', 0.08)}`
-              : `0 14px 26px ${alpha('#000000', 0.46)}`,
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+          bgcolor: 'background.paper',
+          boxShadow: 'none',
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6">Movimientos Recientes</Typography>
-          <SwapHoriz color="action" />
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2.5}>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            Movimientos Recientes
+          </Typography>
+          <SwapHoriz sx={{ fontSize: 18, color: 'text.secondary' }} />
         </Box>
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center" height={200}>
@@ -98,13 +90,13 @@ const RecentMovements: React.FC<RecentMovementsProps> = ({ movements, loading })
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 40 }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
                     {movement.type === 'purchase' || movement.type_display?.includes('compra') ? (
-                      <TrendingUp color="success" />
+                      <TrendingUp sx={{ fontSize: 18, color: 'success.main' }} />
                     ) : movement.type_display?.includes('venta') || movement.type_display?.includes('salida') ? (
-                      <TrendingDown color="error" />
+                      <TrendingDown sx={{ fontSize: 18, color: 'error.main' }} />
                     ) : (
-                      <SwapHoriz color="info" />
+                      <SwapHoriz sx={{ fontSize: 18, color: 'info.main' }} />
                     )}
                   </ListItemIcon>
                   <ListItemText
@@ -130,22 +122,31 @@ const RecentMovements: React.FC<RecentMovementsProps> = ({ movements, loading })
                         >
                           {movement.product_name}
                         </Typography>
-                        <Chip
-                          label={movement.type_display}
-                          color={
-                            movement.type === 'purchase' || movement.type_display?.includes('compra') ? 'success' :
-                            movement.type_display?.includes('venta') || movement.type_display?.includes('salida') ? 'error' : 'info'
-                          }
-                          size="small"
-                          sx={{
-                            maxWidth: '100%',
-                            '& .MuiChip-label': {
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            },
-                          }}
-                        />
+                        <Box sx={{ 
+                          display: 'inline-flex', 
+                          px: 1, 
+                          py: 0.25, 
+                          borderRadius: '999px',
+                          fontSize: '10px',
+                          fontWeight: 600,
+                          bgcolor: (movement.type === 'purchase' || movement.type_display?.includes('compra')) 
+                            ? alpha(theme.palette.success.main, 0.08) 
+                            : (movement.type_display?.includes('venta') || movement.type_display?.includes('salida'))
+                              ? alpha(theme.palette.error.main, 0.08)
+                              : alpha(theme.palette.info.main, 0.08),
+                          color: (movement.type === 'purchase' || movement.type_display?.includes('compra')) 
+                            ? theme.palette.success.main 
+                            : (movement.type_display?.includes('venta') || movement.type_display?.includes('salida'))
+                              ? theme.palette.error.main
+                              : theme.palette.info.main,
+                          border: `1px solid ${(movement.type === 'purchase' || movement.type_display?.includes('compra')) 
+                            ? alpha(theme.palette.success.main, 0.2) 
+                            : (movement.type_display?.includes('venta') || movement.type_display?.includes('salida'))
+                              ? alpha(theme.palette.error.main, 0.2)
+                              : alpha(theme.palette.info.main, 0.2)}`
+                        }}>
+                          {movement.type_display}
+                        </Box>
                       </Box>
                     }
                     secondary={
@@ -180,7 +181,7 @@ const RecentMovements: React.FC<RecentMovementsProps> = ({ movements, loading })
             )}
           </List>
         )}
-      </Paper>
+      </Box>
     </Grid>
   )
 }

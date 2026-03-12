@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   Grid,
-  Paper,
   Box,
   CircularProgress,
   List,
@@ -24,25 +23,24 @@ const TopProducts: React.FC<TopProductsProps> = ({ products, loading }) => {
 
   return (
     <Grid item xs={12} lg={6}>
-      <Paper
+      <Box
         sx={{
-          p: { xs: 1.5, sm: 2 },
+          p: 2.5,
           height: 300,
-          borderRadius: 4,
-          border: `1px solid ${alpha(theme.palette.warning.main, theme.palette.mode === 'light' ? 0.2 : 0.3)}`,
-          background:
-            theme.palette.mode === 'light'
-              ? alpha('#ffffff', 0.96)
-              : alpha('#0b1220', 0.86),
-          boxShadow:
-            theme.palette.mode === 'light'
-              ? `0 8px 22px ${alpha('#0f172a', 0.08)}`
-              : `0 14px 26px ${alpha('#000000', 0.46)}`,
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+          bgcolor: 'background.paper',
+          boxShadow: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6">Top Productos</Typography>
-          <EmojiEvents color="action" />
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2.5}>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            Top Productos
+          </Typography>
+          <EmojiEvents sx={{ fontSize: 18, color: 'text.secondary' }} />
         </Box>
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center" height={200}>
@@ -133,7 +131,7 @@ const TopProducts: React.FC<TopProductsProps> = ({ products, loading }) => {
             )}
           </List>
         )}
-      </Paper>
+      </Box>
     </Grid>
   )
 }

@@ -1,6 +1,5 @@
 import React from 'react'
-import { Box, Paper, Typography } from '@mui/material'
-import { alpha, useTheme } from '@mui/material/styles'
+import { Box, Typography, Divider } from '@mui/material'
 
 interface GlobalSectionHeaderProps {
   title: string
@@ -17,43 +16,17 @@ const GlobalSectionHeader: React.FC<GlobalSectionHeaderProps> = ({
   actions,
   bottomContent,
 }) => {
-  const theme = useTheme()
 
   return (
-    <Paper
-      sx={{
-        p: { xs: 1.5, sm: 2.2, md: 3 },
-        mb: 3,
-        borderRadius: 4,
-        position: 'relative',
-        overflow: 'hidden',
-        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 140%)`,
-        color: 'white',
-        border: `1px solid ${alpha('#ffffff', 0.24)}`,
-        boxShadow:
-          theme.palette.mode === 'light'
-            ? `0 14px 28px ${alpha(theme.palette.primary.dark, 0.24)}`
-            : `0 14px 32px ${alpha('#000000', 0.52)}`,
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: -70,
-          right: -55,
-          width: 180,
-          height: 180,
-          borderRadius: '50%',
-          background: alpha('#ffffff', 0.18),
-          pointerEvents: 'none',
-        },
-      }}
-    >
+    <Box sx={{ mb: 4 }}>
       <Box
         sx={{
           display: 'flex',
-          alignItems: { xs: 'stretch', lg: 'center' },
+          alignItems: { xs: 'flex-start', md: 'center' },
           justifyContent: 'space-between',
-          flexDirection: { xs: 'column', lg: 'row' },
-          gap: { xs: 1.2, sm: 1.6, lg: 2 },
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: 2,
+          mb: bottomContent ? 2 : 0
         }}
       >
         <Box sx={{ minWidth: 0 }}>
@@ -61,25 +34,23 @@ const GlobalSectionHeader: React.FC<GlobalSectionHeaderProps> = ({
             sx={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: { xs: 'center', lg: 'flex-start' },
-              gap: 1.2,
-              mb: 0.7,
-              minWidth: 0,
+              gap: 1.5,
+              mb: 0.5,
             }}
           >
-            {icon}
+            {icon && (
+              <Box sx={{ color: 'text.secondary', display: 'flex' }}>
+                {React.cloneElement(icon as React.ReactElement, { sx: { fontSize: 24 } })}
+              </Box>
+            )}
             <Typography
-              variant="h4"
+              variant="h5"
               component="h1"
-              fontWeight="bold"
               sx={{
-                fontSize: { xs: '1.1rem', sm: '1.45rem', lg: '1.9rem' },
-                lineHeight: 1.15,
-                textAlign: { xs: 'center', lg: 'left' },
-                overflowWrap: 'anywhere',
-                '@media (max-width:360px)': {
-                  fontSize: '1rem',
-                },
+                fontWeight: 600,
+                letterSpacing: '-0.02em',
+                color: 'text.primary',
+                fontSize: { xs: '1.25rem', sm: '1.5rem' },
               }}
             >
               {title}
@@ -87,15 +58,10 @@ const GlobalSectionHeader: React.FC<GlobalSectionHeaderProps> = ({
           </Box>
           {subtitle && (
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
-                opacity: 0.92,
-                textAlign: { xs: 'center', lg: 'left' },
-                fontSize: { xs: '0.78rem', sm: '0.9rem', lg: '1rem' },
-                overflowWrap: 'anywhere',
-                '@media (max-width:360px)': {
-                  fontSize: '0.72rem',
-                },
+                color: 'text.secondary',
+                fontSize: '0.875rem',
               }}
             >
               {subtitle}
@@ -108,12 +74,9 @@ const GlobalSectionHeader: React.FC<GlobalSectionHeaderProps> = ({
             sx={{
               display: 'flex',
               gap: 1,
-              flexWrap: 'wrap',
-              justifyContent: { xs: 'stretch', lg: 'flex-end' },
-              width: { xs: '100%', lg: 'auto' },
-              '& > *': {
-                width: { xs: '100%', sm: 'auto' },
-              },
+              alignItems: 'center',
+              width: { xs: '100%', md: 'auto' },
+              justifyContent: { xs: 'flex-start', md: 'flex-end' },
             }}
           >
             {actions}
@@ -122,11 +85,13 @@ const GlobalSectionHeader: React.FC<GlobalSectionHeaderProps> = ({
       </Box>
 
       {bottomContent && (
-        <Box sx={{ mt: { xs: 1.2, sm: 1.6 } }}>
+        <Box sx={{ mt: 2 }}>
           {bottomContent}
         </Box>
       )}
-    </Paper>
+      
+      {!bottomContent && <Divider sx={{ mt: 3, opacity: 0.5 }} />}
+    </Box>
   )
 }
 

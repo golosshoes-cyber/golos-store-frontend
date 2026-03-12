@@ -31,26 +31,15 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, isCurren
   return (
     <Card sx={{ 
       height: '100%',
-      minHeight: { xs: '140px', sm: '140px', md: '140px' },
-      borderRadius: 4,
-      border: `1px solid ${alpha(theme.palette[color].main, theme.palette.mode === 'light' ? 0.16 : 0.28)}`,
-      background:
-        theme.palette.mode === 'light'
-          ? alpha('#ffffff', 0.96)
-          : alpha('#0b1220', 0.86),
-      boxShadow:
-        theme.palette.mode === 'light'
-          ? `0 6px 18px ${alpha('#0f172a', 0.08)}`
-          : `0 10px 26px ${alpha('#000000', 0.42)}`,
-      transition: 'all 0.25s ease',
+      borderRadius: 2,
+      border: `1px solid ${theme.palette.divider}`,
+      bgcolor: 'background.paper',
+      boxShadow: 'none',
+      transition: 'all 0.2s ease',
       overflow: 'hidden',
-      position: 'relative',
       '&:hover': {
-        transform: 'translateY(-2px)',
-        boxShadow:
-          theme.palette.mode === 'light'
-            ? `0 10px 24px ${alpha(theme.palette[color].main, 0.16)}`
-            : `0 14px 30px ${alpha('#000000', 0.54)}`,
+        border: `1px solid ${alpha(theme.palette[color].main, 0.3)}`,
+        bgcolor: alpha(theme.palette[color].main, 0.02),
       }
     }}>
       <CardContent sx={{ 
@@ -95,20 +84,17 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, isCurren
           </Box>
           <Box
             sx={{
-              backgroundColor: `${color}.main`,
-              color: `${color}.contrastText`,
-              borderRadius: 2.5,
-              p: { xs: 1.5, sm: 1.5, md: 2 },
+              backgroundColor: alpha(theme.palette[color].main, 0.08),
+              color: `${color}.main`,
+              borderRadius: 1.5,
+              p: 1.5,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              minWidth: { xs: '48px', sm: '48px', md: '56px' },
-              height: { xs: '48px', sm: '48px', md: '56px' },
-              boxShadow: `0 8px 16px ${alpha(theme.palette[color].main, 0.26)}`,
               '& .MuiSvgIcon-root': {
-                fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
-            }
-          }}
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              }
+            }}
           >
             {icon}
           </Box>

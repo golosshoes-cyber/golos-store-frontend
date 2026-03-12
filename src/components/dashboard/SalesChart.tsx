@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   Grid,
-  Paper,
   Box,
   CircularProgress,
   Typography,
@@ -25,25 +24,21 @@ const SalesChart: React.FC<SalesChartProps> = ({ chartData, loading }) => {
 
   return (
     <Grid item xs={12} lg={8}>
-      <Paper
+      <Box
         sx={{
-          p: { xs: 1.5, sm: 2 },
-          height: { xs: 340, sm: 400 },
-          borderRadius: 4,
-          border: `1px solid ${alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.2 : 0.3)}`,
-          background:
-            theme.palette.mode === 'light'
-              ? alpha('#ffffff', 0.96)
-              : alpha('#0b1220', 0.88),
-          boxShadow:
-            theme.palette.mode === 'light'
-              ? `0 8px 22px ${alpha('#0f172a', 0.08)}`
-              : `0 14px 26px ${alpha('#000000', 0.46)}`,
+          p: 2.5,
+          height: '100%',
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+          bgcolor: 'background.paper',
+          boxShadow: 'none',
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6">Ventas Últimos 30 Días</Typography>
-          <TrendingUp color="action" />
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            Ventas Últimos 30 Días
+          </Typography>
+          <TrendingUp sx={{ fontSize: 18, color: 'text.secondary' }} />
         </Box>
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center" height={300}>
@@ -61,21 +56,28 @@ const SalesChart: React.FC<SalesChartProps> = ({ chartData, loading }) => {
               <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.primary, 0.14)} />
               <XAxis 
                 dataKey="date" 
-                tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
+                tick={{ fontSize: 11, fill: theme.palette.text.secondary }}
                 tickFormatter={(value) => new Date(value).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
+                axisLine={false}
+                tickLine={false}
+                dy={10}
               />
               <YAxis 
-                tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
+                tick={{ fontSize: 11, fill: theme.palette.text.secondary }}
                 tickFormatter={(value) => `$${value.toFixed(0)}`}
+                axisLine={false}
+                tickLine={false}
+                dx={-10}
               />
               <Tooltip 
                 contentStyle={{
-                  borderRadius: 12,
-                  border: `1px solid ${alpha(theme.palette.primary.main, 0.28)}`,
-                  backgroundColor: alpha(theme.palette.background.paper, 0.92),
-                  backdropFilter: 'blur(6px)',
+                  borderRadius: 8,
+                  border: `1px solid ${theme.palette.divider}`,
+                  backgroundColor: theme.palette.background.paper,
+                  boxShadow: `0 4px 12px ${alpha('#000', 0.08)}`,
+                  fontSize: '12px'
                 }}
-                formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Total Ventas']}
+                formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Ventas']}
                 labelFormatter={(label) => `Fecha: ${new Date(label).toLocaleDateString('es-ES')}`}
               />
               <Area type="monotone" dataKey="total" fill="url(#salesGradient)" stroke="none" />
@@ -83,14 +85,14 @@ const SalesChart: React.FC<SalesChartProps> = ({ chartData, loading }) => {
                 type="monotone" 
                 dataKey="total" 
                 stroke={theme.palette.primary.main}
-                strokeWidth={3}
-                dot={{ fill: theme.palette.primary.main, strokeWidth: 2, r: 3 }}
-                activeDot={{ r: 7, fill: theme.palette.secondary.main, stroke: theme.palette.background.paper, strokeWidth: 2 }}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 5, fill: theme.palette.primary.main, stroke: theme.palette.background.paper, strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>
         )}
-      </Paper>
+      </Box>
     </Grid>
   )
 }

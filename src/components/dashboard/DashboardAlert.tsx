@@ -1,7 +1,7 @@
 import React from 'react'
 import {
   Grid,
-  Paper,
+  Box,
   Typography,
   Button,
 } from '@mui/material'
@@ -16,24 +16,19 @@ const DashboardAlert: React.FC<DashboardAlertProps> = ({ lowStock, onViewLowStoc
 
   return (
     <Grid item xs={12}>
-      <Paper
+      <Box
         sx={{
-          p: { xs: 1.25, sm: 1.6 },
+          p: 2,
           display: 'flex',
-          alignItems: { xs: 'flex-start', sm: 'center' },
-          flexDirection: { xs: 'column', sm: 'row' },
-          gap: { xs: 1, sm: 1.5 },
-          borderRadius: 3,
-          bgcolor:
-            theme.palette.mode === 'light'
-              ? alpha(theme.palette.warning.light, 0.28)
-              : alpha(theme.palette.warning.dark, 0.24),
-          border: `1px solid ${alpha(theme.palette.warning.main, 0.5)}`,
-          boxShadow: `0 8px 20px ${alpha(theme.palette.warning.main, 0.2)}`,
+          alignItems: 'center',
+          gap: 2,
+          borderRadius: 2,
+          bgcolor: alpha(theme.palette.warning.main, 0.04),
+          border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
         }}
       >
-        <Warning color="warning" />
-        <Typography>
+        <Warning sx={{ color: 'warning.main', fontSize: 20 }} />
+        <Typography variant="body2" sx={{ flex: 1, color: 'text.primary' }}>
           Hay <strong>{lowStock}</strong> productos con stock bajo.
         </Typography>
         <Button
@@ -44,7 +39,7 @@ const DashboardAlert: React.FC<DashboardAlertProps> = ({ lowStock, onViewLowStoc
         >
           Ver productos
         </Button>
-      </Paper>
+      </Box>
     </Grid>
   )
 }

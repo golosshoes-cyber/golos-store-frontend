@@ -15,6 +15,7 @@ import {
   Tooltip,
   useTheme,
   useMediaQuery,
+  alpha,
 } from '@mui/material'
 import {
   Visibility as VisibilityIcon,
@@ -90,7 +91,14 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
             </Box>
           ) : (
             /* Desktop View - Table */
-            <TableContainer component={Paper} sx={{ width: '100%', overflowX: 'auto' }}>
+            <TableContainer sx={{ 
+              width: '100%', 
+              overflowX: 'auto',
+              borderRadius: 2,
+              border: `1px solid ${theme.palette.divider}`,
+              boxShadow: 'none',
+              bgcolor: 'background.paper',
+            }}>
               <Table aria-label="products table">
                 <TableHead>
                   <TableRow>
@@ -99,7 +107,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                     <TableCell>Tipo</TableCell>
                     <TableCell>Stock Total</TableCell>
                     <TableCell>Estado</TableCell>
-                    <TableCell>Acciones</TableCell>
+                    <TableCell align="right">Acciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -163,22 +171,36 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                             {totalStock} unidades
                           </Typography>
                         </TableCell>
-                        <TableCell>{product.active ? 'Activo' : 'Inactivo'}</TableCell>
                         <TableCell>
-                          <Box display="flex" gap={1}>
-                            <Tooltip title="Ver detalles">
-                              <IconButton size="small" onClick={() => onView(product)} color="primary">
-                                <VisibilityIcon />
+                          <Box sx={{ 
+                            display: 'inline-flex', 
+                            px: 1, 
+                            py: 0.25, 
+                            borderRadius: '999px',
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            bgcolor: product.active ? alpha(theme.palette.success.main, 0.08) : alpha(theme.palette.error.main, 0.08),
+                            color: product.active ? theme.palette.success.main : theme.palette.error.main,
+                            border: `1px solid ${product.active ? alpha(theme.palette.success.main, 0.2) : alpha(theme.palette.error.main, 0.2)}`
+                          }}>
+                            {product.active ? 'Activo' : 'Inactivo'}
+                          </Box>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Box display="flex" gap={0.5} justifyContent="flex-end">
+                            <Tooltip title="Ver">
+                              <IconButton size="small" onClick={() => onView(product)} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}>
+                                <VisibilityIcon sx={{ fontSize: 18 }} />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Editar producto">
-                              <IconButton size="small" onClick={() => onEdit(product)} color="warning">
-                                <EditIcon />
+                            <Tooltip title="Editar">
+                              <IconButton size="small" onClick={() => onEdit(product)} sx={{ color: 'text.secondary', '&:hover': { color: 'warning.main' } }}>
+                                <EditIcon sx={{ fontSize: 18 }} />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Eliminar producto">
-                              <IconButton size="small" onClick={() => onDelete(product.id)} color="error">
-                                <DeleteIcon />
+                            <Tooltip title="Eliminar">
+                              <IconButton size="small" onClick={() => onDelete(product.id)} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
+                                <DeleteIcon sx={{ fontSize: 18 }} />
                               </IconButton>
                             </Tooltip>
                           </Box>

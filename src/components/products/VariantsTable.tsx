@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import {
   Box,
   Typography,
-  Paper,
   Table,
   TableBody,
   TableCell,
@@ -15,6 +14,7 @@ import {
   Button,
   Tooltip,
 } from '@mui/material'
+import { useTheme, alpha } from '@mui/material/styles'
 import {
   Visibility as VisibilityIcon,
   Edit as EditIcon,
@@ -54,6 +54,8 @@ const VariantsTable: React.FC<VariantsTableProps> = ({
   const [imageViewerOpen, setImageViewerOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string>('')
   const [selectedVariantName, setSelectedVariantName] = useState<string>('')
+  const theme = useTheme()
+
   const handleCloseImageViewer = () => {
     const activeElement = document.activeElement
     if (activeElement instanceof HTMLElement) {
@@ -69,6 +71,7 @@ const VariantsTable: React.FC<VariantsTableProps> = ({
     setSelectedVariantName(variantName)
     setImageViewerOpen(true)
   }
+
   const generateSKUVariant = (variant: ProductVariant, product: Product) => {
     const brand = product.brand.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase()
     const name = product.name.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase()
@@ -76,120 +79,168 @@ const VariantsTable: React.FC<VariantsTableProps> = ({
     const size = variant.size.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase()
     return `${brand}-${name}-${color}-${size}`
   }
+
   if (loading) {
     return (
-      <Paper>
-        <Box display="flex" justifyContent="center" alignItems="center" height="400px">
-          <CircularProgress />
-        </Box>
-      </Paper>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: 300,
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`
+      }}>
+        <CircularProgress size={24} />
+      </Box>
     )
   }
 
-  // Diálogo del visor de imágenes
   return (
     <>
-      <Paper>
+      <TableContainer sx={{ 
+        width: '100%', 
+        overflowX: 'auto',
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`,
+        boxShadow: 'none',
+        bgcolor: 'background.paper',
+        mb: 2
+      }}>
         {variants.length === 0 && search && !loading ? (
-          <Box display="flex" justifyContent="center" p={3}>
-            <Typography>No se encontraron variantes con esa búsqueda</Typography>
+          <Box display="flex" justifyContent="center" p={4}>
+            <Typography variant="body2" color="text.secondary">
+              No se encontraron variantes con esa búsqueda
+            </Typography>
           </Box>
         ) : (
-          <>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Producto</TableCell>
-                    <TableCell>SKU</TableCell>
-                    <TableCell>Género</TableCell>
-                    <TableCell>Stock</TableCell>
-                    <TableCell>Precio</TableCell>
-                    <TableCell>Estado</TableCell>
-                    <TableCell>Imagen</TableCell>
-                    <TableCell>Acciones</TableCell>
+          <Table aria-label="variants table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Producto</TableCell>
+                <TableCell>SKU</TableCell>
+                <TableCell>Género</TableCell>
+                <TableCell>Stock</TableCell>
+                <TableCell>Precio</TableCell>
+                <TableCell>Estado</TableCell>
+                <TableCell>Imagen</TableCell>
+                <TableCell align="right">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {variants?.map((variant) => {
+                const product = allProducts?.find(p => p.id === variant.product)
+                return (
+                  <TableRow key={variant.id} hover>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {product?.name || 'N/A'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
+                        {product ? generateSKUVariant(variant, product) : 'N/A'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
+                        {variant.gender}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color={variant.stock === 0 ? 'error.main' : 'text.primary'}>
+                        {variant.stock}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        ${parseFloat(variant.price.toString()).toFixed(2)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ 
+                        display: 'inline-flex', 
+                        px: 1, 
+                        py: 0.25, 
+                        borderRadius: '999px',
+                        fontSize: '11px',
+                        fontWeight: 500,
+                        bgcolor: variant.active ? alpha(theme.palette.success.main, 0.08) : alpha(theme.palette.error.main, 0.08),
+                        color: variant.active ? theme.palette.success.main : theme.palette.error.main,
+                        border: `1px solid ${variant.active ? alpha(theme.palette.success.main, 0.2) : alpha(theme.palette.error.main, 0.2)}`
+                      }}>
+                        {variant.active ? 'Activo' : 'Inactivo'}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      {(() => {
+                        const assignedImage = images.find(img => img.variant === variant.id)
+                        return assignedImage ? (
+                          <Box
+                            component="img"
+                            src={assignedImage.image}
+                            alt=""
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              objectFit: 'cover',
+                              cursor: 'pointer',
+                              borderRadius: 1.5,
+                              border: `1px solid ${theme.palette.divider}`,
+                              transition: 'all 0.2s ease',
+                              '&:hover': {
+                                opacity: 0.8,
+                                transform: 'scale(1.05)',
+                              }
+                            }}
+                            onClick={() => handleImageClick(assignedImage.image, variant)}
+                          />
+                        ) : (
+                          <Typography variant="caption" color="text.disabled">Sin imagen</Typography>
+                        )
+                      })()}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Box display="flex" gap={0.5} justifyContent="flex-end">
+                        <Tooltip title="Ver">
+                          <IconButton size="small" onClick={() => onView(variant)} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}>
+                            <VisibilityIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Editar">
+                          <IconButton size="small" onClick={() => onEdit(variant)} sx={{ color: 'text.secondary', '&:hover': { color: 'warning.main' } }}>
+                            <EditIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Eliminar">
+                          <IconButton size="small" onClick={() => onDelete(variant.id)} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
+                            <DeleteIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {variants?.map((variant) => {
-                    const product = allProducts?.find(p => p.id === variant.product)
-                    return (
-                      <TableRow key={variant.id} hover>
-                        <TableCell>{product?.name || 'N/A'}</TableCell>
-                        <TableCell>{product ? generateSKUVariant(variant, product) : 'N/A'}</TableCell>
-                        <TableCell>{variant.gender === 'male' ? 'Masculino' : variant.gender === 'female' ? 'Femenino' : 'Unisex'}</TableCell>
-                        <TableCell>{variant.stock}</TableCell>
-                        <TableCell>${parseFloat(variant.price.toString()).toFixed(2)}</TableCell>
-                        <TableCell>{variant.active ? 'Activo' : 'Inactivo'}</TableCell>
-                        <TableCell>
-                          {(() => {
-                            const assignedImage = images.find(img => img.variant === variant.id)
-                            return assignedImage ? (
-                              <Box
-                                component="img"
-                                src={assignedImage.image}
-                                alt=""
-                                sx={{
-                                  width: 50,
-                                  height: 50,
-                                  objectFit: 'cover',
-                                  cursor: 'pointer',
-                                  borderRadius: 1,
-                                  border: '1px solid #e0e0e0',
-                                  '&:hover': {
-                                    opacity: 0.8,
-                                    transform: 'scale(1.05)',
-                                    transition: 'all 0.2s ease-in-out'
-                                  }
-                                }}
-                                onClick={() => handleImageClick(assignedImage.image, variant)}
-                              />
-                            ) : (
-                              '-'
-                            )
-                          })()}
-                        </TableCell>
-                        <TableCell>
-                          <Box display="flex" gap={1}>
-                            <Tooltip title="Ver detalles">
-                              <IconButton size="small" onClick={() => onView(variant)} color="primary">
-                                <VisibilityIcon />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Editar variante">
-                              <IconButton size="small" onClick={() => onEdit(variant)} color="warning">
-                                <EditIcon />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Eliminar variante">
-                              <IconButton size="small" onClick={() => onDelete(variant.id)} color="error">
-                                <DeleteIcon />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            
-            {(() => {
-              const count = totalCount || 0
-              return count > 20 && (
-                <Box display="flex" justifyContent="center" p={2}>
-                  <Pagination
-                    count={Math.ceil(count / 20)}
-                    page={page}
-                    onChange={(_, newPage) => onPageChange(newPage)}
-                  />
-                </Box>
-              )
-            })()}
-          </>
+                )
+              })}
+            </TableBody>
+          </Table>
         )}
-      </Paper>
+      </TableContainer>
+
+      {(() => {
+        const count = totalCount || 0
+        return count > 20 && (
+          <Box display="flex" justifyContent="center" p={2}>
+            <Pagination
+              count={Math.ceil(count / 20)}
+              page={page}
+              onChange={(_, newPage) => onPageChange(newPage)}
+              size="small"
+            />
+          </Box>
+        )
+      })()}
+
       <DialogShell
         open={imageViewerOpen}
         onClose={handleCloseImageViewer}
@@ -207,7 +258,7 @@ const VariantsTable: React.FC<VariantsTableProps> = ({
         }
       >
         <Box sx={{ p: 2, pb: 1 }}>
-          <Typography variant="h6" component="h2">
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
             {selectedVariantName}
           </Typography>
         </Box>

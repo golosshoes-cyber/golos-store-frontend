@@ -1,20 +1,20 @@
 import React from 'react'
 import {
   Box,
-  Typography,
   TextField,
   Alert,
   Tabs,
   Tab,
-  Divider,
 } from '@mui/material'
-import { Add as AddIcon } from '@mui/icons-material'
+import { useTheme, alpha } from '@mui/material/styles'
+import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material'
 import type { Product, ProductVariant, ProductImage } from '../../types'
 import ProductsTable from './ProductsTable'
 import VariantsTable from './VariantsTable'
 import VariantsCards from './VariantsCards'
 import ImagesManagement from './ImagesManagement'
 import GradientButton from '../common/GradientButton'
+import { useThemeMode } from '../../contexts/ThemeModeContext'
 
 interface ProductsTabsProps {
   activeTab: number
@@ -91,6 +91,23 @@ const ProductsTabs: React.FC<ProductsTabsProps> = ({
   onImageUpload,
   onImageDelete,
 }) => {
+  const theme = useTheme()
+  const { mode } = useThemeMode()
+
+  const searchFieldSx = {
+    '& .MuiOutlinedInput-root': {
+      bgcolor: mode === 'light' ? alpha('#000', 0.02) : alpha('#fff', 0.02),
+      borderRadius: 1.5,
+      transition: 'all 0.2s ease',
+      '&:hover': {
+        bgcolor: mode === 'light' ? alpha('#000', 0.04) : alpha('#fff', 0.04),
+      },
+      '&.Mui-focused': {
+        bgcolor: 'background.paper',
+      }
+    }
+  }
+
   return (
     <>
       <Tabs 
@@ -99,10 +116,30 @@ const ProductsTabs: React.FC<ProductsTabsProps> = ({
         variant="scrollable"
         scrollButtons="auto"
         sx={{
-          '& .MuiTabs-flexContainer': {
-            flexDirection: { xs: 'column', sm: 'row', lg: 'row' },
+          minHeight: 40,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          mb: 3,
+          '& .MuiTabs-indicator': {
+            backgroundColor: 'text.primary',
+            height: 2,
           },
-          mb: 2
+          '& .MuiTab-root': {
+            minHeight: 40,
+            textTransform: 'none',
+            fontSize: '13px',
+            fontWeight: 400,
+            color: 'text.secondary',
+            px: 2,
+            transition: 'all 0.2s ease',
+            '&.Mui-selected': {
+              color: 'text.primary',
+              fontWeight: 500,
+            },
+            '&:hover': {
+              color: 'text.primary',
+              opacity: 1,
+            }
+          },
         }}
       >
         <Tab label="Productos" />
@@ -110,51 +147,67 @@ const ProductsTabs: React.FC<ProductsTabsProps> = ({
         <Tab label="Imágenes" />
       </Tabs>
 
-      <Divider sx={{ my: 3 }} />
-
       {activeTab === 0 && (
-        <TextField
-          key="product-search"
-          label="Buscar productos"
-          value={productInputValue}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onProductInputValueChange(e.target.value)}
-          fullWidth
-          sx={{ mb: 2, mt: 2 }}
-        />
-      )}
-
-      {activeTab === 0 && (
-        <ProductsTable
-          products={productsData?.results || []}
-          loading={isLoading}
-          page={page}
-          totalCount={productsData?.count || 0}
-          onPageChange={onPageChange}
-          onEdit={onEditProduct}
-          onDelete={onDeleteProduct}
-          search={productSearch}
-          onUpdate={onUpdateProduct}
-          onView={onViewProduct}
-        />
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            key="product-search"
+            placeholder="Buscar por nombre, marca o tipo..."
+            value={productInputValue}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onProductInputValueChange(e.target.value)}
+            fullWidth
+            size="small"
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ fontSize: 18, mr: 1, color: 'text.disabled' }} />,
+            }}
+            sx={searchFieldSx}
+          />
+          <Box sx={{ mt: 3 }}>
+            <ProductsTable
+              products={productsData?.results || []}
+              loading={isLoading}
+              page={page}
+              totalCount={productsData?.count || 0}
+              onPageChange={onPageChange}
+              onEdit={onEditProduct}
+              onDelete={onDeleteProduct}
+              search={productSearch}
+              onUpdate={onUpdateProduct}
+              onView={onViewProduct}
+            />
+          </Box>
+        </Box>
       )}
 
       {activeTab === 1 && (
-        <>
+        <Box sx={{ mb: 3 }}>
           <Box 
             display="flex" 
             flexDirection={{ xs: 'column', sm: 'row' }}
-            justifyContent={{ xs: 'flex-start', sm: 'space-between' }}
             alignItems={{ xs: 'flex-start', sm: 'center' }}
             gap={2}
             mb={3}
           >
-            <Typography variant="h4">Variantes</Typography>
+            <TextField
+              key="variant-search"
+              placeholder="Buscar por SKU, producto o género..."
+              value={variantInputValue}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onVariantInputValueChange(e.target.value)}
+              fullWidth
+              size="small"
+              InputProps={{
+                startAdornment: <SearchIcon sx={{ fontSize: 18, mr: 1, color: 'text.disabled' }} />,
+              }}
+              sx={searchFieldSx}
+            />
             <GradientButton
               startIcon={<AddIcon />}
               onClick={onCreateVariant}
+              size="small"
               sx={{ 
                 width: { xs: '100%', sm: 'auto' },
-                minWidth: { xs: 'auto', sm: '120px' }
+                whiteSpace: 'nowrap',
+                height: 40,
+                borderRadius: 1.5,
               }}
             >
               Nueva Variante
@@ -166,15 +219,6 @@ const ProductsTabs: React.FC<ProductsTabsProps> = ({
               {variantError}
             </Alert>
           )}
-
-          <TextField
-            key="variant-search"
-            label="Buscar variantes"
-            value={variantInputValue}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onVariantInputValueChange(e.target.value)}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
 
           {isMobile ? (
             <VariantsCards
@@ -205,7 +249,7 @@ const ProductsTabs: React.FC<ProductsTabsProps> = ({
               onView={onViewVariant}
             />
           )}
-        </>
+        </Box>
       )}
 
       {activeTab === 2 && (

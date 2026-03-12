@@ -53,42 +53,15 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Buscar producto..."
+                placeholder="Buscar producto, SKU..."
                 size="small"
                 sx={{
-                  backgroundColor:
-                    theme.palette.mode === 'light'
-                      ? alpha('#ffffff', 0.72)
-                      : alpha('#0b1220', 0.45),
-                  borderRadius: 2,
                   '& .MuiOutlinedInput-root': {
-                    color: theme.palette.mode === 'light' ? theme.palette.text.primary : '#ffffff',
-                    minHeight: 42,
-                    '& fieldset': {
-                      borderColor:
-                        theme.palette.mode === 'light'
-                          ? alpha(theme.palette.primary.dark, 0.22)
-                          : alpha('#ffffff', 0.32),
-                    },
-                    '&:hover fieldset': {
-                      borderColor:
-                        theme.palette.mode === 'light'
-                          ? alpha(theme.palette.primary.main, 0.5)
-                          : alpha('#ffffff', 0.58),
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor:
-                        theme.palette.mode === 'light' ? theme.palette.primary.main : '#ffffff',
-                    },
+                    bgcolor: theme.palette.mode === 'light' ? alpha('#000', 0.02) : alpha('#fff', 0.02),
+                    borderRadius: 1.5,
+                    minHeight: 40,
                   },
-                  '& .MuiInputBase-input::placeholder': {
-                    color:
-                      theme.palette.mode === 'light'
-                        ? alpha(theme.palette.text.primary, 0.6)
-                        : 'rgba(255,255,255,0.7)',
-                    opacity: 1,
-                  },
-                  minWidth: { xs: '100%', sm: 210, lg: 250 },
+                  minWidth: { xs: '100%', sm: 220, lg: 280 },
                 }}
               />
             )}
@@ -113,26 +86,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <GradientButton
             startIcon={<AddBox />}
             onClick={onNavigateToCreateProduct}
+            size="small"
             sx={{
-              minHeight: 42,
-              minWidth: { xs: '100%', sm: 112 },
-              backgroundColor:
-                theme.palette.mode === 'light'
-                  ? alpha('#ffffff', 0.82)
-                  : alpha('#ffffff', 0.2),
-              color: theme.palette.mode === 'light' ? theme.palette.primary.dark : 'white',
-              border: `1px solid ${
-                theme.palette.mode === 'light'
-                  ? alpha(theme.palette.primary.main, 0.28)
-                  : alpha('#ffffff', 0.3)
-              }`,
-              '&:hover': {
-                backgroundColor:
-                  theme.palette.mode === 'light'
-                    ? alpha('#ffffff', 0.95)
-                    : alpha('#ffffff', 0.3),
-                transform: 'translateY(-1px)',
-              },
+              minHeight: 40,
+              borderRadius: 1.5,
             }}
           >
             Producto
@@ -140,26 +97,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <GradientButton
             startIcon={<AddShoppingCart />}
             onClick={onNavigateToCreateSale}
+            size="small"
             sx={{
-              minHeight: 42,
-              minWidth: { xs: '100%', sm: 112 },
-              backgroundColor:
-                theme.palette.mode === 'light'
-                  ? alpha('#ffffff', 0.82)
-                  : alpha('#ffffff', 0.2),
-              color: theme.palette.mode === 'light' ? theme.palette.primary.dark : 'white',
-              border: `1px solid ${
-                theme.palette.mode === 'light'
-                  ? alpha(theme.palette.primary.main, 0.28)
-                  : alpha('#ffffff', 0.3)
-              }`,
-              '&:hover': {
-                backgroundColor:
-                  theme.palette.mode === 'light'
-                    ? alpha('#ffffff', 0.95)
-                    : alpha('#ffffff', 0.3),
-                transform: 'translateY(-1px)',
-              },
+              minHeight: 40,
+              borderRadius: 1.5,
             }}
           >
             Venta
