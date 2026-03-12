@@ -283,7 +283,7 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                 </Box>
                 <Button
                   type="submit"
-                  variant="outlined"
+                  variant="contained"
                   fullWidth
                   sx={{ mt: 2 }}
                   disabled={isCreatingVariant}
