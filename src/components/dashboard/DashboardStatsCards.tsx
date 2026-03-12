@@ -1,10 +1,10 @@
 import React from 'react'
 import { Grid } from '@mui/material'
-import { 
-  ShoppingCartOutlined as ShoppingCartIcon, 
-  Inventory2Outlined as InventoryIcon, 
+import {
+  ShoppingCartOutlined as ShoppingCartIcon,
+  Inventory2Outlined as InventoryIcon,
   LocalShippingOutlined as ShippingIcon,
-  CurrencyExchangeOutlined as RevenueIcon
+  ShoppingBagOutlined as PurchasesIcon
 } from '@mui/icons-material'
 import StatCard from '../ui/StatCard'
 import type { DashboardStatsCardsProps } from '../../types/dashboard'
@@ -39,11 +39,10 @@ const DashboardStatsCards: React.FC<DashboardStatsCardsProps> = ({ stats }) => {
       </Grid>
       <Grid item xs={12} sm={6} md={3}>
         <StatCard
-          title="Valor Inventario"
-          value={stats?.products?.inventory_value || 0}
-          icon={<RevenueIcon />}
+          title="Compras Recientes"
+          value={stats?.purchases?.recent_month?.count ?? 0}
+          icon={<PurchasesIcon />}
           color="success"
-          isCurrency={true}
         />
       </Grid>
     </>

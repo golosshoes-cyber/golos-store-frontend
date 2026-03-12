@@ -43,7 +43,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, isCurren
       }
     }}>
       <CardContent sx={{ 
-        p: { xs: 2, sm: 2.5, md: 3 },
+        p: 1.2,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -53,30 +53,32 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, isCurren
           display="flex" 
           alignItems="center" 
           justifyContent="space-between"
-          flexDirection={{ xs: 'column', sm: 'column', md: 'row' }}
-          gap={{ xs: 2, sm: 2, md: 0 }}
+          gap={1}
         >
-          <Box sx={{ textAlign: { xs: 'center', sm: 'center', md: 'left' }, flex: 1 }}>
+          <Box sx={{ textAlign: 'left', flex: 1 }}>
             <Typography 
               color="textSecondary" 
-              gutterBottom 
-              variant="h6"
+              variant="caption"
               sx={{ 
-                fontSize: { xs: '0.875rem', sm: '0.875rem', md: '1rem' },
-                fontWeight: 'medium',
-                mb: { xs: 0.5, sm: 0.5, md: 1 }
+                fontSize: '9px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                mb: 0.2,
+                display: 'block',
+                opacity: 0.7
               }}
             >
               {title}
             </Typography>
             <Typography 
-              variant="h4" 
+              variant="h5" 
               component="h2" 
               sx={{ 
-                fontSize: { xs: '1.125rem', sm: '1.25rem', md: '1.5rem', lg: '2.125rem' },
-                fontWeight: 'bold',
-                lineHeight: 1.2,
-                wordBreak: 'break-word'
+                fontSize: '1.25rem',
+                fontWeight: 700,
+                lineHeight: 1,
+                letterSpacing: '-0.5px'
               }}
             >
               {formatValue(value)}
@@ -84,15 +86,15 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, isCurren
           </Box>
           <Box
             sx={{
-              backgroundColor: alpha(theme.palette[color].main, 0.08),
+              backgroundColor: alpha(theme.palette[color].main, 0.05),
               color: `${color}.main`,
-              borderRadius: 1.5,
-              p: 1.5,
+              borderRadius: 1,
+              p: 0.75,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               '& .MuiSvgIcon-root': {
-                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+                fontSize: 18
               }
             }}
           >

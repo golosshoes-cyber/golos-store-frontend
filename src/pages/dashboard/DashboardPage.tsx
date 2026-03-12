@@ -2,45 +2,34 @@ import React from 'react'
 import { Grid, Typography, Box, Paper, CircularProgress } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { alpha, useTheme } from '@mui/material/styles'
-import { Storefront as StorefrontIcon } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { useDashboardLogic } from '../../hooks/dashboard/useDashboardLogic'
 import { useCommonPermissions } from '../../hooks/auth/usePermissions'
-import DashboardHeader from '../../components/dashboard/DashboardHeader'
 import DashboardAlert from '../../components/dashboard/DashboardAlert'
 import DashboardStatsCards from '../../components/dashboard/DashboardStatsCards'
-import DashboardMetrics from '../../components/dashboard/DashboardMetrics'
 import RecentMovements from '../../components/dashboard/RecentMovements'
 import TopProducts from '../../components/dashboard/TopProducts'
 import SupplierPerformance from '../../components/dashboard/SupplierPerformance'
 import SalesChart from '../../components/dashboard/SalesChart'
 import { storeService } from '../../services/storeService'
-import { Button } from '@mui/material'
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
   const theme = useTheme()
   const { canViewReports } = useCommonPermissions()
   const {
-    searchValue,
-    searchOpen,
     stats,
     recentMovements,
     topProducts,
     supplierPerformance,
     salesChart,
-    searchResults,
     lowStock,
     isLoading,
     movementsLoading,
     topProductsLoading,
     suppliersLoading,
     chartLoading,
-    searchLoading,
     error,
-    setSearchValue,
-    setSearchOpen,
-    getProductName,
   } = useDashboardLogic()
 
   const { data: wompiHealth, isLoading: wompiLoading } = useQuery({
@@ -69,22 +58,20 @@ const DashboardPage: React.FC = () => {
 
   return (
     <Box sx={{ py: 1 }}>
-      {/* Header Principal del Dashboard */}
-      <DashboardHeader
-        searchValue={searchValue}
-        searchOpen={searchOpen}
-        searchLoading={searchLoading}
-        searchResults={searchResults}
-        onSearchValueChange={setSearchValue}
-        onSearchOpenChange={setSearchOpen}
-        onNavigateToVariant={(variantId) => navigate(`/variant/${variantId}`)}
-        getProductName={getProductName}
-      />
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: '-0.5px' }}>
+          Panel ejecutivo
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Estado comercial, inventario y operaciones · Hoy, {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+        </Typography>
+      </Box>
 
       <Grid
         container
-        spacing={{ xs: 1.5, sm: 2, md: 2.5 }}
+        spacing={1.2}
         sx={{
+          height: 'calc(100vh - 120px)', // Occupy remaining viewport
           '& > .MuiGrid-item': {
             animation: 'fadeInUp 360ms ease both',
           },
@@ -94,102 +81,82 @@ const DashboardPage: React.FC = () => {
           },
         }}
       >
-        {/* 1. ALERTAS CRÍTICAS (Primero) */}
-        <DashboardAlert
-          lowStock={lowStock}
-          onViewLowStock={() => navigate('/reports?tab=3')}
-        />
+        {/* 1. ALERTAS CRÍTICAS */}
+        <Grid item xs={12}>
+          <DashboardAlert
+            lowStock={lowStock}
+            onViewLowStock={() => navigate('/reports?tab=3')}
+          />
+        </Grid>
 
-        {/* 2. KPIs PRINCIPALES */}
+        {/* 2. KPIs PRINCIPALES (Row 1) */}
         <DashboardStatsCards stats={stats} />
 
-        {/* 3. MÉTRICAS SECUNDARIAS */}
-        <DashboardMetrics stats={stats} />
+        {/* Row 2: Movimientos y Top Productos */}
+        <Grid item xs={12} md={6}>
+          <RecentMovements
+            movements={recentMovements?.movements}
+            loading={movementsLoading}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TopProducts
+            products={topProducts?.products}
+            loading={topProductsLoading}
+          />
+        </Grid>
 
+        {/* Row 3: Ventas 30 días y Rendimiento Proveedores */}
+        <Grid item xs={12} md={7}>
+          <SalesChart
+            chartData={salesChart?.chart_data}
+            loading={chartLoading}
+          />
+        </Grid>
+        <Grid item xs={12} md={5}>
+          <SupplierPerformance
+            suppliers={supplierPerformance?.suppliers}
+            loading={suppliersLoading}
+          />
+        </Grid>
+
+        {/* Footer Row: Wompi & Alertas */}
         {canViewReports && (
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid item xs={12} md={4}>
             <Box
               sx={{
-                p: 2,
+                p: 1.5,
                 borderRadius: 2,
                 border: `1px solid ${theme.palette.divider}`,
                 bgcolor: 'background.paper',
-                height: '100%',
                 display: 'flex',
-                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 1.5,
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <StorefrontIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    Estado Wompi
-                  </Typography>
-                </Box>
-                <Box sx={{ 
-                  px: 1, 
-                  py: 0.25, 
-                  borderRadius: '999px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  bgcolor: wompiHealth?.configured ? alpha(theme.palette.success.main, 0.08) : alpha(theme.palette.warning.main, 0.08),
-                  color: wompiHealth?.configured ? 'success.main' : 'warning.main',
-                  border: `1px solid ${wompiHealth?.configured ? alpha(theme.palette.success.main, 0.2) : alpha(theme.palette.warning.main, 0.2)}`
-                }}>
-                  {wompiLoading ? '...' : wompiHealth?.configured ? 'Conectado' : 'Incompleto'}
-                </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.2 }}>
+                  Pasarela Wompi
+                </Typography>
+                <Typography variant="caption" color="text.secondary" noWrap>
+                  Ambiente: {wompiHealth?.environment || '...'}
+                </Typography>
               </Box>
-
-              <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
-                {wompiLoading
-                  ? 'Consultando configuración...'
-                  : wompiHealth?.configured
-                    ? `Ambiente activo: ${wompiHealth.environment}`
-                    : `Pendiente: ${(wompiHealth?.missing || []).join(', ')}`}
-              </Typography>
-
-              <Box sx={{ mt: 2 }}>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => navigate('/store/ops')}
-                  sx={{
-                    fontSize: '11px',
-                    py: 0.4,
-                    px: 1.5,
-                    borderRadius: 1.5,
-                  }}
-                >
-                  Configurar
-                </Button>
+              <Box sx={{ 
+                px: 1, 
+                py: 0.2, 
+                borderRadius: 1,
+                fontSize: '10px',
+                fontWeight: 600,
+                bgcolor: wompiHealth?.configured ? alpha(theme.palette.success.main, 0.08) : alpha(theme.palette.warning.main, 0.08),
+                color: wompiHealth?.configured ? 'success.main' : 'warning.main',
+                border: `1px solid ${wompiHealth?.configured ? alpha(theme.palette.success.main, 0.2) : alpha(theme.palette.warning.main, 0.2)}`
+              }}>
+                {wompiLoading ? '...' : wompiHealth?.configured ? 'OK' : 'Incompleto'}
               </Box>
             </Box>
           </Grid>
         )}
-
-        {/* 4. MOVIMIENTOS RECIENTES */}
-        <RecentMovements
-          movements={recentMovements?.movements}
-          loading={movementsLoading}
-        />
-
-        {/* 5. TOP PRODUCTOS */}
-        <TopProducts
-          products={topProducts?.products}
-          loading={topProductsLoading}
-        />
-
-        {/* 6. RENDIMIENTO PROVEEDORES */}
-        <SupplierPerformance
-          suppliers={supplierPerformance?.suppliers}
-          loading={suppliersLoading}
-        />
-
-        {/* 7. GRÁFICO DE VENTAS */}
-        <SalesChart
-          chartData={salesChart?.chart_data}
-          loading={chartLoading}
-        />
 
       </Grid>
     </Box>

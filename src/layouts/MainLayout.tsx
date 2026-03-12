@@ -12,33 +12,40 @@ import {
   Toolbar,
   Typography,
   Avatar,
-  Menu,
-  MenuItem,
   Divider,
-  Breadcrumbs,
   Button,
   alpha,
   useTheme,
+  MenuItem,
+  Menu,
 } from '@mui/material'
 import {
   Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  Inventory as InventoryIcon,
-  ShoppingCart as ShoppingCartIcon,
-  Store as StoreIcon,
   AccountCircle as AccountCircleIcon,
   Logout as LogoutIcon,
-  AddShoppingCart as AddShoppingCartIcon,
-  Business as BusinessIcon,
-  Assessment as AssessmentIcon,
-  NotificationsActive as NotificationsActiveIcon,
-  Download as DownloadIcon,
   AdminPanelSettings as AdminPanelSettingsIcon,
   GroupWork as GroupWorkIcon,
   DarkMode,
   LightMode,
-  SettingsSuggest as SettingsSuggestIcon,
+  GridView as GridViewIcon,
+  AddBox as AddBoxIcon,
+  ShoppingCartOutlined as ShoppingCartIcon,
+  HexagonOutlined as ComprasIcon,
+  Tune as InventarioIcon,
+  AssessmentOutlined as ReportesIcon,
+  SystemUpdateAlt as ExportacionesIcon,
+  StoreOutlined as ProveedoresIcon,
+  NotificationsNone as NotificacionesIcon,
+  ArrowForward as ArrowForwardIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material'
+import {
+  TextField,
+  Autocomplete,
+  Popper,
+} from '@mui/material'
+import { productService } from '../services/productService'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useCommonPermissions } from '../hooks/auth/usePermissions'
@@ -50,26 +57,25 @@ const menuSections = [
   {
     label: 'General',
     items: [
-      { text: 'Dashboard', icon: <DashboardIcon />, path: 'dashboard' },
-      { text: 'Productos', icon: <StoreIcon />, path: 'products' },
+      { text: 'Dashboard', icon: <GridViewIcon />, path: 'dashboard' },
+      { text: 'Productos', icon: <AddBoxIcon />, path: 'products' },
       { text: 'Ventas', icon: <ShoppingCartIcon />, path: 'sales' },
-      { text: 'Compras', icon: <AddShoppingCartIcon />, path: 'purchases' },
-      { text: 'Inventario', icon: <InventoryIcon />, path: 'inventory' },
+      { text: 'Compras', icon: <ComprasIcon />, path: 'purchases' },
+      { text: 'Inventario', icon: <InventarioIcon />, path: 'inventory' },
     ]
   },
   {
     label: 'Análisis',
     items: [
-      { text: 'Reportes', icon: <AssessmentIcon />, path: 'reports' },
-      { text: 'Exportaciones', icon: <DownloadIcon />, path: 'exports' },
+      { text: 'Reportes', icon: <ReportesIcon />, path: 'reports' },
+      { text: 'Exportaciones', icon: <ExportacionesIcon />, path: 'exports' },
     ]
   },
   {
-    label: 'Configuración',
+    label: 'Config',
     items: [
-      { text: 'Operaciones', icon: <SettingsSuggestIcon />, path: 'store/ops' },
-      { text: 'Proveedores', icon: <BusinessIcon />, path: 'suppliers' },
-      { text: 'Notificaciones', icon: <NotificationsActiveIcon />, path: 'notifications' },
+      { text: 'Proveedores', icon: <ProveedoresIcon />, path: 'suppliers' },
+      { text: 'Notificaciones', icon: <NotificacionesIcon />, path: 'notifications' },
     ]
   }
 ]
@@ -81,6 +87,8 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [searchValue, setSearchValue] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const theme = useTheme()
@@ -95,6 +103,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   } = useCommonPermissions()
 
   const canAccessAdmin = canManageUsers || isAdmin
+
+  // Search logic
+  const {
+    data: searchResults,
+    isLoading: searchLoading,
+  } = useQuery({
+    queryKey: ['global-variant-search', searchValue],
+    queryFn: () => productService.getVariants({ search: searchValue, limit: 10 }),
+    enabled: searchValue.length >= 2,
+  })
+
+  // Get products for names in search
+  const { data: productsData } = useQuery({
+    queryKey: ['products-for-names'],
+    queryFn: () => productService.getProducts({ limit: 1000 }),
+  })
+  const getProductName = (productId: number | string) => {
+    const products = productsData?.results || []
+    const product = products.find(p => p.id === productId)
+    return product ? product.name : `Producto #${productId}`
+  }
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen)
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget)
@@ -125,11 +154,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }
 
   const pathSegments = location.pathname.split('/').filter(Boolean)
-  const breadcrumbs = pathSegments.map((segment, index) => ({
-    label: breadcrumbLabels[segment] || segment,
-    to: `/${pathSegments.slice(0, index + 1).join('/')}`,
-    isLast: index === pathSegments.length - 1,
-  }))
 
   const navItemSx = (selected: boolean) => ({
     borderRadius: 0.8,
@@ -176,30 +200,30 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
-      <Box sx={{ 
-        height: 52, 
-        display: 'flex', 
-        alignItems: 'center', 
-        px: 2, 
+      <Box sx={{
+        height: 52,
+        display: 'flex',
+        alignItems: 'center',
+        px: 2,
         gap: 1.5,
-        borderBottom: `1px solid ${theme.palette.divider}` 
+        borderBottom: `1px solid ${theme.palette.divider}`
       }}>
-        <Box sx={{ 
-          width: 26, 
-          height: 26, 
-          bgcolor: 'text.primary', 
-          color: 'background.default', 
-          borderRadius: 1.5,
+        <Box sx={{
+          width: 24,
+          height: 24,
+          bgcolor: 'text.primary',
+          color: 'background.default',
+          borderRadius: 0.8, // More square
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '11px',
-          fontWeight: 600,
-          letterSpacing: '-1px'
+          fontSize: '10px',
+          fontWeight: 700,
+          letterSpacing: '-0.5px'
         }}>
           GS
         </Box>
-        <Typography variant="body2" sx={{ fontWeight: 500, letterSpacing: '-0.3px' }}>
+        <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '13px', letterSpacing: '-0.3px' }}>
           Golos Store
         </Typography>
       </Box>
@@ -207,12 +231,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <Box sx={{ flex: 1, py: 0.5, overflowY: 'auto' }}>
         {visibleSections.map((section) => (
           <Box key={section.label} sx={{ mb: 0.8 }}>
-            <Typography variant="caption" sx={{ 
-              px: 2, 
-              py: 0.2, 
+            <Typography variant="caption" sx={{
+              px: 2,
+              py: 0.2,
               display: 'block',
-              fontSize: '9px', 
-              fontWeight: 600, 
+              fontSize: '9px',
+              fontWeight: 600,
               color: 'text.secondary',
               opacity: 0.35,
               letterSpacing: '0.08em',
@@ -241,12 +265,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
         {canAccessAdmin && (
           <Box sx={{ mb: 0.5 }}>
-            <Typography variant="caption" sx={{ 
-              px: 2, 
-              py: 0.3, 
+            <Typography variant="caption" sx={{
+              px: 2,
+              py: 0.3,
               display: 'block',
-              fontSize: '8px', 
-              fontWeight: 600, 
+              fontSize: '8px',
+              fontWeight: 600,
               color: 'text.secondary',
               opacity: 0.3,
               letterSpacing: '0.08em',
@@ -285,22 +309,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </Box>
 
       <Box sx={{ p: 1, borderTop: `1px solid ${theme.palette.divider}` }}>
-        <Box 
+        <Box
           onClick={handleMenuOpen}
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 1.2, 
-            p: 1, 
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.2,
+            p: 1,
             borderRadius: 1.5,
             cursor: 'pointer',
             '&:hover': { bgcolor: 'action.hover' }
           }}
         >
-          <Avatar sx={{ 
-            width: 28, 
-            height: 28, 
-            fontSize: '11px', 
+          <Avatar sx={{
+            width: 28,
+            height: 28,
+            fontSize: '11px',
             fontWeight: 600,
             bgcolor: 'text.primary',
             color: 'background.default'
@@ -346,66 +370,135 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </IconButton>
 
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-            <Breadcrumbs
-              separator={<Typography sx={{ color: 'text.disabled', fontSize: 10 }}>›</Typography>}
-            >
-              <Typography sx={{ fontSize: '11px', color: 'text.secondary' }}>Panel</Typography>
-              {breadcrumbs.map((crumb) => (
-                <Typography 
-                  key={crumb.to} 
-                  sx={{ 
-                    fontSize: '11px', 
-                    fontWeight: crumb.isLast ? 500 : 400,
-                    color: crumb.isLast ? 'text.primary' : 'text.secondary'
-                  }}
-                >
-                  {crumb.label}
-                </Typography>
-              ))}
-            </Breadcrumbs>
+            <Typography sx={{ fontSize: '14px', fontWeight: 600, color: 'text.primary' }}>
+              {breadcrumbLabels[pathSegments[0]] || 'Dashboard'}
+            </Typography>
           </Box>
-
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton onClick={toggleColorMode} size="small" sx={{ 
-              width: 32, 
-              height: 32, 
-              border: `1px solid ${theme.palette.divider}`,
-              color: 'text.secondary'
-            }}>
-              {mode === 'dark' ? <LightMode sx={{ fontSize: 16 }} /> : <DarkMode sx={{ fontSize: 16 }} />}
-            </IconButton>
+            <Autocomplete
+              open={searchOpen && searchValue.length >= 2}
+              onOpen={() => searchValue.length >= 2 && setSearchOpen(true)}
+              onClose={() => setSearchOpen(false)}
+              options={searchResults?.results || []}
+              getOptionLabel={(option: any) =>
+                `${option.sku} - ${getProductName(option.product)} ${option.size} ${option.color || ''}`
+              }
+              loading={searchLoading}
+              onInputChange={(_, value) => setSearchValue(value)}
+              onChange={(_, value: any) => {
+                if (value) {
+                  navigate(`/variant/${value.id}`)
+                  setSearchValue('')
+                  setSearchOpen(false)
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Buscar producto"
+                  size="small"
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <SearchIcon sx={{ ml: 1, fontSize: 16, color: 'text.disabled' }} />
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: theme.palette.mode === 'light' ? alpha('#000', 0.02) : alpha('#fff', 0.02),
+                      borderRadius: 1.5,
+                      height: 32,
+                      fontSize: '12px',
+                      '& fieldset': { borderColor: theme.palette.divider },
+                    },
+                    minWidth: 160,
+                  }}
+                />
+              )}
+              renderOption={(props, option: any) => {
+                const { key, ...other } = props
+                return (
+                  <li key={key} {...other}>
+                    <Box sx={{ py: 0.5 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '12px' }}>
+                        {option.sku}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                        {getProductName(option.product)} {option.size} {option.color || ''}
+                      </Typography>
+                    </Box>
+                  </li>
+                )
+              }}
+              PopperComponent={(props) => <Popper {...props} sx={{ zIndex: 1400 }} />}
+            />
+
+            <Button
+              onClick={() => window.open('https://tienda.golosshoes.shop', '_blank')}
+              variant="outlined"
+              size="small"
+              startIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
+              sx={{
+                fontSize: '11px',
+                height: 32,
+                px: 1.5,
+                borderRadius: 1.5,
+                color: 'text.secondary',
+                borderColor: theme.palette.divider,
+                textTransform: 'none',
+                '&:hover': { borderColor: 'text.primary', bgcolor: 'transparent' }
+              }}
+            >
+              Tienda
+            </Button>
 
             <Button
               onClick={() => navigate('/products/new')}
               variant="contained"
               size="small"
-              sx={{ 
-                fontSize: '10px', 
-                py: 0.4, 
-                px: 1.2,
+              sx={{
+                fontSize: '11px',
+                height: 32,
+                px: 1.5,
+                borderRadius: 1.5,
                 bgcolor: 'text.primary',
                 color: 'background.default',
+                textTransform: 'none',
+                fontWeight: 600,
                 '&:hover': { bgcolor: 'text.secondary' }
               }}
             >
-              Agregar Producto
+              + Producto
             </Button>
 
             <Button
               onClick={() => navigate('/sales/new')}
               variant="contained"
               size="small"
-              sx={{ 
-                fontSize: '10px', 
-                py: 0.4, 
-                px: 1.2,
+              sx={{
+                fontSize: '11px',
+                height: 32,
+                px: 1.5,
+                borderRadius: 1.5,
                 bgcolor: 'text.primary',
                 color: 'background.default',
+                textTransform: 'none',
+                fontWeight: 600,
                 '&:hover': { bgcolor: 'text.secondary' }
               }}
             >
-              Agregar Venta
+              + Venta
             </Button>
+
+            <IconButton onClick={toggleColorMode} size="small" sx={{
+              width: 32,
+              height: 32,
+              borderRadius: 1.5,
+              border: `1px solid ${theme.palette.divider}`,
+              color: 'text.secondary'
+            }}>
+              {mode === 'dark' ? <LightMode sx={{ fontSize: 16 }} /> : <DarkMode sx={{ fontSize: 16 }} />}
+            </IconButton>
           </Box>
         </Toolbar>
       </AppBar>
