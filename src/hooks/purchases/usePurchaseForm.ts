@@ -6,6 +6,7 @@ interface PurchaseItemData {
   variantId: number
   quantity: number
   unitCost: number
+  supplierId: number
 }
 
 interface PurchaseItem {
@@ -58,6 +59,7 @@ export const usePurchaseForm = () => {
           variantId: parseInt(variantId),
           quantity: parseInt(item.quantity),
           unitCost: parseFloat(item.unitCost),
+          supplierId: item.supplierId ? parseInt(item.supplierId) : 1
         })
       }
       
