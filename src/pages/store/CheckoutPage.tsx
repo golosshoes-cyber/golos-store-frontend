@@ -30,7 +30,7 @@ import { isAxiosError } from 'axios'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { storeService } from '../../services/storeService'
-import type { StoreCartValidationItem, StoreCommercialSummary, StoreShippingAddress } from '../../types/store'
+import type { StoreCartValidationItem, StoreShippingAddress } from '../../types/store'
 import { clearStoreCart, getStoreCartItems } from '../../utils/storeCart'
 import ShippingAddressForm from '../../components/shipping/ShippingAddressForm'
 import ShippingQuoteCalculator from '../../components/shipping/ShippingQuoteCalculator'
@@ -57,7 +57,6 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [commercial, setCommercial] = useState<StoreCommercialSummary | null>(null)
   const [shippingZone, setShippingZone] = useState<'local' | 'regional' | 'national'>('regional')
   const [estimatedWeightGrams, setEstimatedWeightGrams] = useState<number>(900)
   const [acceptTerms, setAcceptTerms] = useState(false)
@@ -105,7 +104,6 @@ export default function CheckoutPage() {
         })
         setItems(response.items)
         setTotal(response.total)
-        setCommercial(response.commercial || null)
       } catch {
         setErrorMessage('No se pudo validar el carrito para checkout.')
       } finally {
@@ -180,10 +178,7 @@ export default function CheckoutPage() {
       }, 500)
     } catch (error) {
       if (isAxiosError(error)) {
-        const payload = error.response?.data as { detail?: string; commercial?: StoreCommercialSummary } | undefined
-        if (payload?.commercial) {
-          setCommercial(payload.commercial)
-        }
+        const payload = error.response?.data as { detail?: string } | undefined
         setErrorMessage(payload?.detail || 'No se pudo completar el checkout. Verifica stock e intenta de nuevo.')
       } else {
         setErrorMessage('No se pudo completar el checkout. Verifica stock e intenta de nuevo.')
@@ -285,28 +280,20 @@ export default function CheckoutPage() {
                   <Typography variant="body2" fontWeight={600}>{money(item.subtotal)}</Typography>
                 </Box>
               ))}
+              {selectedShippingService && (
+                <Box display="flex" justifyContent="space-between" gap={2} mt={1}>
+                  <Typography variant="body2" color="text.secondary">
+                    Envío ({selectedShippingService.name})
+                  </Typography>
+                  <Typography variant="body2" fontWeight={600}>{money(selectedShippingService.cost)}</Typography>
+                </Box>
+              )}
             </Stack>
 
-            <Box mt={2} display="flex" justifyContent="space-between">
-              <Typography variant="h6">Total (con envío)</Typography>
+            <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="h6">Total General</Typography>
               <Typography variant="h6" color="primary.main">{money(displayTotal)}</Typography>
             </Box>
-            {commercial && (
-              <Stack mt={2} spacing={0.75}>
-                <Typography variant="subtitle2">Estimado comercial</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Fee Wompi: {money(commercial.payment_fee_total)} | Envio: {money(commercial.shipping_estimate)}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Costo variable: {money(commercial.variable_cost_total)} | Margen: {commercial.projected_margin_percent}%
-                </Typography>
-                <Alert severity={commercial.is_viable_online ? 'success' : 'warning'}>
-                  {commercial.is_viable_online
-                    ? 'Margen online viable con esta configuracion.'
-                    : `Margen bajo para venta online (minimo ${commercial.min_margin_percent}%).`}
-                </Alert>
-              </Stack>
-            )}
 
             <Box mt={2}>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={0.5}>
