@@ -78,8 +78,6 @@ const DashboardPage: React.FC = () => {
         onSearchValueChange={setSearchValue}
         onSearchOpenChange={setSearchOpen}
         onNavigateToVariant={(variantId) => navigate(`/variant/${variantId}`)}
-        onNavigateToCreateProduct={() => navigate('/products', { state: { openCreateModal: true } })}
-        onNavigateToCreateSale={() => navigate('/sales', { state: { openCreateModal: true } })}
         getProductName={getProductName}
       />
 

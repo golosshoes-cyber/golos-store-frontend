@@ -132,19 +132,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }))
 
   const navItemSx = (selected: boolean) => ({
-    borderRadius: 1.2,
-    mx: 1,
-    my: 0.1,
-    px: 1.2,
-    py: 0.5,
+    borderRadius: 0.8,
+    mx: 0.8,
+    my: 0,
+    px: 1,
+    py: 0.25,
+    minHeight: 30, // Extremely compact
     transition: 'all 0.1s ease',
     '& .MuiListItemIcon-root': {
-      minWidth: 32,
+      minWidth: 24,
       color: selected ? theme.palette.text.primary : theme.palette.text.secondary,
       opacity: selected ? 1 : 0.7,
     },
     '& .MuiListItemText-primary': {
-      fontSize: '0.8125rem',
+      fontSize: '0.75rem',
       fontWeight: selected ? 500 : 400,
       color: selected ? theme.palette.text.primary : theme.palette.text.secondary,
     },
@@ -203,32 +204,32 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </Typography>
       </Box>
 
-      <Box sx={{ flex: 1, py: 1, overflowY: 'auto' }}>
+      <Box sx={{ flex: 1, py: 0.5, overflowY: 'auto' }}>
         {visibleSections.map((section) => (
-          <Box key={section.label} sx={{ mb: 1.5 }}>
+          <Box key={section.label} sx={{ mb: 0.8 }}>
             <Typography variant="caption" sx={{ 
-              px: 2.5, 
-              py: 0.5, 
+              px: 2, 
+              py: 0.2, 
               display: 'block',
-              fontSize: '10px', 
+              fontSize: '9px', 
               fontWeight: 600, 
               color: 'text.secondary',
-              opacity: 0.4,
+              opacity: 0.35,
               letterSpacing: '0.08em',
               textTransform: 'uppercase'
             }}>
               {section.label}
             </Typography>
-            <List sx={{ px: 0, py: 0.5 }}>
+            <List sx={{ px: 0, py: 0.1 }}>
               {section.items.map((item: any) => (
-                <ListItem key={item.text} disablePadding sx={{ mb: 0.2 }}>
+                <ListItem key={item.text} disablePadding sx={{ mb: 0 }}>
                   <ListItemButton
                     selected={location.pathname.includes(item.path)}
                     onClick={() => navigate(item.path)}
                     sx={navItemSx(location.pathname.includes(item.path))}
                   >
                     <ListItemIcon>
-                      {React.cloneElement(item.icon, { sx: { fontSize: 18 } })}
+                      {React.cloneElement(item.icon, { sx: { fontSize: 16 } })}
                     </ListItemIcon>
                     <ListItemText primary={item.text} />
                   </ListItemButton>
@@ -239,16 +240,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         ))}
 
         {canAccessAdmin && (
-          <Box sx={{ mb: 1.5 }}>
+          <Box sx={{ mb: 0.5 }}>
             <Typography variant="caption" sx={{ 
-              px: 2.5, 
-              py: 1, 
+              px: 2, 
+              py: 0.3, 
               display: 'block',
-              fontSize: '10px', 
-              fontWeight: 500, 
+              fontSize: '8px', 
+              fontWeight: 600, 
               color: 'text.secondary',
-              opacity: 0.5,
-              letterSpacing: '0.05em',
+              opacity: 0.3,
+              letterSpacing: '0.08em',
               textTransform: 'uppercase'
             }}>
               Administración
@@ -261,7 +262,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   sx={navItemSx(location.pathname.includes('admin/users'))}
                 >
                   <ListItemIcon>
-                    <AdminPanelSettingsIcon sx={{ fontSize: 18 }} />
+                    <AdminPanelSettingsIcon sx={{ fontSize: 16 }} />
                   </ListItemIcon>
                   <ListItemText primary="Usuarios" />
                 </ListItemButton>
@@ -273,7 +274,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   sx={navItemSx(location.pathname.includes('admin/groups'))}
                 >
                   <ListItemIcon>
-                    <GroupWorkIcon sx={{ fontSize: 18 }} />
+                    <GroupWorkIcon sx={{ fontSize: 16 }} />
                   </ListItemIcon>
                   <ListItemText primary="Grupos" />
                 </ListItemButton>
@@ -379,7 +380,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               variant="contained"
               size="small"
               sx={{ 
-                fontSize: '11px', 
+                fontSize: '10px', 
                 py: 0.4, 
                 px: 1.2,
                 bgcolor: 'text.primary',
@@ -387,7 +388,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 '&:hover': { bgcolor: 'text.secondary' }
               }}
             >
-              + Producto
+              Agregar Producto
             </Button>
 
             <Button
@@ -395,7 +396,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               variant="contained"
               size="small"
               sx={{ 
-                fontSize: '11px', 
+                fontSize: '10px', 
                 py: 0.4, 
                 px: 1.2,
                 bgcolor: 'text.primary',
@@ -403,7 +404,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 '&:hover': { bgcolor: 'text.secondary' }
               }}
             >
-              + Venta
+              Agregar Venta
             </Button>
           </Box>
         </Toolbar>
@@ -446,12 +447,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        disableScrollLock
+        transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
         PaperProps={{
           sx: {
-            mt: 1.5,
-            minWidth: 180,
+            mb: 1, // Offset from bottom trigger
+            minWidth: 160,
             boxShadow: theme.palette.mode === 'light' ? '0 10px 15px -3px rgba(0,0,0,0.1)' : '0 10px 15px -3px rgba(0,0,0,0.5)',
             border: `1px solid ${theme.palette.divider}`,
           }
