@@ -22,52 +22,54 @@ import {
 } from '@mui/material'
 import {
   Menu as MenuIcon,
-  Dashboard,
-  Inventory,
-  ShoppingCart,
-  Store,
-  AccountCircle,
-  Logout,
-  AddShoppingCart,
+  Dashboard as DashboardIcon,
+  Inventory as InventoryIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Store as StoreIcon,
+  AccountCircle as AccountCircleIcon,
+  Logout as LogoutIcon,
+  AddShoppingCart as AddShoppingCartIcon,
   Business as BusinessIcon,
-  Assessment,
-  NotificationsActive,
-  Download,
-  AdminPanelSettings,
-  GroupWork,
+  Assessment as AssessmentIcon,
+  NotificationsActive as NotificationsActiveIcon,
+  Download as DownloadIcon,
+  AdminPanelSettings as AdminPanelSettingsIcon,
+  GroupWork as GroupWorkIcon,
   DarkMode,
   LightMode,
+  SettingsSuggest as SettingsSuggestIcon,
 } from '@mui/icons-material'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useCommonPermissions } from '../hooks/auth/usePermissions'
 import { useThemeMode } from '../contexts/ThemeModeContext'
 
-const drawerWidth = 220
+const drawerWidth = 240
 
 const menuSections = [
   {
     label: 'General',
     items: [
-      { text: 'Dashboard', icon: <Dashboard />, path: 'dashboard' },
-      { text: 'Productos', icon: <Store />, path: 'products' },
-      { text: 'Ventas', icon: <ShoppingCart />, path: 'sales' },
-      { text: 'Compras', icon: <AddShoppingCart />, path: 'purchases' },
-      { text: 'Inventario', icon: <Inventory />, path: 'inventory' },
+      { text: 'Dashboard', icon: <DashboardIcon />, path: 'dashboard' },
+      { text: 'Productos', icon: <StoreIcon />, path: 'products' },
+      { text: 'Ventas', icon: <ShoppingCartIcon />, path: 'sales' },
+      { text: 'Compras', icon: <AddShoppingCartIcon />, path: 'purchases' },
+      { text: 'Inventario', icon: <InventoryIcon />, path: 'inventory' },
     ]
   },
   {
     label: 'Análisis',
     items: [
-      { text: 'Reportes', icon: <Assessment />, path: 'reports' },
-      { text: 'Exportaciones', icon: <Download />, path: 'exports' },
+      { text: 'Reportes', icon: <AssessmentIcon />, path: 'reports' },
+      { text: 'Exportaciones', icon: <DownloadIcon />, path: 'exports' },
     ]
   },
   {
-    label: 'Config',
+    label: 'Configuración',
     items: [
+      { text: 'Operaciones', icon: <SettingsSuggestIcon />, path: 'store/ops' },
       { text: 'Proveedores', icon: <BusinessIcon />, path: 'suppliers' },
-      { text: 'Notificaciones', icon: <NotificationsActive />, path: 'notifications' },
+      { text: 'Notificaciones', icon: <NotificationsActiveIcon />, path: 'notifications' },
     ]
   }
 ]
@@ -94,7 +96,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const canAccessAdmin = canManageUsers || isAdmin
 
-
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen)
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget)
   const handleMenuClose = () => setAnchorEl(null)
@@ -110,6 +111,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     products: 'Productos',
     purchases: 'Compras',
     suppliers: 'Proveedores',
+    'store/ops': 'Operaciones',
     sales: 'Ventas',
     inventory: 'Inventario',
     reports: 'Reportes',
@@ -119,6 +121,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     admin: 'Administración',
     users: 'Usuarios',
     groups: 'Grupos',
+    ops: 'Operaciones',
   }
 
   const pathSegments = location.pathname.split('/').filter(Boolean)
@@ -159,7 +162,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const getVisibleItems = (items: any[]) => items.filter((item) => {
     if (['reports', 'notifications', 'exports'].includes(item.path)) return canViewReports
     if (item.path === 'sales') return canCreateSale
-    if (['products', 'purchases', 'suppliers', 'inventory'].includes(item.path)) {
+    if (['products', 'purchases', 'suppliers', 'inventory', 'store/ops'].includes(item.path)) {
       return canCreateProduct || canCreatePurchase
     }
     return true
@@ -200,23 +203,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </Typography>
       </Box>
 
-      <Box sx={{ flex: 1, py: 1, overflowY: 'auto' }}>
+      <Box sx={{ flex: 1, py: 1.5, overflowY: 'auto' }}>
         {visibleSections.map((section) => (
-          <Box key={section.label} sx={{ mb: 1.5 }}>
+          <Box key={section.label} sx={{ mb: 2 }}>
             <Typography variant="caption" sx={{ 
               px: 2.5, 
-              py: 1, 
+              py: 0.5, 
               display: 'block',
               fontSize: '10px', 
-              fontWeight: 500, 
+              fontWeight: 600, 
               color: 'text.secondary',
-              opacity: 0.5,
-              letterSpacing: '0.05em',
+              opacity: 0.4,
+              letterSpacing: '0.08em',
               textTransform: 'uppercase'
             }}>
               {section.label}
             </Typography>
-            <List sx={{ px: 0, py: 0 }}>
+            <List sx={{ px: 0, py: 0.5 }}>
               {section.items.map((item: any) => (
                 <ListItem key={item.text} disablePadding sx={{ mb: 0.2 }}>
                   <ListItemButton
@@ -258,7 +261,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   sx={navItemSx(location.pathname.includes('admin/users'))}
                 >
                   <ListItemIcon>
-                    <AdminPanelSettings sx={{ fontSize: 18 }} />
+                    <AdminPanelSettingsIcon sx={{ fontSize: 18 }} />
                   </ListItemIcon>
                   <ListItemText primary="Usuarios" />
                 </ListItemButton>
@@ -270,7 +273,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   sx={navItemSx(location.pathname.includes('admin/groups'))}
                 >
                   <ListItemIcon>
-                    <GroupWork sx={{ fontSize: 18 }} />
+                    <GroupWorkIcon sx={{ fontSize: 18 }} />
                   </ListItemIcon>
                   <ListItemText primary="Grupos" />
                 </ListItemButton>
@@ -449,12 +452,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         }}
       >
         <MenuItem onClick={() => { navigate('/profile'); handleMenuClose(); }}>
-          <ListItemIcon><AccountCircle fontSize="small" /></ListItemIcon>
+          <ListItemIcon><AccountCircleIcon fontSize="small" /></ListItemIcon>
           <ListItemText primary="Mi Perfil" primaryTypographyProps={{ fontSize: '13px' }} />
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleLogout}>
-          <ListItemIcon><Logout fontSize="small" /></ListItemIcon>
+          <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
           <ListItemText primary="Cerrar Sesión" primaryTypographyProps={{ fontSize: '13px' }} />
         </MenuItem>
       </Menu>

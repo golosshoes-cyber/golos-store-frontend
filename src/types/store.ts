@@ -197,6 +197,7 @@ export interface StoreShipment {
 }
 
 export interface StoreOrder {
+  customer_name: string
   sale_id: number
   status: string
   status_detail: StoreOrderStatusDetail

@@ -190,10 +190,10 @@ export const storeService = {
     payload: Partial<{
       store_name: string
       tagline: string
-      logo_url: string
-      favicon_url: string
-      hero_title: string
-      hero_subtitle: string
+      logo_url: string | null
+      favicon_url: string | null
+      hero_title: string | null
+      hero_subtitle: string | null
       legal_representative_name: string
       legal_id_type: string
       legal_id_number: string

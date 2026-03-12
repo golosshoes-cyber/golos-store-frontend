@@ -3,9 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Card,
-  CardContent,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -15,13 +12,16 @@ import {
   Stack,
   TextField,
   Typography,
-  useMediaQuery,
+  Grid,
+  Divider,
 } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import {
   Storefront as StorefrontIcon,
-  VerifiedUserRounded as VerifiedUserRoundedIcon,
-  CampaignRounded as CampaignRoundedIcon,
+  VerifiedUserOutlined as VerifiedUserIcon,
+  CampaignOutlined as CampaignIcon,
+  Search as SearchIcon,
+  LocalShippingOutlined as ShippingIcon,
 } from '@mui/icons-material'
 import { storeService } from '../../services/storeService'
 import type {
@@ -51,7 +51,6 @@ const NEXT_STATUS_BY_CURRENT: Record<string, string | null> = {
 
 export default function StoreOpsPage() {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [summary, setSummary] = useState<StoreOpsSummaryResponse['summary'] | null>(null)
   const [wompiHealth, setWompiHealth] = useState<StoreWompiHealthResponse | null>(null)
   const [orders, setOrders] = useState<StoreOrder[]>([])
@@ -62,7 +61,6 @@ export default function StoreOpsPage() {
   const [search, setSearch] = useState('')
 
   const [loading, setLoading] = useState(false)
-  const [loadingWompi, setLoadingWompi] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [manualShipmentOrder, setManualShipmentOrder] = useState<StoreOrder | null>(null)
@@ -78,18 +76,6 @@ export default function StoreOpsPage() {
   })
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE))
-
-  const refreshWompiHealth = async () => {
-    try {
-      setLoadingWompi(true)
-      const wompiResponse = await storeService.getWompiHealth()
-      setWompiHealth(wompiResponse)
-    } catch {
-      setErrorMessage('No se pudo consultar el estado de Wompi.')
-    } finally {
-      setLoadingWompi(false)
-    }
-  }
 
   const loadData = async () => {
     try {
@@ -109,32 +95,7 @@ export default function StoreOpsPage() {
       setWompiHealth(wompiResponse)
       setBranding(brandingResponse.branding)
     } catch {
-      setErrorMessage('No se pudo cargar el panel de ordenes. Verifica permisos y session.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSaveBranding = async (target: 'legal' | 'promo') => {
-    if (!branding) return
-    try {
-      setLoading(true)
-      setErrorMessage(null)
-      const response = await storeService.updateOpsBranding({
-        ...branding,
-        logo_url: branding.logo_url || '',
-        favicon_url: branding.favicon_url || '',
-      })
-      setBranding(response.branding)
-      if (target === 'legal') {
-        setLegalDialogOpen(false)
-        setSuccessMessage('Datos legales y comerciales actualizados.')
-      } else {
-        setPromoDialogOpen(false)
-        setSuccessMessage('Promociones de tienda actualizadas.')
-      }
-    } catch {
-      setErrorMessage('No se pudieron guardar los datos de tienda.')
+      setErrorMessage('No se pudo cargar el panel de operaciones.')
     } finally {
       setLoading(false)
     }
@@ -155,29 +116,11 @@ export default function StoreOpsPage() {
 
     try {
       setLoading(true)
-      setErrorMessage(null)
       await storeService.updateOpsOrderStatus(order.sale_id, { status: nextStatus as any })
-      setSuccessMessage(`Orden #${order.sale_id} actualizada a ${nextStatus}`)
+      setSuccessMessage(`Orden #${order.sale_id} actualizada.`)
       await loadData()
     } catch {
-      setErrorMessage('No se pudo actualizar el estado de la orden.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleCancelOrder = async (saleId: number) => {
-    try {
-      setLoading(true)
-      setErrorMessage(null)
-      await storeService.updateOpsOrderStatus(saleId, {
-        status: 'canceled',
-        note: 'Cancelado desde panel ops',
-      })
-      setSuccessMessage(`Orden #${saleId} cancelada`)
-      await loadData()
-    } catch {
-      setErrorMessage('No se pudo cancelar la orden.')
+      setErrorMessage('Error al actualizar estado.')
     } finally {
       setLoading(false)
     }
@@ -186,15 +129,11 @@ export default function StoreOpsPage() {
   const handleMarkManualPaid = async (order: StoreOrder) => {
     try {
       setLoading(true)
-      setErrorMessage(null)
-      await storeService.updateOpsOrderStatus(order.sale_id, {
-        status: 'paid',
-        note: 'Pago manual registrado desde Store Ops (fallback sin Wompi)',
-      })
-      setSuccessMessage(`Pago manual registrado para orden #${order.sale_id}`)
+      await storeService.updateOpsOrderStatus(order.sale_id, { status: 'paid', note: 'Pago manual registrado' })
+      setSuccessMessage(`Pago registrado para orden #${order.sale_id}`)
       await loadData()
     } catch {
-      setErrorMessage('No se pudo registrar el pago manual.')
+      setErrorMessage('Error al registrar pago.')
     } finally {
       setLoading(false)
     }
@@ -214,30 +153,32 @@ export default function StoreOpsPage() {
     })
   }
 
-  const closeManualShipmentDialog = () => {
-    setManualShipmentOrder(null)
-  }
-
   const handleSaveManualShipment = async () => {
     if (!manualShipmentOrder) return
-    if (!manualShipmentForm.carrier.trim() || !manualShipmentForm.tracking_number.trim() || !manualShipmentForm.shipping_cost.trim()) {
-      setErrorMessage('Carrier, tracking y costo son obligatorios para registrar la guía manual.')
-      return
-    }
-
     try {
       setLoading(true)
-      setErrorMessage(null)
-      await storeService.registerOpsManualShipment(manualShipmentOrder.sale_id, {
-        ...manualShipmentForm,
-        carrier: manualShipmentForm.carrier.trim(),
-        tracking_number: manualShipmentForm.tracking_number.trim().toUpperCase(),
-      })
-      setSuccessMessage(`Guía manual registrada para orden #${manualShipmentOrder.sale_id}`)
-      closeManualShipmentDialog()
+      await storeService.registerOpsManualShipment(manualShipmentOrder.sale_id, manualShipmentForm)
+      setSuccessMessage(`Guía registrada para orden #${manualShipmentOrder.sale_id}`)
+      setManualShipmentOrder(null)
       await loadData()
     } catch {
-      setErrorMessage('No se pudo registrar la guía manual.')
+      setErrorMessage('Error al registrar guía.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSaveBranding = async () => {
+    if (!branding) return
+    try {
+      setLoading(true)
+      const resp = await storeService.updateOpsBranding(branding)
+      setBranding(resp.branding)
+      setLegalDialogOpen(false)
+      setPromoDialogOpen(false)
+      setSuccessMessage('Configuración guardada.')
+    } catch {
+      setErrorMessage('Error al guardar configuración.')
     } finally {
       setLoading(false)
     }
@@ -246,670 +187,262 @@ export default function StoreOpsPage() {
   return (
     <PageShell>
       <GlobalSectionHeader
-        title="Operaciones de Tienda"
-        subtitle="Panel diario para seguimiento y avance de órdenes"
-        icon={<StorefrontIcon sx={{ fontSize: { xs: 24, sm: 30 } }} />}
+        title="Operaciones"
+        subtitle="Control central de la tienda online"
+        icon={<StorefrontIcon sx={{ color: 'text.secondary' }} />}
       />
-      <Box sx={{ px: { xs: 0.5, sm: 1, md: 1.5 }, pb: 1 }}>
-      <Stack spacing={2.5}>
 
-        {errorMessage && <Alert severity="error" onClose={() => setErrorMessage(null)}>{errorMessage}</Alert>}
-        {successMessage && <Alert severity="success" onClose={() => setSuccessMessage(null)}>{successMessage}</Alert>}
+      <Box sx={{ pb: 4 }}>
+        <Stack spacing={3}>
+          {errorMessage && <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ borderRadius: 1.5 }}>{errorMessage}</Alert>}
+          {successMessage && <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ borderRadius: 1.5 }}>{successMessage}</Alert>}
 
-        {wompiHealth && (
-          <Card
-            variant="outlined"
-            sx={{
-              borderRadius: 3,
-              background: alpha(theme.palette.background.paper, 0.9),
-              borderColor: alpha(theme.palette.primary.main, 0.22),
-            }}
-          >
-            <CardContent>
-              <Stack spacing={1}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-                  <Typography variant="h6">Estado Wompi</Typography>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Chip
-                      label={wompiHealth.configured ? 'Wompi OK' : 'Wompi incompleto'}
-                      color={wompiHealth.configured ? 'success' : 'warning'}
+          {/* Widgets de Estado Rápidos */}
+          <Grid container spacing={2}>
+            {wompiHealth && (
+              <Grid item xs={12} md={6}>
+                <Box sx={{
+                  p: 2.5,
+                  borderRadius: 2,
+                  border: `1px solid ${theme.palette.divider}`,
+                  bgcolor: 'background.paper',
+                }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Estado Pasarela (Wompi)</Typography>
+                    <Box sx={{
+                      px: 1, py: 0.25, borderRadius: '999px', fontSize: '11px', fontWeight: 700,
+                      bgcolor: wompiHealth.configured ? alpha(theme.palette.success.main, 0.08) : alpha(theme.palette.warning.main, 0.08),
+                      color: wompiHealth.configured ? 'success.main' : 'warning.main',
+                      border: `1px solid ${alpha(wompiHealth.configured ? theme.palette.success.main : theme.palette.warning.main, 0.2)}`
+                    }}>
+                      {wompiHealth.configured ? 'Configurado' : 'Pendiente'}
+                    </Box>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    Ambiente: <strong>{wompiHealth.environment}</strong>
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                    Endpoint: {wompiHealth.api_base_url}
+                  </Typography>
+                </Box>
+              </Grid>
+            )}
+
+            {branding && (
+              <Grid item xs={12} md={6}>
+                <Box sx={{
+                  p: 2.5,
+                  borderRadius: 2,
+                  border: `1px solid ${theme.palette.divider}`,
+                  bgcolor: 'background.paper',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Identidad Corporativa</Typography>
+                    <Typography variant="caption" color="text.secondary">Configuración legal y promocional</Typography>
+                  </Box>
+                  <Stack direction="row" spacing={1}>
+                    <Button
                       size="small"
-                    />
-                    <GradientButton
-                      size="small"
-                      onClick={() => void refreshWompiHealth()}
-                      disabled={loadingWompi}
-                      sx={{
-                        px: 1.4,
-                        py: 0.25,
-                        fontSize: '0.72rem',
-                        borderRadius: 999,
-                        backgroundColor:
-                          theme.palette.mode === 'light'
-                            ? alpha(theme.palette.primary.main, 0.14)
-                            : alpha('#ffffff', 0.2),
-                        color:
-                          theme.palette.mode === 'light'
-                            ? theme.palette.primary.dark
-                            : 'white',
-                        border: `1px solid ${
-                          theme.palette.mode === 'light'
-                            ? alpha(theme.palette.primary.main, 0.28)
-                            : alpha('#ffffff', 0.3)
-                        }`,
-                        '&:hover': {
-                          backgroundColor:
-                            theme.palette.mode === 'light'
-                              ? alpha(theme.palette.primary.main, 0.22)
-                              : alpha('#ffffff', 0.3),
-                          transform: 'translateY(-1px)',
-                        },
-                      }}
+                      variant="outlined"
+                      startIcon={<VerifiedUserIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => setLegalDialogOpen(true)}
+                      sx={{ borderRadius: 1.5, fontSize: '11px' }}
                     >
-                      Revalidar Wompi
-                    </GradientButton>
+                      Legal
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<CampaignIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => setPromoDialogOpen(true)}
+                      sx={{ borderRadius: 1.5, fontSize: '11px' }}
+                    >
+                      Promos
+                    </Button>
                   </Stack>
                 </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Ambiente: {wompiHealth.environment}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  API: {wompiHealth.api_base_url}
-                </Typography>
-                {!wompiHealth.configured && (
-                  <Typography variant="body2" color="warning.main">
-                    Faltan variables: {wompiHealth.missing.join(', ')}
-                  </Typography>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
-        )}
+              </Grid>
+            )}
+          </Grid>
 
-        {branding && (
-          <Card
-            variant="outlined"
-            sx={{
-              borderRadius: 3,
-              background: alpha(theme.palette.background.paper, 0.9),
-              borderColor: alpha(theme.palette.primary.main, 0.22),
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-                <Stack spacing={0.25}>
-                  <Typography variant="subtitle1" fontWeight={700}>Datos legales y de tienda</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Configura identidad comercial y promociones desde modales separados.
-                  </Typography>
-                </Stack>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  <Button
-                    variant="outlined"
-                    startIcon={<VerifiedUserRoundedIcon />}
-                    onClick={() => setLegalDialogOpen(true)}
-                    sx={{
-                      minHeight: 40,
-                      px: 1.8,
-                      borderRadius: 999,
-                      fontWeight: 700,
-                      color: theme.palette.mode === 'light' ? theme.palette.primary.dark : '#ffffff',
-                      borderColor:
-                        theme.palette.mode === 'light'
-                          ? alpha(theme.palette.primary.main, 0.38)
-                          : alpha('#ffffff', 0.4),
-                      background:
-                        theme.palette.mode === 'light'
-                          ? `linear-gradient(135deg, ${alpha('#ffffff', 0.72)}, ${alpha(theme.palette.primary.main, 0.1)})`
-                          : `linear-gradient(135deg, ${alpha('#ffffff', 0.2)}, ${alpha(theme.palette.primary.main, 0.26)})`,
-                      backdropFilter: 'blur(12px)',
-                      boxShadow:
-                        theme.palette.mode === 'light'
-                          ? `0 8px 24px ${alpha(theme.palette.primary.main, 0.16)}`
-                          : `0 10px 26px ${alpha('#000', 0.42)}`,
-                      transition: 'transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease',
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        borderColor:
-                          theme.palette.mode === 'light'
-                            ? alpha(theme.palette.primary.main, 0.52)
-                            : alpha('#ffffff', 0.56),
-                        background:
-                          theme.palette.mode === 'light'
-                            ? `linear-gradient(135deg, ${alpha('#ffffff', 0.86)}, ${alpha(theme.palette.primary.main, 0.18)})`
-                            : `linear-gradient(135deg, ${alpha('#ffffff', 0.26)}, ${alpha(theme.palette.primary.main, 0.34)})`,
-                      },
-                    }}
-                  >
-                    Datos legales
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<CampaignRoundedIcon />}
-                    onClick={() => setPromoDialogOpen(true)}
-                    sx={{
-                      minHeight: 40,
-                      px: 1.8,
-                      borderRadius: 999,
-                      fontWeight: 700,
-                      color: theme.palette.mode === 'light' ? theme.palette.info.dark : '#ffffff',
-                      borderColor:
-                        theme.palette.mode === 'light'
-                          ? alpha(theme.palette.info.main, 0.38)
-                          : alpha('#ffffff', 0.4),
-                      background:
-                        theme.palette.mode === 'light'
-                          ? `linear-gradient(135deg, ${alpha('#ffffff', 0.72)}, ${alpha(theme.palette.info.main, 0.1)})`
-                          : `linear-gradient(135deg, ${alpha('#ffffff', 0.2)}, ${alpha(theme.palette.info.main, 0.26)})`,
-                      backdropFilter: 'blur(12px)',
-                      boxShadow:
-                        theme.palette.mode === 'light'
-                          ? `0 8px 24px ${alpha(theme.palette.info.main, 0.16)}`
-                          : `0 10px 26px ${alpha('#000', 0.42)}`,
-                      transition: 'transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease',
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        borderColor:
-                          theme.palette.mode === 'light'
-                            ? alpha(theme.palette.info.main, 0.52)
-                            : alpha('#ffffff', 0.56),
-                        background:
-                          theme.palette.mode === 'light'
-                            ? `linear-gradient(135deg, ${alpha('#ffffff', 0.86)}, ${alpha(theme.palette.info.main, 0.18)})`
-                            : `linear-gradient(135deg, ${alpha('#ffffff', 0.26)}, ${alpha(theme.palette.info.main, 0.34)})`,
-                      },
-                    }}
-                  >
-                    Promociones
-                  </Button>
-                </Stack>
-              </Box>
-            </CardContent>
-          </Card>
-        )}
-
-        {summary && (
-          <Card
-            variant="outlined"
-            sx={{
-              borderRadius: 3,
-              background: alpha(theme.palette.background.paper, 0.9),
-              borderColor: alpha(theme.palette.primary.main, 0.22),
-            }}
-          >
-            <CardContent>
-              <Stack direction="row" flexWrap="wrap" gap={1}>
-                <Chip label={`Total: ${summary.total_orders}`} color="primary" />
-                <Chip label={`Pending: ${summary.pending}`} color="warning" />
-                <Chip label={`Paid: ${summary.paid}`} color="success" />
-                <Chip label={`Processing: ${summary.processing}`} color="info" />
-                <Chip label={`Shipped: ${summary.shipped}`} />
-                <Chip label={`Delivered: ${summary.delivered}`} color="success" variant="outlined" />
-                <Chip label={`Canceled: ${summary.canceled}`} color="error" />
-              </Stack>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card
-          variant="outlined"
-          sx={{
-            borderRadius: 3,
-            background: alpha(theme.palette.background.paper, 0.9),
-            borderColor: alpha(theme.palette.primary.main, 0.22),
-          }}
-        >
-          <CardContent>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-              <TextField
-                label="Buscar cliente"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                fullWidth
-              />
-              <TextField
-                select
-                label="Estado"
-                value={status}
-                onChange={(event) => setStatus(event.target.value)}
-                sx={{ minWidth: 180 }}
-              >
-                {STATUS_OPTIONS.map((value) => (
-                  <MenuItem key={value || 'all'} value={value}>
-                    {value || 'Todos'}
-                  </MenuItem>
+          {/* Resumen de Órdenes */}
+          {summary && (
+            <Box sx={{
+              p: 2,
+              borderRadius: 2,
+              border: `1px solid ${theme.palette.divider}`,
+              bgcolor: alpha(theme.palette.text.primary, 0.02),
+            }}>
+              <Stack direction="row" flexWrap="wrap" gap={1.5} justifyContent="center">
+                {[
+                  { label: 'Pendientes', count: summary.pending, color: 'warning' },
+                  { label: 'Pagadas', count: summary.paid, color: 'success' },
+                  { label: 'Procesando', count: summary.processing, color: 'info' },
+                  { label: 'Enviadas', count: summary.shipped, color: 'primary' },
+                ].map((s) => (
+                  <Box key={s.label} sx={{ textAlign: 'center', px: 2 }}>
+                    <Typography variant="caption" color="text.secondary" display="block" sx={{ fontWeight: 500, mb: 0.5 }}>
+                      {s.label}
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: `${s.color}.main` }}>
+                      {s.count}
+                    </Typography>
+                  </Box>
                 ))}
-              </TextField>
-              <GradientButton
-                onClick={handleApplyFilters}
-                disabled={loading}
-                sx={{
-                  backgroundColor:
-                    theme.palette.mode === 'light'
-                      ? alpha(theme.palette.primary.main, 0.14)
-                      : alpha('#ffffff', 0.2),
-                  color:
-                    theme.palette.mode === 'light'
-                      ? theme.palette.primary.dark
-                      : 'white',
-                  border: `1px solid ${
-                    theme.palette.mode === 'light'
-                      ? alpha(theme.palette.primary.main, 0.28)
-                      : alpha('#ffffff', 0.3)
-                  }`,
-                  '&:hover': {
-                    backgroundColor:
-                      theme.palette.mode === 'light'
-                        ? alpha(theme.palette.primary.main, 0.22)
-                        : alpha('#ffffff', 0.3),
-                    transform: 'translateY(-1px)',
-                  },
-                }}
-              >
-                Filtrar
-              </GradientButton>
-            </Stack>
-          </CardContent>
-        </Card>
-
-        <Stack spacing={2}>
-          {orders.map((order) => {
-            const nextStatus = NEXT_STATUS_BY_CURRENT[order.status]
-            return (
-              <Card
-                key={order.sale_id}
-                variant="outlined"
-                sx={{
-                  borderRadius: 3,
-                  background: alpha(theme.palette.background.paper, 0.9),
-                  borderColor: alpha(theme.palette.primary.main, 0.2),
-                }}
-              >
-                <CardContent>
-                  <Stack spacing={1}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-                      <Typography variant="h6">Orden #{order.sale_id}</Typography>
-                      <Chip
-                        label={order.status_detail.label}
-                        color={order.status === 'canceled' ? 'error' : order.status === 'pending' ? 'warning' : 'primary'}
-                        size="small"
-                      />
-                    </Box>
-                    <Typography variant="body2">Total: {order.total}</Typography>
-                    <Typography variant="body2" color="text.secondary">Creado: {order.created_at}</Typography>
-                    <Typography variant="body2" color="text.secondary">Pago: {order.payment_status}</Typography>
-                    {order.payment_method_preference && (
-                      <Typography variant="body2" color="text.secondary">
-                        Metodo preferido: {order.payment_method_preference}
-                      </Typography>
-                    )}
-                    {order.payment_method && (
-                      <Typography variant="body2" color="text.secondary">
-                        Metodo confirmado: {order.payment_method}
-                      </Typography>
-                    )}
-                    {order.shipping_address && (
-                      <Typography variant="body2" color="text.secondary">
-                        Direccion: {order.shipping_address.address_line1}, {order.shipping_address.city} ({order.shipping_address.department})
-                      </Typography>
-                    )}
-                    {order.shipment && (
-                      <Typography variant="body2" color="text.secondary">
-                        Envío: {order.shipment.carrier} - {order.shipment.tracking_number} ({order.shipment.status})
-                      </Typography>
-                    )}
-
-                    <Stack direction="row" spacing={1}>
-                      {order.status === 'pending' && order.payment_status !== 'paid' && (
-                        <Button
-                          size="small"
-                          color="success"
-                          variant="outlined"
-                          onClick={() => void handleMarkManualPaid(order)}
-                          disabled={loading}
-                        >
-                          Marcar pago manual
-                        </Button>
-                      )}
-                      {nextStatus && (
-                        <Button size="small" variant="contained" onClick={() => void handleAdvanceStatus(order)} disabled={loading}>
-                          Pasar a {nextStatus}
-                        </Button>
-                      )}
-                      {order.status !== 'canceled' && order.status !== 'completed' && (
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => openManualShipmentDialog(order)}
-                          disabled={loading}
-                        >
-                          Registrar guía manual
-                        </Button>
-                      )}
-                      {order.status !== 'canceled' && order.status !== 'completed' && (
-                        <Button
-                          size="small"
-                          color="error"
-                          variant="outlined"
-                          onClick={() => void handleCancelOrder(order.sale_id)}
-                          disabled={loading}
-                        >
-                          Cancelar
-                        </Button>
-                      )}
-                    </Stack>
-                  </Stack>
-                </CardContent>
-              </Card>
-            )
-          })}
-
-          {orders.length === 0 && (
-            <Card
-              variant="outlined"
-              sx={{
-                borderRadius: 3,
-                background: alpha(theme.palette.background.paper, 0.9),
-                borderColor: alpha(theme.palette.primary.main, 0.2),
-              }}
-            >
-              <CardContent>
-                <Typography variant="body2" color="text.secondary">
-                  No hay órdenes para los filtros actuales.
-                </Typography>
-              </CardContent>
-            </Card>
+              </Stack>
+            </Box>
           )}
-        </Stack>
 
-        <Box display="flex" justifyContent="center">
-          <Pagination count={totalPages} page={page} onChange={(_, value) => setPage(value)} />
-        </Box>
-      </Stack>
+          {/* Filtros y Lista */}
+          <Box sx={{
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.divider}`,
+            bgcolor: 'background.paper',
+            overflow: 'hidden'
+          }}>
+            <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}`, bgcolor: alpha(theme.palette.text.primary, 0.01) }}>
+              <Grid container spacing={1.5} alignItems="center">
+                <Grid item xs={12} sm={6} md={8}>
+                  <TextField
+                    placeholder="Buscar por cliente o ID..."
+                    size="small"
+                    fullWidth
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: alpha(theme.palette.text.primary, 0.015), borderRadius: 1.5 } }}
+                    InputProps={{ startAdornment: <SearchIcon sx={{ color: 'text.secondary', fontSize: 18, mr: 1 }} /> }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={4} display="flex" gap={1}>
+                  <TextField
+                    select
+                    size="small"
+                    fullWidth
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
+                  >
+                    {STATUS_OPTIONS.map((val) => (
+                      <MenuItem key={val} value={val}>{val || 'Todos los estados'}</MenuItem>
+                    ))}
+                  </TextField>
+                  <Button variant="contained" onClick={handleApplyFilters} sx={{ borderRadius: 1.5, px: 3 }}>
+                    Filtrar
+                  </Button>
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Box sx={{ p: 0 }}>
+              {orders.length === 0 ? (
+                <Box sx={{ p: 6, textAlign: 'center' }}>
+                  <Typography variant="body2" color="text.secondary">No se encontraron órdenes recientes.</Typography>
+                </Box>
+              ) : (
+                <Stack divider={<Divider />}>
+                  {orders.map((order) => {
+                    const next = NEXT_STATUS_BY_CURRENT[order.status]
+                    return (
+                      <Box key={order.sale_id} sx={{ p: 2.5, '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.005) } }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={8}>
+                            <Box display="flex" alignItems="center" gap={1.5} mb={1}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Orden #{order.sale_id}</Typography>
+                              <Box sx={{
+                                px: 1, py: 0.15, borderRadius: '4px', fontSize: '10px', fontWeight: 700,
+                                bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main',
+                                border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`
+                              }}>
+                                {order.status_detail.label}
+                              </Box>
+                            </Box>
+                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '13px' }}>
+                              Cliente: <strong>{order.customer_name || 'Desconocido'}</strong> • {order.total} • {order.created_at}
+                            </Typography>
+                            {order.shipment && (
+                              <Typography variant="caption" color="primary" sx={{ display: 'block', mt: 0.5, fontWeight: 500 }}>
+                                <ShippingIcon sx={{ fontSize: 12, verticalAlign: 'middle', mr: 0.5 }} />
+                                {order.shipment.carrier}: {order.shipment.tracking_number}
+                              </Typography>
+                            )}
+                          </Grid>
+                          <Grid item xs={12} sm={4} display="flex" justifyContent={{ xs: 'flex-start', sm: 'flex-end' }} alignItems="center" gap={1}>
+                            <Stack direction="row" spacing={1}>
+                              {order.status === 'pending' && (
+                                <Button size="small" color="success" onClick={() => handleMarkManualPaid(order)} sx={{ fontSize: '11px', minWidth: 0 }}>
+                                  Pago
+                                </Button>
+                              )}
+                              {next && (
+                                <GradientButton size="small" onClick={() => handleAdvanceStatus(order)} sx={{ fontSize: '11px', borderRadius: 1.5 }}>
+                                  Pasar a {next}
+                                </GradientButton>
+                              )}
+                              <Button size="small" variant="outlined" onClick={() => openManualShipmentDialog(order)} sx={{ fontSize: '11px', borderRadius: 1.5 }}>
+                                Guía
+                              </Button>
+                            </Stack>
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    )
+                  })}
+                </Stack>
+              )}
+            </Box>
+          </Box>
+
+          <Box display="flex" justifyContent="center">
+            <Pagination count={totalPages} page={page} onChange={(_, v) => setPage(v)} size="small" />
+          </Box>
+        </Stack>
       </Box>
-      <Dialog open={Boolean(manualShipmentOrder)} onClose={closeManualShipmentDialog} fullWidth maxWidth="sm">
-        <DialogTitle>Registrar guía manual</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <TextField
-              label="Transportadora"
-              value={manualShipmentForm.carrier}
-              onChange={(event) => setManualShipmentForm((prev) => ({ ...prev, carrier: event.target.value }))}
-              fullWidth
-            />
-            <TextField
-              label="Número de guía / tracking"
-              value={manualShipmentForm.tracking_number}
-              onChange={(event) => setManualShipmentForm((prev) => ({ ...prev, tracking_number: event.target.value }))}
-              fullWidth
-            />
-            <TextField
-              label="Costo del envío"
-              value={manualShipmentForm.shipping_cost}
-              onChange={(event) => setManualShipmentForm((prev) => ({ ...prev, shipping_cost: event.target.value }))}
-              fullWidth
-            />
-            <TextField
-              label="Servicio"
-              value={manualShipmentForm.service ?? ''}
-              onChange={(event) => setManualShipmentForm((prev) => ({ ...prev, service: event.target.value }))}
-              fullWidth
-            />
-            <TextField
-              label="Referencia proveedor (opcional)"
-              value={manualShipmentForm.provider_reference ?? ''}
-              onChange={(event) => setManualShipmentForm((prev) => ({ ...prev, provider_reference: event.target.value }))}
-              fullWidth
-            />
-            <TextField
-              label="URL etiqueta (opcional)"
-              value={manualShipmentForm.label_url ?? ''}
-              onChange={(event) => setManualShipmentForm((prev) => ({ ...prev, label_url: event.target.value }))}
-              fullWidth
-            />
-            <TextField
-              select
-              label="Estado del envío"
-              value={manualShipmentForm.status ?? 'in_transit'}
-              onChange={(event) => setManualShipmentForm((prev) => ({ ...prev, status: event.target.value as any }))}
-              fullWidth
-            >
-              <MenuItem value="created">created</MenuItem>
-              <MenuItem value="in_transit">in_transit</MenuItem>
-              <MenuItem value="delivered">delivered</MenuItem>
-              <MenuItem value="failed">failed</MenuItem>
-              <MenuItem value="canceled">canceled</MenuItem>
-            </TextField>
+
+      {/* Modales de Configuración */}
+      <Dialog open={legalDialogOpen} onClose={() => setLegalDialogOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ fontWeight: 700 }}>Datos Legales</DialogTitle>
+        <DialogContent sx={{ mt: 1 }}>
+          <Stack spacing={2}>
+            <TextField label="Nombre Tienda" value={branding?.store_name || ''} onChange={(e) => setBranding(prev => prev ? { ...prev, store_name: e.target.value } : null)} fullWidth />
+            <TextField label="NIT / RUT" value={branding?.legal_id_number || ''} onChange={(e) => setBranding(prev => prev ? { ...prev, legal_id_number: e.target.value } : null)} fullWidth />
+            <TextField label="Correo" value={branding?.legal_contact_email || ''} onChange={(e) => setBranding(prev => prev ? { ...prev, legal_contact_email: e.target.value } : null)} fullWidth />
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={closeManualShipmentDialog} disabled={loading}>Cancelar</Button>
-          <Button onClick={() => void handleSaveManualShipment()} variant="contained" disabled={loading}>
-            Guardar guía
-          </Button>
+        <DialogActions sx={{ pb: 3, px: 3 }}>
+          <Button onClick={() => setLegalDialogOpen(false)}>Cancelar</Button>
+          <GradientButton onClick={handleSaveBranding} loading={loading}>Guardar Cambios</GradientButton>
         </DialogActions>
       </Dialog>
-      <Dialog
-        open={legalDialogOpen}
-        onClose={() => setLegalDialogOpen(false)}
-        fullWidth
-        maxWidth="md"
-        fullScreen={isMobile}
-        PaperProps={{
-          sx: {
-            borderRadius: isMobile ? 0 : 3,
-            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-            backgroundColor: alpha(theme.palette.background.paper, 0.95),
-            backdropFilter: 'blur(10px)',
-          },
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 800 }}>Datos legales y comerciales</DialogTitle>
-        <DialogContent>
-          {branding && (
-            <Stack spacing={1.25} mt={1}>
-              <Typography variant="subtitle2">Datos legales y comerciales</Typography>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25}>
-                <TextField
-                  label="Nombre tienda"
-                  value={branding.store_name}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, store_name: event.target.value } : prev)}
-                  fullWidth
-                />
-                <TextField
-                  label="Tagline"
-                  value={branding.tagline}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, tagline: event.target.value } : prev)}
-                  fullWidth
-                />
-              </Stack>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25}>
-                <TextField
-                  label="URL logo tienda"
-                  value={branding.logo_url || ''}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, logo_url: event.target.value } : prev)}
-                  placeholder="https://..."
-                  fullWidth
-                />
-                <TextField
-                  label="URL favicon"
-                  value={branding.favicon_url || ''}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, favicon_url: event.target.value } : prev)}
-                  placeholder="https://..."
-                  fullWidth
-                />
-              </Stack>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25}>
-                <TextField
-                  label="Tipo identificacion"
-                  value={branding.legal_id_type}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, legal_id_type: event.target.value } : prev)}
-                  fullWidth
-                />
-                <TextField
-                  label="NIT / RUT"
-                  value={branding.legal_id_number}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, legal_id_number: event.target.value } : prev)}
-                  fullWidth
-                />
-                <TextField
-                  label="Titular / responsable"
-                  value={branding.legal_representative_name}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, legal_representative_name: event.target.value } : prev)}
-                  fullWidth
-                />
-              </Stack>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25}>
-                <TextField
-                  label="Correo de contacto"
-                  value={branding.legal_contact_email}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, legal_contact_email: event.target.value } : prev)}
-                  fullWidth
-                />
-                <TextField
-                  label="Telefono de contacto"
-                  value={branding.legal_contact_phone}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, legal_contact_phone: event.target.value } : prev)}
-                  fullWidth
-                />
-              </Stack>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25}>
-                <TextField
-                  label="Direccion legal/comercial"
-                  value={branding.legal_contact_address}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, legal_contact_address: event.target.value } : prev)}
-                  fullWidth
-                />
-                <TextField
-                  label="Ciudad"
-                  value={branding.legal_contact_city}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, legal_contact_city: event.target.value } : prev)}
-                  fullWidth
-                />
-                <TextField
-                  label="Departamento"
-                  value={branding.legal_contact_department}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, legal_contact_department: event.target.value } : prev)}
-                  fullWidth
-                />
-              </Stack>
-            </Stack>
-          )}
+
+      <Dialog open={promoDialogOpen} onClose={() => setPromoDialogOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ fontWeight: 700 }}>Promociones</DialogTitle>
+        <DialogContent sx={{ mt: 1 }}>
+          <Stack spacing={2}>
+            <TextField label="Tagline / Promo" value={branding?.tagline || ''} onChange={(e) => setBranding(prev => prev ? { ...prev, tagline: e.target.value } : null)} fullWidth multiline rows={2} />
+          </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setLegalDialogOpen(false)} disabled={loading}>Cerrar</Button>
-          <Button
-            variant="contained"
-            onClick={() => void handleSaveBranding('legal')}
-            disabled={loading || !branding}
-          >
-            Guardar datos legales
-          </Button>
+        <DialogActions sx={{ pb: 3, px: 3 }}>
+          <Button onClick={() => setPromoDialogOpen(false)}>Cancelar</Button>
+          <GradientButton onClick={handleSaveBranding} loading={loading}>Aplicar Promos</GradientButton>
         </DialogActions>
       </Dialog>
-      <Dialog
-        open={promoDialogOpen}
-        onClose={() => setPromoDialogOpen(false)}
-        fullWidth
-        maxWidth="md"
-        fullScreen={isMobile}
-        PaperProps={{
-          sx: {
-            borderRadius: isMobile ? 0 : 3,
-            border: `1px solid ${alpha(theme.palette.info.main, 0.25)}`,
-            backgroundColor: alpha(theme.palette.background.paper, 0.95),
-            backdropFilter: 'blur(10px)',
-          },
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 800 }}>Promociones de la tienda</DialogTitle>
-        <DialogContent>
-          {branding && (
-            <Stack spacing={1.25} mt={1}>
-              <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
-                Configura banners y mensajes para escritorio y móvil.
-              </Typography>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25}>
-                <TextField
-                  select
-                  label="Mostrar promo superior"
-                  value={branding.promo_top_enabled ? 'true' : 'false'}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, promo_top_enabled: event.target.value === 'true' } : prev)}
-                  fullWidth
-                >
-                  <MenuItem value="false">No</MenuItem>
-                  <MenuItem value="true">Si</MenuItem>
-                </TextField>
-                <TextField
-                  label="Titulo promo superior"
-                  value={branding.promo_top_title}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, promo_top_title: event.target.value } : prev)}
-                  fullWidth
-                />
-              </Stack>
-              <TextField
-                label="Texto promo superior"
-                value={branding.promo_top_text}
-                onChange={(event) => setBranding((prev) => prev ? { ...prev, promo_top_text: event.target.value } : prev)}
-                fullWidth
-                multiline
-                minRows={2}
-              />
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25}>
-                <TextField
-                  label="Imagen promo superior (desktop - pancarta)"
-                  value={branding.promo_top_image_desktop_url}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, promo_top_image_desktop_url: event.target.value } : prev)}
-                  fullWidth
-                  placeholder="https://..."
-                />
-                <TextField
-                  label="Imagen promo superior (movil - cuadrada)"
-                  value={branding.promo_top_image_mobile_url}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, promo_top_image_mobile_url: event.target.value } : prev)}
-                  fullWidth
-                  placeholder="https://..."
-                />
-              </Stack>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25}>
-                <TextField
-                  select
-                  label="Mostrar promo inferior"
-                  value={branding.promo_bottom_enabled ? 'true' : 'false'}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, promo_bottom_enabled: event.target.value === 'true' } : prev)}
-                  fullWidth
-                >
-                  <MenuItem value="false">No</MenuItem>
-                  <MenuItem value="true">Si</MenuItem>
-                </TextField>
-                <TextField
-                  label="Titulo promo inferior"
-                  value={branding.promo_bottom_title}
-                  onChange={(event) => setBranding((prev) => prev ? { ...prev, promo_bottom_title: event.target.value } : prev)}
-                  fullWidth
-                />
-              </Stack>
-              <TextField
-                label="Texto promo inferior"
-                value={branding.promo_bottom_text}
-                onChange={(event) => setBranding((prev) => prev ? { ...prev, promo_bottom_text: event.target.value } : prev)}
-                fullWidth
-                multiline
-                minRows={2}
-              />
-            </Stack>
-          )}
+
+      <Dialog open={Boolean(manualShipmentOrder)} onClose={() => setManualShipmentOrder(null)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 700 }}>Registrar Guía Manual</DialogTitle>
+        <DialogContent sx={{ mt: 1 }}>
+          <Stack spacing={2}>
+            <TextField label="Transportadora" value={manualShipmentForm.carrier} onChange={(e) => setManualShipmentForm(p => ({ ...p, carrier: e.target.value }))} fullWidth size="small" />
+            <TextField label="# Guía" value={manualShipmentForm.tracking_number} onChange={(e) => setManualShipmentForm(p => ({ ...p, tracking_number: e.target.value }))} fullWidth size="small" />
+            <TextField label="Costo" value={manualShipmentForm.shipping_cost} onChange={(e) => setManualShipmentForm(p => ({ ...p, shipping_cost: e.target.value }))} fullWidth size="small" />
+          </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setPromoDialogOpen(false)} disabled={loading}>Cerrar</Button>
-          <Button
-            variant="contained"
-            onClick={() => void handleSaveBranding('promo')}
-            disabled={loading || !branding}
-          >
-            Guardar promociones
-          </Button>
+        <DialogActions sx={{ pb: 3, px: 3 }}>
+          <Button onClick={() => setManualShipmentOrder(null)}>Cancelar</Button>
+          <GradientButton onClick={handleSaveManualShipment} loading={loading}>Guardar Guía</GradientButton>
         </DialogActions>
       </Dialog>
     </PageShell>
