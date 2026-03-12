@@ -84,7 +84,9 @@ export const useProductsLogic = () => {
   useEffect(() => {
     if (location.state?.openCreateModal) {
       blurActiveElement()
-      setDialogOpen(true)
+      setWizardOpen(true)
+      // Remove state to prevent reopening on reload
+      window.history.replaceState({}, document.title)
     }
   }, [location.state])
 

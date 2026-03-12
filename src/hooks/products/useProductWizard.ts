@@ -58,7 +58,7 @@ export const useProductWizard = (onComplete: () => void) => {
     )
   }
 
-  const handleImageUpload = (files: FileList | null) => {
+  const handleImageUpload = (files: FileList | null, variantId?: number) => {
     if (!files || !createdProduct) return
 
     setImageUploadLoading(true)
@@ -69,6 +69,9 @@ export const useProductWizard = (onComplete: () => void) => {
       const formData = new FormData()
       formData.append('image', file)
       formData.append('product', createdProduct.id.toString())
+      if (variantId) {
+        formData.append('variant', variantId.toString())
+      }
 
       productService.uploadImage(createdProduct.id, formData).then(() => {
         uploadCount++

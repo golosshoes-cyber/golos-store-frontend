@@ -35,8 +35,8 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
     size: '',
     gender: '',
     color: '',
-    price: 0,
-    cost: 0,
+    price: '' as number | string,
+    cost: '' as number | string,
     active: true,
   })
 
@@ -57,8 +57,8 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
         size: '',
         gender: '',
         color: '',
-        price: 0,
-        cost: 0,
+        price: '',
+        cost: '',
         active: true,
       })
     }
@@ -69,8 +69,8 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
     onSubmit({
       ...formData,
       product: parseInt(formData.product),
-      price: parseFloat(formData.price.toString()),
-      cost: parseFloat(formData.cost.toString()),
+      price: parseFloat(formData.price.toString()) || 0,
+      cost: parseFloat(formData.cost.toString()) || 0,
     })
   }
 
@@ -175,7 +175,7 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
             type="number"
             required
             value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
             disabled={loading}
           />
           <TextField
@@ -187,7 +187,7 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
             type="number"
             required
             value={formData.cost}
-            onChange={(e) => setFormData({ ...formData, cost: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
             disabled={loading}
           />
         </form>

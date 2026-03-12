@@ -66,10 +66,13 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
     size: '',
     gender: 'unisex',
     color: '',
-    price: 0,
-    cost: 0,
+    price: '' as number | string,
+    cost: '' as number | string,
     active: true,
   })
+
+  // Step 2 State
+  const [selectedVariantForImage, setSelectedVariantForImage] = useState<number | ''>('')
 
   useEffect(() => {
     if (open) {
@@ -84,10 +87,11 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
         size: '',
         gender: 'unisex',
         color: '',
-        price: 0,
-        cost: 0,
+        price: '',
+        cost: '',
         active: true,
       })
+      setSelectedVariantForImage('')
     }
   }, [open])
 
@@ -207,12 +211,14 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
               </Typography>
               <form id="wizard-variant-form" onSubmit={(e: React.FormEvent) => {
                 e.preventDefault()
+                const priceVal = parseFloat(variantData.price.toString()) || 0;
+                const costVal = parseFloat(variantData.cost.toString()) || 0;
                 handleVariantSubmit({
                   ...variantData,
-                  price: parseFloat(variantData.price.toString()),
-                  cost: parseFloat(variantData.cost.toString())
+                  price: priceVal,
+                  cost: costVal
                 }, () => {
-                  setVariantData(prev => ({ ...prev, size: '', color: '' }))
+                  setVariantData(prev => ({ ...prev, size: '', color: '', price: '', cost: '' }))
                 })
               }}>
                 <Box display="flex" gap={2}>
@@ -260,7 +266,7 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                     type="number"
                     required
                     value={variantData.price}
-                    onChange={(e) => setVariantData({ ...variantData, price: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setVariantData({ ...variantData, price: e.target.value })}
                     disabled={isCreatingVariant}
                   />
                   <TextField
@@ -271,7 +277,7 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                     type="number"
                     required
                     value={variantData.cost}
-                    onChange={(e) => setVariantData({ ...variantData, cost: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setVariantData({ ...variantData, cost: e.target.value })}
                     disabled={isCreatingVariant}
                   />
                 </Box>
@@ -325,6 +331,25 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
               Estas se asociarán automáticamente al producto creado.
             </Typography>
 
+            {addedVariants.length > 0 && (
+              <TextField
+                name="variant_assign"
+                margin="normal"
+                label="Asignar imágenes a..."
+                select
+                value={selectedVariantForImage}
+                onChange={(e) => setSelectedVariantForImage(e.target.value as number | '')}
+                sx={{ mb: 3, width: { xs: '100%', sm: 300 } }}
+              >
+                <MenuItem value="">Producto General (Sin variante)</MenuItem>
+                {addedVariants.map((v) => (
+                  <MenuItem key={v.id!} value={v.id!}>
+                    Talla: {v.size} {v.color ? `- ${v.color}` : ''}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+
             <Button
               component="label"
               variant="contained"
@@ -340,7 +365,7 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                 multiple
                 accept="image/*"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  handleImageUpload(e.target.files)
+                  handleImageUpload(e.target.files, selectedVariantForImage || undefined)
                   e.target.value = '' // reset
                 }}
               />
