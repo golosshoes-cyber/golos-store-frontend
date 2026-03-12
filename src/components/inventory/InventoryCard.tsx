@@ -1,20 +1,16 @@
 import React from 'react'
 import {
-  Card,
-  CardContent,
   Box,
   Typography,
-  Chip,
   Button,
+  useTheme,
+  alpha,
+  Grid,
 } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
 import {
   Edit as EditIcon,
-  TrendingUp as TrendingUpIcon,
-  Warning as WarningIcon,
 } from '@mui/icons-material'
 import { ProductVariant } from '../../types'
-import { mobileCardSx, mobileMetricSx } from '../common/mobileCardStyles'
 
 interface InventoryCardProps {
   variant: ProductVariant
@@ -30,129 +26,99 @@ const InventoryCard: React.FC<InventoryCardProps> = ({
   onAdjustStock,
 }) => {
   const theme = useTheme()
-  // Función para dividir nombre largo en líneas
-  const renderStackedName = (name: string) => {
-    const words = name.split(' ')
-    return words.map((word, index) => (
-      <Typography
-        key={index}
-        variant="h6"
-        fontWeight="bold"
-        sx={{
-          fontSize: { xs: '0.9rem', sm: '1rem' },
-          lineHeight: 1.2,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap'
-        }}
-      >
-        {word}
-      </Typography>
-    ))
-  }
-
   const stockStatus = getStockStatus(variant.stock)
   const productInfo = getProductInfo(variant.product)
 
   return (
-    <Card sx={mobileCardSx(theme)}>
-      <CardContent sx={{ p: 2 }}>
+    <Box 
+      sx={{ 
+        borderRadius: 2, 
+        border: `1px solid ${theme.palette.divider}`,
+        bgcolor: 'background.paper',
+        overflow: 'hidden'
+      }}
+    >
+      <Box sx={{ p: 2 }}>
         {/* Header con nombre y SKU */}
         <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            {/* Nombre apilado por palabras */}
-            <Box sx={{ mb: 0.5 }}>
-              {renderStackedName(productInfo.name)}
-            </Box>
-            <Typography variant="body2" color="primary" fontWeight="medium" sx={{
-              fontSize: { xs: '0.75rem', sm: '0.8rem' },
-              mb: 0.5,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}>
+            <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>
+              {productInfo.name}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600, display: 'block', mb: 0.5 }}>
               {productInfo.brand}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
-              SKU: {variant.sku} • {variant.size} • {variant.color || 'Sin color'}
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {variant.sku} • {variant.size} • {variant.color || 'SC'}
             </Typography>
           </Box>
-          <Chip
-            label={stockStatus.label}
-            color={stockStatus.color}
-            size="small"
-            icon={variant.stock < 10 ? <WarningIcon /> : <TrendingUpIcon />}
-            sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
-          />
-        </Box>
-
-        {/* Información de Stock */}
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-            gap: 2,
-            mb: 2
-          }}
-        >
-          <Box
-            sx={{
-              ...mobileMetricSx(
-                theme,
-                variant.stock === 0 ? 'error' : variant.stock < 10 ? 'warning' : 'success',
-              ),
-            }}
-          >
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
-              Stock Actual
-            </Typography>
-            <Typography variant="h5" fontWeight="bold" sx={{
-              fontSize: { xs: '1.2rem', sm: '1.5rem' },
-              color: variant.stock === 0 ? '#d32f2f' : variant.stock < 10 ? '#f57c00' : '#2e7d32'
-            }}>
-              {variant.stock}
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              ...mobileMetricSx(theme, 'info'),
-            }}
-          >
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
-              Precio Unit.
-            </Typography>
-            <Typography variant="h5" fontWeight="bold" sx={{
-              fontSize: { xs: '1.2rem', sm: '1.5rem' },
-              color: '#7b1fa2'
-            }}>
-              ${variant.price}
-            </Typography>
+          <Box sx={{ 
+            px: 1, 
+            py: 0.25, 
+            borderRadius: '999px',
+            fontSize: '10px',
+            fontWeight: 700,
+            bgcolor: alpha(theme.palette[stockStatus.color].main, 0.08),
+            color: `${stockStatus.color}.main`,
+            border: `1px solid ${alpha(theme.palette[stockStatus.color].main, 0.2)}`
+          }}>
+            {stockStatus.label}
           </Box>
         </Box>
+
+        {/* Información de Metricas */}
+        <Grid container spacing={1.5} sx={{ mb: 2 }}>
+          <Grid item xs={6}>
+            <Box sx={{ 
+              p: 1.5, 
+              borderRadius: 1.5, 
+              bgcolor: alpha(theme.palette.text.primary, 0.02),
+              border: `1px solid ${theme.palette.divider}`
+            }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block' }}>
+                Stock
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                {variant.stock}
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={6}>
+            <Box sx={{ 
+              p: 1.5, 
+              borderRadius: 1.5, 
+              bgcolor: alpha(theme.palette.text.primary, 0.02),
+              border: `1px solid ${theme.palette.divider}`
+            }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block' }}>
+                Precio
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                ${variant.price.toLocaleString()}
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
 
         {/* Botón de acción */}
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<EditIcon />}
-            onClick={() => onAdjustStock(variant)}
-            sx={{
-              fontSize: { xs: '0.7rem', sm: '0.9rem' },
-              px: { xs: 2, sm: 3 },
-              borderRadius: 2,
-              '&:hover': {
-                backgroundColor: 'primary.main',
-                color: 'white',
-              }
-            }}
-          >
-            Ajustar Stock
-          </Button>
-        </Box>
-      </CardContent>
-    </Card>
+        <Button
+          fullWidth
+          size="small"
+          variant="outlined"
+          startIcon={<EditIcon sx={{ fontSize: 16 }} />}
+          onClick={() => onAdjustStock(variant)}
+          sx={{
+            borderRadius: 1.5,
+            color: 'text.secondary',
+            borderColor: 'divider',
+            py: 1,
+            '&:hover': { borderColor: 'text.primary', color: 'text.primary' }
+          }}
+        >
+          Ajustar Stock
+        </Button>
+      </Box>
+    </Box>
   )
 }
 

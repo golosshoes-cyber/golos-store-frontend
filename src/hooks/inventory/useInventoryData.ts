@@ -86,13 +86,13 @@ export const useInventoryData = ({ showSuccess, showError }: UseInventoryDataPro
     return { label: 'Stock Alto', color: 'success' as const }
   }
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
     setPage(1) // Reset to first page when searching
   }
 
-  const toggleLowStockOnly = () => {
-    setLowStockOnly(!lowStockOnly)
+  const toggleLowStockOnly = (checked?: boolean) => {
+    setLowStockOnly(prev => checked !== undefined ? checked : !prev)
     setPage(1) // Reset to first page when toggling filter
   }
 
