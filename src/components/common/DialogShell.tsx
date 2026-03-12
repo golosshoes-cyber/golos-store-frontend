@@ -5,8 +5,12 @@ import {
   DialogContent,
   DialogProps,
   DialogTitle,
+  IconButton,
+  Box,
+  Typography,
 } from '@mui/material'
-import { SxProps, Theme } from '@mui/material/styles'
+import { Close as CloseIcon } from '@mui/icons-material'
+import { alpha, SxProps, Theme, useTheme } from '@mui/material/styles'
 
 let dialogLockCount = 0
 let previousHtmlOverflow = ''
@@ -47,30 +51,33 @@ const unlockAppScroll = () => {
 }
 
 interface DialogShellProps extends Omit<DialogProps, 'children'> {
-  dialogTitle?: React.ReactNode
-  header?: React.ReactNode
-  headerInTitle?: boolean
+  dialogTitle: string
+  subtitle?: string
   children: React.ReactNode
   actions?: React.ReactNode
   contentSx?: SxProps<Theme>
   titleSx?: SxProps<Theme>
   actionsSx?: SxProps<Theme>
+  onClose: () => void
 }
 
 const DialogShell: React.FC<DialogShellProps> = ({
   dialogTitle,
-  header,
-  headerInTitle = true,
+  subtitle,
   children,
   actions,
   contentSx,
   titleSx,
   actionsSx,
+  onClose,
   ...dialogProps
 }) => {
-  const handleDialogClose: DialogProps['onClose'] = (event, reason) => {
+  const theme = useTheme()
+  const isLight = theme.palette.mode === 'light'
+
+  const handleDialogClose: DialogProps['onClose'] = () => {
     blurActiveElement()
-    dialogProps.onClose?.(event, reason)
+    onClose()
   }
 
   React.useEffect(() => {
@@ -85,23 +92,76 @@ const DialogShell: React.FC<DialogShellProps> = ({
       {...dialogProps}
       onClose={handleDialogClose}
       disableRestoreFocus
-      TransitionProps={{
-        ...dialogProps.TransitionProps,
-        onExited: (node) => {
-          blurActiveElement()
-          dialogProps.TransitionProps?.onExited?.(node)
-        },
+      PaperProps={{
+        sx: {
+          borderRadius: 2.5,
+          border: `1px solid ${theme.palette.divider}`,
+          boxShadow: isLight 
+            ? '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)' 
+            : '0 8px 32px rgba(0,0,0,0.5)',
+          backgroundImage: 'none',
+          ...((dialogProps.PaperProps?.sx as any) || {}),
+        }
       }}
     >
-      {header
-        ? headerInTitle
-          ? <DialogTitle sx={titleSx}>{header}</DialogTitle>
-          : header
-        : dialogTitle
-          ? <DialogTitle sx={titleSx}>{dialogTitle}</DialogTitle>
-          : null}
-      <DialogContent sx={contentSx}>{children}</DialogContent>
-      {actions ? <DialogActions sx={actionsSx}>{actions}</DialogActions> : null}
+      <DialogTitle 
+        sx={{ 
+          p: 2.5, 
+          pb: 2, 
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          ...titleSx 
+        }}
+      >
+        <Box>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '14px', lineHeight: 1.3, letterSpacing: '-0.3px' }}>
+            {dialogTitle}
+          </Typography>
+          {subtitle && (
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, fontSize: '12px', fontWeight: 400 }}>
+              {subtitle}
+            </Typography>
+          )}
+        </Box>
+        <IconButton 
+          size="small" 
+          onClick={onClose}
+          sx={{ 
+            borderRadius: 1.5,
+            border: `1px solid ${theme.palette.divider}`,
+            color: 'text.secondary',
+            '&:hover': {
+              bgcolor: 'action.hover',
+              borderColor: 'text.secondary',
+              color: 'text.primary',
+            },
+            width: 28,
+            height: 28,
+          }}
+        >
+          <CloseIcon sx={{ fontSize: 16 }} />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent sx={{ p: 2.5, ...contentSx }}>
+        {children}
+      </DialogContent>
+
+      {actions && (
+        <DialogActions 
+          sx={{ 
+            p: 1.5, 
+            px: 2.5, 
+            bgcolor: alpha(theme.palette.text.primary, 0.02),
+            borderTop: `1px solid ${theme.palette.divider}`,
+            ...actionsSx 
+          }}
+        >
+          {actions}
+        </DialogActions>
+      )}
     </Dialog>
   )
 }

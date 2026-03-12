@@ -3,6 +3,8 @@ import {
   Typography,
   Button,
   Box,
+  useTheme,
+  alpha,
 } from '@mui/material'
 import {
   Warning as WarningIcon,
@@ -34,6 +36,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onCancel,
   loading = false,
 }) => {
+  const theme = useTheme()
   const getIcon = () => {
     switch (severity) {
       case 'error':
@@ -63,22 +66,17 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   return (
     <DialogShell
       open={open}
-      onClose={!loading ? onCancel : undefined}
+      onClose={!loading ? onCancel : () => {}}
       maxWidth="sm"
-      header={
-        <Box display="flex" alignItems="center" gap={2}>
-          {getIcon()}
-          <Typography variant="h6" component="div">
-            {title}
-          </Typography>
-        </Box>
-      }
+      dialogTitle={title}
+      subtitle={severity === 'error' ? 'Esta acción no se puede deshacer' : 'Por favor confirma para continuar'}
       actions={
         <>
           <Button
             onClick={onCancel}
             disabled={loading}
-            size="large"
+            variant="text"
+            sx={{ color: 'text.secondary' }}
           >
             {cancelText}
           </Button>
@@ -87,17 +85,43 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             variant="contained"
             color={getConfirmButtonColor()}
             disabled={loading}
-            size="large"
             autoFocus
+            sx={{
+              bgcolor: severity === 'error' ? 'error.main' : 'text.primary',
+              color: 'background.default',
+              '&:hover': {
+                bgcolor: severity === 'error' ? 'error.dark' : 'text.secondary',
+              }
+            }}
           >
             {loading ? 'Procesando...' : confirmText}
           </Button>
         </>
       }
     >
-        <Typography variant="body1" color="text.secondary">
-          {message}
+      <Box display="flex" flexDirection="column" gap={2}>
+        <Box 
+          sx={{ 
+            p: 2, 
+            borderRadius: 2, 
+            bgcolor: severity === 'error' ? alpha(theme.palette.error.main, 0.05) : alpha(theme.palette.warning.main, 0.05),
+            border: `1px solid ${alpha(severity === 'error' ? theme.palette.error.main : theme.palette.warning.main, 0.1)}`,
+            display: 'flex',
+            gap: 2,
+            alignItems: 'flex-start'
+          }}
+        >
+          {getIcon()}
+          <Typography variant="body2" sx={{ lineHeight: 1.6, color: 'text.primary' }}>
+            {message}
+          </Typography>
+        </Box>
+        <Typography variant="caption" sx={{ color: 'text.disabled', px: 0.5 }}>
+          {severity === 'error' 
+            ? 'Si solo quieres ocultarlo, considera marcarlo como inactivo en su lugar.' 
+            : 'Asegúrate de haber revisado los detalles antes de confirmar.'}
         </Typography>
+      </Box>
     </DialogShell>
   )
 }

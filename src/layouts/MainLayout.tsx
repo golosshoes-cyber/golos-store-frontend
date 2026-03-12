@@ -44,7 +44,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useCommonPermissions } from '../hooks/auth/usePermissions'
 import { useThemeMode } from '../contexts/ThemeModeContext'
 
-const drawerWidth = 240
+const drawerWidth = 220
 
 const menuSections = [
   {
@@ -132,11 +132,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }))
 
   const navItemSx = (selected: boolean) => ({
-    borderRadius: 1.5,
+    borderRadius: 1.2,
     mx: 1,
-    my: 0.2,
-    px: 1.5,
-    py: 0.7,
+    my: 0.1,
+    px: 1.2,
+    py: 0.5,
     transition: 'all 0.1s ease',
     '& .MuiListItemIcon-root': {
       minWidth: 32,
@@ -203,9 +203,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </Typography>
       </Box>
 
-      <Box sx={{ flex: 1, py: 1.5, overflowY: 'auto' }}>
+      <Box sx={{ flex: 1, py: 1, overflowY: 'auto' }}>
         {visibleSections.map((section) => (
-          <Box key={section.label} sx={{ mb: 2 }}>
+          <Box key={section.label} sx={{ mb: 1.5 }}>
             <Typography variant="caption" sx={{ 
               px: 2.5, 
               py: 0.5, 
@@ -348,12 +348,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Breadcrumbs
               separator={<Typography sx={{ color: 'text.disabled', fontSize: 10 }}>›</Typography>}
             >
-              <Typography sx={{ fontSize: '13px', color: 'text.secondary' }}>Panel</Typography>
+              <Typography sx={{ fontSize: '11px', color: 'text.secondary' }}>Panel</Typography>
               {breadcrumbs.map((crumb) => (
                 <Typography 
                   key={crumb.to} 
                   sx={{ 
-                    fontSize: '13px', 
+                    fontSize: '11px', 
                     fontWeight: crumb.isLast ? 500 : 400,
                     color: crumb.isLast ? 'text.primary' : 'text.secondary'
                   }}
@@ -375,29 +375,35 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </IconButton>
 
             <Button
-              onClick={() => navigate('/store')}
-              size="small"
-              variant="outlined"
-              sx={{ 
-                fontSize: '12px', 
-                py: 0.4, 
-                px: 1.5,
-                display: { xs: 'none', sm: 'inline-flex' }
-              }}
-            >
-              Tienda
-            </Button>
-
-            <Button
+              onClick={() => navigate('/products/new')}
               variant="contained"
               size="small"
               sx={{ 
-                fontSize: '12px', 
+                fontSize: '11px', 
                 py: 0.4, 
-                px: 1.5,
+                px: 1.2,
+                bgcolor: 'text.primary',
+                color: 'background.default',
+                '&:hover': { bgcolor: 'text.secondary' }
               }}
             >
-              + Acción rápida
+              + Producto
+            </Button>
+
+            <Button
+              onClick={() => navigate('/sales/new')}
+              variant="contained"
+              size="small"
+              sx={{ 
+                fontSize: '11px', 
+                py: 0.4, 
+                px: 1.2,
+                bgcolor: 'text.primary',
+                color: 'background.default',
+                '&:hover': { bgcolor: 'text.secondary' }
+              }}
+            >
+              + Venta
             </Button>
           </Box>
         </Toolbar>

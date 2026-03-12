@@ -3,10 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   MenuItem,
   Pagination,
   Stack,
@@ -34,6 +30,7 @@ import type {
 import PageShell from '../../components/common/PageShell'
 import GlobalSectionHeader from '../../components/common/GlobalSectionHeader'
 import GradientButton from '../../components/common/GradientButton'
+import DialogShell from '../../components/common/DialogShell'
 
 const PAGE_SIZE = 12
 
@@ -403,48 +400,131 @@ export default function StoreOpsPage() {
       </Box>
 
       {/* Modales de Configuración */}
-      <Dialog open={legalDialogOpen} onClose={() => setLegalDialogOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 700 }}>Datos Legales</DialogTitle>
-        <DialogContent sx={{ mt: 1 }}>
-          <Stack spacing={2}>
-            <TextField label="Nombre Tienda" value={branding?.store_name || ''} onChange={(e) => setBranding(prev => prev ? { ...prev, store_name: e.target.value } : null)} fullWidth />
-            <TextField label="NIT / RUT" value={branding?.legal_id_number || ''} onChange={(e) => setBranding(prev => prev ? { ...prev, legal_id_number: e.target.value } : null)} fullWidth />
-            <TextField label="Correo" value={branding?.legal_contact_email || ''} onChange={(e) => setBranding(prev => prev ? { ...prev, legal_contact_email: e.target.value } : null)} fullWidth />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ pb: 3, px: 3 }}>
-          <Button onClick={() => setLegalDialogOpen(false)}>Cancelar</Button>
-          <GradientButton onClick={handleSaveBranding} loading={loading}>Guardar Cambios</GradientButton>
-        </DialogActions>
-      </Dialog>
+      <DialogShell 
+        open={legalDialogOpen} 
+        onClose={() => setLegalDialogOpen(false)} 
+        maxWidth="sm"
+        dialogTitle="Datos Legales"
+        subtitle="Configuración de identidad corporativa y fiscal de la tienda"
+        actions={
+          <>
+            <Button variant="text" sx={{ color: 'text.secondary' }} onClick={() => setLegalDialogOpen(false)}>Cancelar</Button>
+            <Button 
+              variant="contained" 
+              onClick={handleSaveBranding} 
+              disabled={loading}
+              sx={{ bgcolor: 'text.primary', color: 'background.default', '&:hover': { bgcolor: 'text.secondary' } }}
+            >
+              {loading ? 'Guardando...' : 'Guardar Cambios'}
+            </Button>
+          </>
+        }
+      >
+        <Stack spacing={2.5}>
+          <TextField 
+            label="Nombre Tienda" 
+            value={branding?.store_name || ''} 
+            onChange={(e) => setBranding(prev => prev ? { ...prev, store_name: e.target.value } : null)} 
+            fullWidth 
+            placeholder="Ej: Golos Store"
+          />
+          <TextField 
+            label="NIT / RUT" 
+            value={branding?.legal_id_number || ''} 
+            onChange={(e) => setBranding(prev => prev ? { ...prev, legal_id_number: e.target.value } : null)} 
+            fullWidth 
+            placeholder="Ej: 123.456.789-0"
+          />
+          <TextField 
+            label="Correo de Contacto" 
+            value={branding?.legal_contact_email || ''} 
+            onChange={(e) => setBranding(prev => prev ? { ...prev, legal_contact_email: e.target.value } : null)} 
+            fullWidth 
+            placeholder="legal@tienda.com"
+          />
+        </Stack>
+      </DialogShell>
 
-      <Dialog open={promoDialogOpen} onClose={() => setPromoDialogOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 700 }}>Promociones</DialogTitle>
-        <DialogContent sx={{ mt: 1 }}>
-          <Stack spacing={2}>
-            <TextField label="Tagline / Promo" value={branding?.tagline || ''} onChange={(e) => setBranding(prev => prev ? { ...prev, tagline: e.target.value } : null)} fullWidth multiline rows={2} />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ pb: 3, px: 3 }}>
-          <Button onClick={() => setPromoDialogOpen(false)}>Cancelar</Button>
-          <GradientButton onClick={handleSaveBranding} loading={loading}>Aplicar Promos</GradientButton>
-        </DialogActions>
-      </Dialog>
+      <DialogShell 
+        open={promoDialogOpen} 
+        onClose={() => setPromoDialogOpen(false)} 
+        maxWidth="sm"
+        dialogTitle="Promociones y Marketing"
+        subtitle="Modifica el mensaje publicitario que aparece en la parte superior"
+        actions={
+          <>
+            <Button variant="text" sx={{ color: 'text.secondary' }} onClick={() => setPromoDialogOpen(false)}>Cancelar</Button>
+            <Button 
+              variant="contained" 
+              onClick={handleSaveBranding} 
+              disabled={loading}
+              sx={{ bgcolor: 'text.primary', color: 'background.default', '&:hover': { bgcolor: 'text.secondary' } }}
+            >
+              {loading ? 'Aplicando...' : 'Aplicar Promos'}
+            </Button>
+          </>
+        }
+      >
+        <Stack spacing={2}>
+          <TextField 
+            label="Tagline / Promo" 
+            value={branding?.tagline || ''} 
+            onChange={(e) => setBranding(prev => prev ? { ...prev, tagline: e.target.value } : null)} 
+            fullWidth 
+            multiline 
+            rows={3} 
+            placeholder="Escribe el mensaje promocional aquí..."
+          />
+          <Typography variant="caption" color="text.secondary">
+            Este texto se mostrará resaltado en el inicio de tu tienda.
+          </Typography>
+        </Stack>
+      </DialogShell>
 
-      <Dialog open={Boolean(manualShipmentOrder)} onClose={() => setManualShipmentOrder(null)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 700 }}>Registrar Guía Manual</DialogTitle>
-        <DialogContent sx={{ mt: 1 }}>
-          <Stack spacing={2}>
-            <TextField label="Transportadora" value={manualShipmentForm.carrier} onChange={(e) => setManualShipmentForm(p => ({ ...p, carrier: e.target.value }))} fullWidth size="small" />
-            <TextField label="# Guía" value={manualShipmentForm.tracking_number} onChange={(e) => setManualShipmentForm(p => ({ ...p, tracking_number: e.target.value }))} fullWidth size="small" />
-            <TextField label="Costo" value={manualShipmentForm.shipping_cost} onChange={(e) => setManualShipmentForm(p => ({ ...p, shipping_cost: e.target.value }))} fullWidth size="small" />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ pb: 3, px: 3 }}>
-          <Button onClick={() => setManualShipmentOrder(null)}>Cancelar</Button>
-          <GradientButton onClick={handleSaveManualShipment} loading={loading}>Guardar Guía</GradientButton>
-        </DialogActions>
-      </Dialog>
+      <DialogShell 
+        open={Boolean(manualShipmentOrder)} 
+        onClose={() => setManualShipmentOrder(null)} 
+        maxWidth="xs"
+        dialogTitle="Registrar Guía Manual"
+        subtitle={`Orden #${manualShipmentOrder?.sale_id} · Ingresa los datos del transportista`}
+        actions={
+          <>
+            <Button variant="text" sx={{ color: 'text.secondary' }} onClick={() => setManualShipmentOrder(null)}>Cancelar</Button>
+            <Button 
+              variant="contained" 
+              onClick={handleSaveManualShipment} 
+              disabled={loading}
+              sx={{ bgcolor: 'text.primary', color: 'background.default', '&:hover': { bgcolor: 'text.secondary' } }}
+            >
+              {loading ? 'Guardando...' : 'Guardar Guía'}
+            </Button>
+          </>
+        }
+      >
+        <Stack spacing={2}>
+          <TextField 
+            label="Transportadora" 
+            value={manualShipmentForm.carrier} 
+            onChange={(e) => setManualShipmentForm(p => ({ ...p, carrier: e.target.value }))} 
+            fullWidth 
+            size="small" 
+          />
+          <TextField 
+            label="# Guía / Tracking" 
+            value={manualShipmentForm.tracking_number} 
+            onChange={(e) => setManualShipmentForm(p => ({ ...p, tracking_number: e.target.value }))} 
+            fullWidth 
+            size="small" 
+          />
+          <TextField 
+            label="Costo de Envío" 
+            value={manualShipmentForm.shipping_cost} 
+            onChange={(e) => setManualShipmentForm(p => ({ ...p, shipping_cost: e.target.value }))} 
+            fullWidth 
+            size="small" 
+          />
+        </Stack>
+      </DialogShell>
     </PageShell>
   )
 }
