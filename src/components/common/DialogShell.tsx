@@ -51,19 +51,23 @@ const unlockAppScroll = () => {
 }
 
 interface DialogShellProps extends Omit<DialogProps, 'children'> {
-  dialogTitle: string
+  dialogTitle?: string
   subtitle?: string
+  header?: React.ReactNode
+  headerInTitle?: boolean
   children: React.ReactNode
   actions?: React.ReactNode
   contentSx?: SxProps<Theme>
   titleSx?: SxProps<Theme>
   actionsSx?: SxProps<Theme>
-  onClose: () => void
+  onClose?: () => void
 }
 
 const DialogShell: React.FC<DialogShellProps> = ({
   dialogTitle,
   subtitle,
+  header,
+  headerInTitle = true,
   children,
   actions,
   contentSx,
@@ -77,7 +81,7 @@ const DialogShell: React.FC<DialogShellProps> = ({
 
   const handleDialogClose: DialogProps['onClose'] = () => {
     blurActiveElement()
-    onClose()
+    onClose?.()
   }
 
   React.useEffect(() => {
@@ -115,35 +119,45 @@ const DialogShell: React.FC<DialogShellProps> = ({
           ...titleSx 
         }}
       >
-        <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '14px', lineHeight: 1.3, letterSpacing: '-0.3px' }}>
-            {dialogTitle}
-          </Typography>
-          {subtitle && (
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, fontSize: '12px', fontWeight: 400 }}>
-              {subtitle}
-            </Typography>
+        <Box sx={{ flex: 1 }}>
+          {header ? (
+            headerInTitle ? header : null
+          ) : (
+            <>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '14px', lineHeight: 1.3, letterSpacing: '-0.3px' }}>
+                {dialogTitle}
+              </Typography>
+              {subtitle && (
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, fontSize: '12px', fontWeight: 400 }}>
+                  {subtitle}
+                </Typography>
+              )}
+            </>
           )}
         </Box>
-        <IconButton 
-          size="small" 
-          onClick={onClose}
-          sx={{ 
-            borderRadius: 1.5,
-            border: `1px solid ${theme.palette.divider}`,
-            color: 'text.secondary',
-            '&:hover': {
-              bgcolor: 'action.hover',
-              borderColor: 'text.secondary',
-              color: 'text.primary',
-            },
-            width: 28,
-            height: 28,
-          }}
-        >
-          <CloseIcon sx={{ fontSize: 16 }} />
-        </IconButton>
+        {onClose && (
+          <IconButton 
+            size="small" 
+            onClick={onClose}
+            sx={{ 
+              borderRadius: 1.5,
+              border: `1px solid ${theme.palette.divider}`,
+              color: 'text.secondary',
+              '&:hover': {
+                bgcolor: 'action.hover',
+                borderColor: 'text.secondary',
+                color: 'text.primary',
+              },
+              width: 28,
+              height: 28,
+              ml: 2,
+            }}
+          >
+            <CloseIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        )}
       </DialogTitle>
+      {!headerInTitle && header}
 
       <DialogContent sx={{ p: 2.5, ...contentSx }}>
         {children}
