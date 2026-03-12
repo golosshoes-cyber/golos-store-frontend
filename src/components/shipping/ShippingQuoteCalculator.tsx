@@ -4,7 +4,8 @@ import { LocalShippingRounded as LocalShippingIcon } from '@mui/icons-material'
 import { useShippingQuote, type ShippingQuoteService } from '../../hooks/useShipping'
 
 interface ShippingQuoteCalculatorProps {
-  destinationCode: string
+  destinationCity: string
+  destinationDepartment: string
   weightGrams: number
   selectedService: ShippingQuoteService | null
   onSelectService: (service: ShippingQuoteService) => void
@@ -17,7 +18,8 @@ const currencyFormatter = new Intl.NumberFormat('es-CO', {
 })
 
 export default function ShippingQuoteCalculator({
-  destinationCode,
+  destinationCity,
+  destinationDepartment,
   weightGrams,
   selectedService,
   onSelectService,
@@ -25,15 +27,15 @@ export default function ShippingQuoteCalculator({
   const { quote, loading, error, getQuote } = useShippingQuote()
 
   useEffect(() => {
-    if (destinationCode && weightGrams > 0) {
-      void getQuote(destinationCode, weightGrams)
+    if (destinationCity && destinationDepartment && weightGrams > 0) {
+      void getQuote({ city: destinationCity, department: destinationDepartment }, weightGrams)
     }
-  }, [destinationCode, weightGrams, getQuote])
+  }, [destinationCity, destinationDepartment, weightGrams, getQuote])
 
-  if (!destinationCode) {
+  if (!destinationCity || !destinationDepartment) {
     return (
       <Typography variant="body2" color="text.secondary">
-        Ingresa una ciudad de destino para calcular opciones de envío.
+        Ingresa un destino completo para calcular opciones de envío.
       </Typography>
     )
   }

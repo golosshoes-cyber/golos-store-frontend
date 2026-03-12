@@ -258,7 +258,8 @@ export default function CheckoutPage() {
                 onChange={handleAddressChange}
               />
               <ShippingQuoteCalculator
-                destinationCode={shippingAddress.city}
+                destinationCity={shippingAddress.city}
+                destinationDepartment={shippingAddress.department}
                 weightGrams={estimatedWeightGrams}
                 selectedService={selectedShippingService}
                 onSelectService={setSelectedShippingService}
