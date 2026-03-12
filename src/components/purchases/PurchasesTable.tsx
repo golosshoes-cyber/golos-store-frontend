@@ -1,4 +1,3 @@
-import React from 'react'
 import {
   Table,
   TableBody,
@@ -6,8 +5,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Typography,
+  Box,
+  CircularProgress,
+  useTheme,
 } from '@mui/material'
 import type { Purchase } from '../../types/purchases'
 import { formatCurrency } from '../../utils/currency'
@@ -18,8 +19,17 @@ interface PurchasesTableProps {
 }
 
 const PurchasesTable: React.FC<PurchasesTableProps> = ({ purchases, isLoading }) => {
+  const theme = useTheme()
   return (
-    <TableContainer component={Paper}>
+    <TableContainer 
+      sx={{ 
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`,
+        bgcolor: 'background.paper',
+        boxShadow: 'none',
+        overflow: 'hidden'
+      }}
+    >
       <Table>
         <TableHead>
           <TableRow>
@@ -35,41 +45,57 @@ const PurchasesTable: React.FC<PurchasesTableProps> = ({ purchases, isLoading })
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={7} align="center">
-                Cargando compras...
+              <TableCell colSpan={7} align="center" sx={{ py: 8 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <CircularProgress size={24} />
+                  <Typography variant="body2" color="text.secondary">Cargando compras...</Typography>
+                </Box>
               </TableCell>
             </TableRow>
           ) : purchases.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} align="center">
-                No se encontraron compras
+              <TableCell colSpan={7} align="center" sx={{ py: 8 }}>
+                <Typography variant="body2" color="text.secondary">No se encontraron compras</Typography>
               </TableCell>
             </TableRow>
           ) : (
             purchases.map((purchase) => (
               <TableRow key={purchase.id} hover>
                 <TableCell>
-                  {new Date(purchase.created_at).toLocaleDateString()}
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {new Date(purchase.created_at).toLocaleDateString()}
+                  </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2" fontWeight="medium">
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     {purchase.variant?.product?.name || 'Producto desconocido'}
                   </Typography>
-                  {purchase.observation && (
-                    <Typography variant="caption" color="text.secondary">
-                      {purchase.observation}
-                    </Typography>
-                  )}
                 </TableCell>
                 <TableCell>
-                  {purchase.variant ? `${purchase.variant.size} - ${purchase.variant.color || 'Sin color'} - ${purchase.variant.gender === 'male' ? 'Masculino' : purchase.variant.gender === 'female' ? 'Femenino' : 'Unisex'}` : 'Variante desconocida'}
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {purchase.variant ? `${purchase.variant.size} - ${purchase.variant.color || 'SC'} - ${purchase.variant.gender === 'male' ? 'M' : purchase.variant.gender === 'female' ? 'F' : 'U'}` : '-'}
+                  </Typography>
                 </TableCell>
                 <TableCell>
-                  {purchase.supplier ? purchase.supplier.name : '-'}
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {purchase.supplier ? purchase.supplier.name : '-'}
+                  </Typography>
                 </TableCell>
-                <TableCell>{purchase.quantity}</TableCell>
-                <TableCell>{formatCurrency(purchase.unit_cost)}</TableCell>
-                <TableCell>{formatCurrency(purchase.total_cost)}</TableCell>
+                <TableCell>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {purchase.quantity}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {formatCurrency(purchase.unit_cost)}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {formatCurrency(purchase.total_cost)}
+                  </Typography>
+                </TableCell>
               </TableRow>
             ))
           )}

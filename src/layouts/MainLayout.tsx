@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
   AppBar,
   Box,
@@ -16,7 +16,7 @@ import {
   MenuItem,
   Divider,
   Breadcrumbs,
-  Link,
+  Button,
   alpha,
   useTheme,
 } from '@mui/material'
@@ -37,13 +37,11 @@ import {
   GroupWork,
   DarkMode,
   LightMode,
-  Storefront,
 } from '@mui/icons-material'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useCommonPermissions } from '../hooks/auth/usePermissions'
 import { useThemeMode } from '../contexts/ThemeModeContext'
-import { storeService } from '../services/storeService'
 
 const drawerWidth = 220
 
@@ -81,7 +79,6 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [brandingLogoUrl, setBrandingLogoUrl] = useState('')
   const navigate = useNavigate()
   const location = useLocation()
   const theme = useTheme()
@@ -97,20 +94,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const canAccessAdmin = canManageUsers || isAdmin
 
-  useEffect(() => {
-    let mounted = true
-    const loadBrandingLogo = async () => {
-      try {
-        const response = await storeService.getBranding()
-        if (!mounted) return
-        setBrandingLogoUrl(response.branding.logo_url || '')
-      } catch {
-        // Silently fail
-      }
-    }
-    void loadBrandingLogo()
-    return () => { mounted = false }
-  }, [])
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen)
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget)
@@ -388,21 +371,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               {mode === 'dark' ? <LightMode sx={{ fontSize: 16 }} /> : <DarkMode sx={{ fontSize: 16 }} />}
             </IconButton>
 
-            {canSwitchToStore && (
-              <Button
-                onClick={() => navigate('/store')}
-                size="small"
-                variant="outlined"
-                sx={{ 
-                  fontSize: '12px', 
-                  py: 0.4, 
-                  px: 1.5,
-                  display: { xs: 'none', sm: 'inline-flex' }
-                }}
-              >
-                Tienda
-              </Button>
-            )}
+            <Button
+              onClick={() => navigate('/store')}
+              size="small"
+              variant="outlined"
+              sx={{ 
+                fontSize: '12px', 
+                py: 0.4, 
+                px: 1.5,
+                display: { xs: 'none', sm: 'inline-flex' }
+              }}
+            >
+              Tienda
+            </Button>
 
             <Button
               variant="contained"

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   Box,
-  Paper,
   Typography,
   CircularProgress,
   useTheme,
   useMediaQuery,
+  alpha,
 } from '@mui/material'
 import { useLocation } from 'react-router-dom'
 import { useInventoryData } from '../../hooks/inventory/useInventoryData'
@@ -100,22 +100,24 @@ const InventoryPage: React.FC = () => {
 
       {/* Vista Desktop - Tabla */}
       {!isMobile && (
-        <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
-          <Box sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Inventario ({filteredVariants.length} productos)
+        <Box 
+          sx={{ 
+            borderRadius: 2, 
+            border: `1px solid ${theme.palette.divider}`,
+            bgcolor: 'background.paper',
+            overflow: 'hidden'
+          }}
+        >
+          <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}`, bgcolor: alpha(theme.palette.text.primary, 0.02) }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+              Inventario ({filteredVariants.length} variantes)
             </Typography>
           </Box>
 
           {filteredVariants.length === 0 ? (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <Typography variant="h6" color="textSecondary">
+            <Box sx={{ p: 8, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
                 {lowStockOnly ? 'No hay productos con stock bajo' : 'No se encontraron variantes'}
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                {searchTerm || lowStockOnly
-                  ? 'Intenta ajustar los filtros de búsqueda'
-                  : 'No hay variantes de productos en el inventario'}
               </Typography>
             </Box>
           ) : (
@@ -126,29 +128,32 @@ const InventoryPage: React.FC = () => {
               onAdjustStock={handleAdjustStock}
             />
           )}
-        </Paper>
+        </Box>
       )}
 
       {/* Vista Mobile - Cards */}
       {isMobile && (
         <Box>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6">
-              Inventario ({filteredVariants.length} productos)
+          <Box sx={{ mb: 2, px: 0.5 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+              Inventario ({filteredVariants.length} variantes)
             </Typography>
           </Box>
 
           {filteredVariants.length === 0 ? (
-            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
-              <Typography variant="h6" color="textSecondary">
+            <Box 
+              sx={{ 
+                p: 8, 
+                textAlign: 'center', 
+                borderRadius: 2,
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: 'background.paper'
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
                 {lowStockOnly ? 'No hay productos con stock bajo' : 'No se encontraron variantes'}
               </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                {searchTerm || lowStockOnly
-                  ? 'Intenta ajustar los filtros de búsqueda'
-                  : 'No hay variantes de productos en el inventario'}
-              </Typography>
-            </Paper>
+            </Box>
           ) : (
             <Box sx={{ display: 'grid', gap: 2 }}>
               {filteredVariants.map((variant) => (

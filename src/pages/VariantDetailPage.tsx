@@ -1,15 +1,12 @@
 import React from 'react'
 import {
   Box,
-  Paper,
   Typography,
   CircularProgress,
   Grid,
-  Chip,
   Button,
-  Card,
-  CardMedia,
-  CardContent,
+  useTheme,
+  alpha,
 } from '@mui/material'
 import {
   ArrowBack,
@@ -21,8 +18,10 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { productService } from '../services/productService'
 import PageShell from '../components/common/PageShell'
 import GlobalSectionHeader from '../components/common/GlobalSectionHeader'
+import GradientButton from '../components/common/GradientButton'
 
 const VariantDetailPage: React.FC = () => {
+  const theme = useTheme()
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
 
@@ -70,18 +69,26 @@ const VariantDetailPage: React.FC = () => {
 
   if (error || !variant) {
     return (
-      <Paper sx={{ p: 3, textAlign: 'center' }}>
-        <Typography color="error">
+      <Box 
+        sx={{ 
+          p: 6, 
+          textAlign: 'center',
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+          bgcolor: 'background.paper',
+        }}
+      >
+        <Typography variant="body2" color="error" sx={{ mb: 2 }}>
           Error al cargar los detalles de la variante
         </Typography>
-        <Button
+        <GradientButton
           startIcon={<ArrowBack />}
           onClick={() => navigate('/dashboard')}
-          sx={{ mt: 2 }}
+          size="small"
         >
           Volver al Dashboard
-        </Button>
-      </Paper>
+        </GradientButton>
+      </Box>
     )
   }
 
@@ -97,13 +104,15 @@ const VariantDetailPage: React.FC = () => {
             startIcon={<ArrowBack />}
             onClick={() => navigate('/dashboard')}
             sx={{
-              color: 'white',
-              borderColor: 'rgba(255,255,255,0.35)',
+              color: 'text.secondary',
+              borderColor: 'divider',
               '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderColor: 'text.secondary',
+                bgcolor: 'action.hover',
               },
             }}
             variant="outlined"
+            size="small"
           >
             Volver
           </Button>
@@ -112,121 +121,143 @@ const VariantDetailPage: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Imagen */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 3, overflow: 'hidden' }}>
+        <Grid item xs={12} md={5}>
+          <Box 
+            sx={{ 
+              borderRadius: 3, 
+              overflow: 'hidden',
+              border: `1px solid ${theme.palette.divider}`,
+              bgcolor: 'background.paper',
+              aspectRatio: '1/1',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
             {mainImage ? (
-              <CardMedia
-                component="img"
-                height="400"
-                image={mainImage.image}
+              <img
+                src={mainImage.image}
                 alt={`${product?.name} ${variant.size} ${variant.color || ''}`}
-                sx={{ objectFit: 'cover' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <Box
-                sx={{
-                  height: 400,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'grey.100',
-                }}
-              >
-                <Typography variant="h6" color="text.secondary">
-                  Sin imagen disponible
-                </Typography>
-              </Box>
+              <Typography variant="body2" color="text.secondary">
+                Sin imagen disponible
+              </Typography>
             )}
-          </Card>
+          </Box>
         </Grid>
 
         {/* Información */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 3 }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h5" fontWeight="bold" gutterBottom>
-                Información del Producto
-              </Typography>
+        <Grid item xs={12} md={7}>
+          <Box 
+            sx={{ 
+              p: 4, 
+              borderRadius: 3,
+              border: `1px solid ${theme.palette.divider}`,
+              bgcolor: 'background.paper',
+              height: '100%'
+            }}
+          >
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 4 }}>
+              Detalles del Producto
+            </Typography>
 
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+            <Grid container spacing={4}>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block', mb: 0.5 }}>
                   SKU
                 </Typography>
-                <Typography variant="h6" fontWeight="medium">
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {variant.sku}
                 </Typography>
-              </Box>
+              </Grid>
 
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Producto
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block', mb: 0.5 }}>
+                  PRODUCTO
                 </Typography>
-                <Typography variant="h6">
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {product?.name}
                 </Typography>
-                <Typography variant="body2" color="primary" sx={{ mt: 1 }}>
+                <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 500 }}>
                   {product?.brand}
                 </Typography>
-              </Box>
+              </Grid>
 
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Variante
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block', mb: 0.5 }}>
+                  TALLA Y COLOR
                 </Typography>
-                <Typography variant="h6">
-                  Talla: {variant.size} {variant.color && `| Color: ${variant.color}`}
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  {variant.size} {variant.color && `— ${variant.color}`}
                 </Typography>
-              </Box>
+              </Grid>
 
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Precio
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block', mb: 0.5 }}>
+                  PRECIO
                 </Typography>
-                <Typography variant="h4" fontWeight="bold" color="primary">
-                  ${variant.price}
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                  $ {variant.price.toLocaleString()}
                 </Typography>
-              </Box>
+              </Grid>
 
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Stock Actual
+              <Grid item xs={12}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block', mb: 1 }}>
+                  ESTADO DE STOCK
                 </Typography>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <Typography variant="h6">
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {variant.stock} unidades
                   </Typography>
-                  <Chip
-                    label={variant.stock === 0 ? 'Sin Stock' :
-                           variant.stock < 10 ? 'Stock Bajo' :
-                           variant.stock < 50 ? 'Stock Medio' : 'Stock Alto'}
-                    color={variant.stock === 0 ? 'error' :
-                           variant.stock < 10 ? 'warning' :
-                           variant.stock < 50 ? 'info' : 'success'}
-                    size="small"
-                  />
+                  {(() => {
+                    const status = variant.stock === 0 ? { label: 'Sin Stock', color: 'error' } :
+                                   variant.stock < 10 ? { label: 'Stock Bajo', color: 'warning' } :
+                                   variant.stock < 50 ? { label: 'Stock Medio', color: 'info' } : 
+                                   { label: 'Stock Alto', color: 'success' }
+                    return (
+                      <Box sx={{ 
+                        px: 1.5, 
+                        py: 0.5, 
+                        borderRadius: '999px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        bgcolor: alpha(theme.palette[status.color as 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'].main, 0.08),
+                        color: `${status.color}.main`,
+                        border: `1px solid ${alpha(theme.palette[status.color as 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'].main, 0.2)}`
+                      }}>
+                        {status.label}
+                      </Box>
+                    )
+                  })()}
                 </Box>
-              </Box>
+              </Grid>
+            </Grid>
 
-              <Box display="flex" gap={2} flexWrap="wrap">
-                <Button
-                  variant="contained"
-                  startIcon={<ShoppingCart />}
-                  onClick={() => navigate(`/sales?prefillVariant=${variant.id}`)}
-                  sx={{ borderRadius: 2 }}
-                >
-                  Crear Venta
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<Edit />}
-                  onClick={() => navigate('/inventory', { state: { prefillVariant: variant.id } })}
-                  sx={{ borderRadius: 2 }}
-                >
-                  Ajustar Stock
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
+            <Box display="flex" gap={2} mt={6}>
+              <GradientButton
+                startIcon={<ShoppingCart />}
+                onClick={() => navigate(`/sales?prefillVariant=${variant.id}`)}
+                sx={{ borderRadius: 1.5 }}
+              >
+                Vender Ahora
+              </GradientButton>
+              <Button
+                variant="outlined"
+                startIcon={<Edit />}
+                onClick={() => navigate('/inventory', { state: { prefillVariant: variant.id } })}
+                sx={{ 
+                  borderRadius: 1.5,
+                  color: 'text.secondary',
+                  borderColor: 'divider',
+                  '&:hover': { borderColor: 'text.primary', color: 'text.primary' }
+                }}
+              >
+                Ajustar Stock
+              </Button>
+            </Box>
+          </Box>
         </Grid>
       </Grid>
     </PageShell>

@@ -2,21 +2,20 @@ import React from 'react'
 import {
   Box,
   TextField,
-  Button,
-  InputAdornment,
+  FormControlLabel,
+  Checkbox,
+  Typography,
 } from '@mui/material'
 import {
   Search as SearchIcon,
-  Warning as WarningIcon,
-  Inventory as InventoryIcon,
 } from '@mui/icons-material'
-import GlobalSectionHeader from '../common/GlobalSectionHeader'
+import { alpha, useTheme } from '@mui/material/styles'
 
 interface InventoryHeaderProps {
   searchTerm: string
   lowStockOnly: boolean
-  onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onToggleLowStock: () => void
+  onSearchChange: (value: string) => void
+  onToggleLowStock: (checked: boolean) => void
 }
 
 const InventoryHeader: React.FC<InventoryHeaderProps> = ({
@@ -25,61 +24,49 @@ const InventoryHeader: React.FC<InventoryHeaderProps> = ({
   onSearchChange,
   onToggleLowStock,
 }) => {
+  const theme = useTheme()
+  const isLight = theme.palette.mode === 'light'
+  
   return (
-    <Box>
-      <GlobalSectionHeader
-        title="Inventario"
-        subtitle="Gestiona tu stock y niveles de inventario en tiempo real"
-        icon={<InventoryIcon sx={{ fontSize: { xs: 24, sm: 30 } }} />}
-      />
-
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 1.2,
-          mb: 3,
-          flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { xs: 'stretch', sm: 'center' },
-        }}
-      >
+    <Box sx={{ mb: 3 }}>
+      <Box display="flex" gap={1.2} alignItems="center" flexDirection={{ xs: 'column', sm: 'row' }}>
         <TextField
-          placeholder="Buscar por producto, SKU, talla o color..."
+          placeholder="Buscar en inventario..."
           value={searchTerm}
-          onChange={onSearchChange}
-          fullWidth
+          onChange={(e) => onSearchChange(e.target.value)}
+          variant="outlined"
           size="small"
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
+          fullWidth
           sx={{
             '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
+              bgcolor: isLight ? alpha('#000', 0.02) : alpha('#fff', 0.02),
+              borderRadius: 1.5,
+              '& fieldset': {
+                borderColor: theme.palette.divider,
+              },
             },
+          }}
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ color: 'text.secondary', fontSize: 18, mr: 1 }} />,
           }}
         />
 
-        <Button
-          variant={lowStockOnly ? 'contained' : 'outlined'}
-          startIcon={<WarningIcon />}
-          onClick={onToggleLowStock}
-          sx={{
-            minWidth: { xs: '100%', sm: 'auto' },
-            borderRadius: 2,
-            ...(lowStockOnly && {
-              backgroundColor: 'warning.main',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'warning.dark',
-              },
-            }),
-          }}
-        >
-          {lowStockOnly ? 'Mostrar Todo' : 'Stock Bajo'}
-        </Button>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={lowStockOnly}
+              onChange={(e) => onToggleLowStock(e.target.checked)}
+              size="small"
+              sx={{ p: 0.5, ml: 1 }}
+            />
+          }
+          label={
+            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, whiteSpace: 'nowrap' }}>
+              Stock Bajo
+            </Typography>
+          }
+          sx={{ m: 0 }}
+        />
       </Box>
     </Box>
   )

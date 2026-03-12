@@ -8,7 +8,7 @@ import {
   Search as SearchIcon,
   ShoppingCart as ShoppingCartIcon,
 } from '@mui/icons-material'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import GradientButton from '../../components/common/GradientButton'
 import GlobalSectionHeader from '../common/GlobalSectionHeader'
 
@@ -39,6 +39,7 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
           startIcon={<AddIcon />}
           onClick={onCreateSale}
           fullWidth={isMobile}
+          size="small"
         >
           Crear Venta
         </GradientButton>
@@ -55,28 +56,16 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
             size="small"
             fullWidth
             sx={{
-              backgroundColor: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
               '& .MuiOutlinedInput-root': {
+                bgcolor: isLight ? alpha('#000', 0.02) : alpha('#fff', 0.02),
+                borderRadius: 1.5,
                 '& fieldset': {
-                  borderColor: isLight ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)',
-                },
-                '&:hover fieldset': {
-                  borderColor: 'rgba(255,255,255,0.6)',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#ffffff',
-                },
-                '& input': {
-                  color: 'white',
-                  fontSize: { xs: '0.82rem', sm: '0.9rem' },
-                },
-                '& input::placeholder': {
-                  color: 'rgba(255,255,255,0.8)',
+                  borderColor: theme.palette.divider,
                 },
               },
             }}
             InputProps={{
-              startAdornment: <SearchIcon sx={{ color: 'rgba(255,255,255,0.7)', mr: 1 }} />,
+              startAdornment: <SearchIcon sx={{ color: 'text.secondary', fontSize: 18, mr: 1 }} />,
             }}
           />
 

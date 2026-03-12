@@ -1,7 +1,5 @@
 import React from 'react'
 import {
-  Card,
-  CardContent,
   Box,
   Typography,
   IconButton,
@@ -11,6 +9,8 @@ import {
   TextField,
   Autocomplete,
   MenuItem,
+  useTheme,
+  alpha,
 } from '@mui/material'
 import { Delete as DeleteIcon } from '@mui/icons-material'
 import type { PurchaseItem, VariantOption } from '../../types/purchases'
@@ -37,16 +37,31 @@ const PurchaseItemCard: React.FC<PurchaseItemCardProps> = ({
   onVariantChange,
   onRemove,
 }) => {
+  const theme = useTheme()
   return (
-    <Card sx={{ borderRadius: 2, boxShadow: 2 }}>
-      <CardContent sx={{ p: 2 }}>
+    <Box 
+      sx={{ 
+        borderRadius: 2, 
+        border: `1px solid ${theme.palette.divider}`,
+        bgcolor: 'background.paper',
+        overflow: 'hidden'
+      }}
+    >
+      <Box sx={{ p: 2 }}>
         {/* Header del Card */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6" fontWeight="bold">
+          <Typography variant="body1" sx={{ fontWeight: 600 }}>
             Item #{index + 1}
           </Typography>
-          <IconButton onClick={() => onRemove(index)} color="error" size="small">
-            <DeleteIcon />
+          <IconButton 
+            onClick={() => onRemove(index)} 
+            size="small"
+            sx={{ 
+              color: 'text.secondary',
+              '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.08), color: 'error.main' }
+            }}
+          >
+            <DeleteIcon sx={{ fontSize: 18 }} />
           </IconButton>
         </Box>
 
@@ -174,8 +189,8 @@ const PurchaseItemCard: React.FC<PurchaseItemCardProps> = ({
             </TextField>
           </Grid>
         </Grid>
-      </CardContent>
-    </Card>
+      </Box>
+    </Box>
   )
 }
 

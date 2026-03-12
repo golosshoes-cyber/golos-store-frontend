@@ -5,6 +5,7 @@ import {
   CircularProgress,
   TextField,
   useTheme,
+  alpha,
 } from '@mui/material'
 import {
   Add as AddIcon,
@@ -180,6 +181,8 @@ const SuppliersPage: React.FC = () => {
           <GradientButton
             startIcon={<AddIcon />}
             onClick={handleCreateSupplier}
+            size="small"
+            sx={{ whiteSpace: 'nowrap' }}
           >
             Crear Proveedor
           </GradientButton>
@@ -195,11 +198,19 @@ const SuppliersPage: React.FC = () => {
 
       <TextField
         key="supplier-search"
-        label="Buscar proveedores"
+        placeholder="Buscar proveedores por nombre, NIT o teléfono..."
         value={supplierInputValue}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSupplierInputValue(e.target.value)}
         fullWidth
-        sx={{ mb: 2, mt: 2 }}
+        size="small"
+        sx={{ 
+          mb: 3, 
+          mt: 2,
+          '& .MuiOutlinedInput-root': {
+            bgcolor: theme.palette.mode === 'light' ? alpha('#000', 0.02) : alpha('#fff', 0.02),
+            borderRadius: 1.5,
+          }
+        }}
       />
 
       <SuppliersTable

@@ -2,18 +2,18 @@ import React from 'react'
 import {
   Box,
   Typography,
-  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
   CircularProgress,
   Pagination,
   IconButton,
   Tooltip,
+  alpha,
+  useTheme,
 } from '@mui/material'
 import {
   Visibility as VisibilityIcon,
@@ -47,21 +47,17 @@ const SalesTable: React.FC<SalesTableProps> = ({
   onCancel,
   onViewDetails,
 }) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'success'
-      case 'confirmed':
-        return 'primary'
-      case 'pending':
-        return 'warning'
-      case 'cancelled':
-      case 'canceled':
-        return 'error'
-      default:
-        return 'default'
-    }
+  const theme = useTheme()
+
+  const statusColorMap: Record<string, 'success' | 'primary' | 'warning' | 'error' | 'secondary'> = {
+    completed: 'success',
+    confirmed: 'primary',
+    pending: 'warning',
+    cancelled: 'error',
+    canceled: 'error',
   }
+
+  const getStatusColor = (status: string) => statusColorMap[status] || 'secondary'
 
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -88,95 +84,121 @@ const SalesTable: React.FC<SalesTableProps> = ({
   }
 
   return (
-    <Paper sx={{ p: 2, mb: 3 }}>
-      <Box display="flex" gap={2} alignItems="center" mb={3}>
-        <Typography variant="h4" component="h2">
-          Ventas
-        </Typography>
-      </Box>
-
-      <TableContainer>
+    <Box>
+      <TableContainer 
+        sx={{ 
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+          bgcolor: 'background.paper',
+          boxShadow: 'none',
+        }}
+      >
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>Cliente</TableCell>
               <TableCell>Fecha</TableCell>
               <TableCell>Total</TableCell>
-              <TableCell>Metodo Pago</TableCell>
+              <TableCell>Método Pago</TableCell>
               <TableCell>Estado</TableCell>
-              <TableCell align="center">Acciones</TableCell>
+              <TableCell align="right">Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {sales.map((sale) => (
-              <TableRow key={sale.id}>
-                <TableCell>{sale.customer}</TableCell>
-                <TableCell>
-                  {new Date(sale.created_at).toLocaleDateString()}
-                </TableCell>
-                <TableCell>{formatCurrency(sale.total)}</TableCell>
-                <TableCell>{sale.payment_method || '-'}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={getStatusLabel(sale.status)}
-                    color={getStatusColor(sale.status) as any}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <Box display="flex" gap={1} justifyContent="center">
-                    <Tooltip title="Ver detalles">
-                      <IconButton
-                        size="small"
-                        onClick={() => onViewDetails(sale)}
-                        color="primary"
-                      >
-                        <VisibilityIcon />
-                      </IconButton>
-                    </Tooltip>
-                    {sale.status === 'pending' && (
-                      <Tooltip title="Editar venta">
+            {sales.map((sale) => {
+              const statusColor = getStatusColor(sale.status)
+              return (
+                <TableRow key={sale.id} hover>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {sale.customer}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      {new Date(sale.created_at).toLocaleDateString()}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {formatCurrency(sale.total)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      {sale.payment_method || '-'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ 
+                      display: 'inline-flex', 
+                      px: 1, 
+                      py: 0.25, 
+                      borderRadius: '999px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      bgcolor: alpha(theme.palette[statusColor].main, 0.08),
+                      color: `${statusColor}.main`,
+                      border: `1px solid ${alpha(theme.palette[statusColor].main, 0.2)}`
+                    }}>
+                      {getStatusLabel(sale.status)}
+                    </Box>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Box display="flex" gap={0.5} justifyContent="flex-end">
+                      <Tooltip title="Ver detalles">
                         <IconButton
                           size="small"
-                          onClick={() => onEdit(sale)}
-                          color="primary"
+                          onClick={() => onViewDetails(sale)}
+                          sx={{ color: 'text.secondary', '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main' } }}
                         >
-                          <EditIcon />
+                          <VisibilityIcon sx={{ fontSize: 18 }} />
                         </IconButton>
                       </Tooltip>
-                    )}
-                    {sale.status === 'pending' && (
-                      <Tooltip title="Confirmar venta">
-                        <IconButton
-                          size="small"
-                          onClick={() => onConfirm(sale.id)}
-                          color="success"
-                        >
-                          <CheckCircleIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                    {sale.status === 'pending' && (
-                      <Tooltip title="Cancelar venta">
-                        <IconButton
-                          size="small"
-                          onClick={() => onCancel(sale.id)}
-                          color="error"
-                        >
-                          <CancelIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ))}
+                      {sale.status === 'pending' && (
+                        <Tooltip title="Editar">
+                          <IconButton
+                            size="small"
+                            onClick={() => onEdit(sale)}
+                            sx={{ color: 'text.secondary', '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main' } }}
+                          >
+                            <EditIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      {sale.status === 'pending' && (
+                        <Tooltip title="Confirmar">
+                          <IconButton
+                            size="small"
+                            onClick={() => onConfirm(sale.id)}
+                            sx={{ color: 'text.secondary', '&:hover': { bgcolor: alpha(theme.palette.success.main, 0.08), color: 'success.main' } }}
+                          >
+                            <CheckCircleIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      {sale.status === 'pending' && (
+                        <Tooltip title="Cancelar">
+                          <IconButton
+                            size="small"
+                            onClick={() => onCancel(sale.id)}
+                            sx={{ color: 'text.secondary', '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.08), color: 'error.main' } }}
+                          >
+                            <CancelIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {totalCount && totalCount > 20 && (
-        <Box display="flex" justifyContent="center" p={2}>
+      {totalCount > 20 && (
+        <Box display="flex" justifyContent="center" mt={3} mb={2}>
           <Pagination
             count={Math.ceil(totalCount / 20)}
             page={page}
@@ -184,7 +206,7 @@ const SalesTable: React.FC<SalesTableProps> = ({
           />
         </Box>
       )}
-    </Paper>
+    </Box>
   )
 }
 

@@ -4,7 +4,6 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Paper,
   Typography,
   Box,
   Table,
@@ -18,7 +17,9 @@ import {
   Checkbox,
   Autocomplete,
   MenuItem,
+  useTheme,
 } from '@mui/material'
+import GradientButton from '../../components/common/GradientButton'
 import type { PurchaseItem, VariantOption } from '../../types/purchases'
 import type { ProductVariant, Supplier, Product } from '../../types'
 import PurchaseHeader from './PurchaseHeader'
@@ -59,6 +60,7 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
   onRemoveItem,
   onSubmit,
 }) => {
+  const theme = useTheme()
   const handleDialogEnter = () => {
     const activeElement = document.activeElement
     if (activeElement instanceof HTMLElement) {
@@ -83,7 +85,15 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
           isMobile={isMobile}
         />
 
-        <Paper sx={{ p: 3, mt: 2 }}>
+        <Box 
+          sx={{ 
+            p: 3, 
+            mt: 2,
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.divider}`,
+            bgcolor: 'background.paper',
+          }}
+        >
           <Typography variant="h6" gutterBottom>
             Items de la Compra
           </Typography>
@@ -96,7 +106,7 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
             <>
               {/* Vista Desktop - Tabla */}
               {!isMobile && (
-                <TableContainer>
+                <TableContainer sx={{ boxShadow: 'none', border: `1px solid ${theme.palette.divider}`, borderRadius: 1.5 }}>
                   <Table>
                     <TableHead>
                       <TableRow>
@@ -249,26 +259,16 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
           
           {purchaseItems.length > 0 && (
             <Box mt={3} display="flex" justifyContent="flex-end">
-              <button
-                type="button"
+              <GradientButton
                 onClick={onSubmit}
-                disabled={isLoading}
-                style={{
-                  padding: '8px 32px',
-                  backgroundColor: '#1976d2',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 'bold'
-                }}
+                loading={isLoading}
+                size="large"
               >
                 {isLoading ? 'Procesando...' : 'Crear Compra'}
-              </button>
+              </GradientButton>
             </Box>
           )}
-        </Paper>
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>

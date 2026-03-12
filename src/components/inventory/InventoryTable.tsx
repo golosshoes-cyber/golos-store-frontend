@@ -1,29 +1,27 @@
 import React from 'react'
 import {
-  Box,
-  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Button,
-  Chip,
   Typography,
+  Tooltip,
+  useTheme,
+  alpha,
+  IconButton,
+  Box,
 } from '@mui/material'
 import {
   Edit as EditIcon,
-  TrendingUp as TrendingUpIcon,
-  Warning as WarningIcon,
 } from '@mui/icons-material'
-import { ProductVariant } from '../../types'
 
 interface InventoryTableProps {
-  variants: ProductVariant[]
-  getProductInfo: (productId: number | string) => { name: string; brand: string }
-  getStockStatus: (stock: number) => { label: string; color: 'success' | 'warning' | 'error' | 'info' }
-  onAdjustStock: (variant: ProductVariant) => void
+  variants: any[]
+  getProductInfo: (productId: number) => any
+  getStockStatus: (stock: number) => { label: string; color: any }
+  onAdjustStock: (variant: any) => void
 }
 
 const InventoryTable: React.FC<InventoryTableProps> = ({
@@ -32,75 +30,77 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
   getStockStatus,
   onAdjustStock,
 }) => {
+  const theme = useTheme()
   return (
-    <TableContainer component={Paper} sx={{ width: '100%', overflow: 'hidden' }}>
+    <TableContainer sx={{ boxShadow: 'none', bgcolor: 'transparent' }}>
       <Table>
         <TableHead>
           <TableRow>
             <TableCell>Producto</TableCell>
             <TableCell>SKU</TableCell>
             <TableCell>Talla/Color</TableCell>
-            <TableCell align="center">Stock</TableCell>
-            <TableCell align="center">Precio</TableCell>
-            <TableCell align="center">Estado</TableCell>
-            <TableCell align="center">Acciones</TableCell>
+            <TableCell>Género</TableCell>
+            <TableCell>Stock</TableCell>
+            <TableCell align="right">Acciones</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {variants.map((variant) => {
-            const stockStatus = getStockStatus(variant.stock)
             const productInfo = getProductInfo(variant.product)
+            const status = getStockStatus(variant.stock)
 
             return (
               <TableRow key={variant.id}>
-                <TableCell>
-                  <Box>
-                    <Typography variant="body2" fontWeight="medium">
-                      {productInfo.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {productInfo.brand}
-                    </Typography>
-                  </Box>
+                <TableCell sx={{ py: 1.5 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {productInfo?.name || 'Producto desconocido'}
+                  </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     {variant.sku}
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2">
-                    {variant.size} • {variant.color || 'Sin color'}
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {variant.size} - {variant.color || 'SC'}
                   </Typography>
                 </TableCell>
-                <TableCell align="center">
-                  <Typography variant="body2" fontWeight="medium">
-                    {variant.stock}
+                <TableCell>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
+                    {variant.gender}
                   </Typography>
                 </TableCell>
-                <TableCell align="center">
-                  <Typography variant="body2" fontWeight="medium">
-                    ${variant.price}
-                  </Typography>
+                <TableCell>
+                  <Box sx={{
+                    display: 'inline-flex',
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: '999px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    bgcolor: alpha(theme.palette[status.color as 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'].main, 0.08),
+                    color: `${status.color}.main`,
+                    border: `1px solid ${alpha(theme.palette[status.color as 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'].main, 0.2)}`
+                  }}>
+                    {variant.stock} ({status.label})
+                  </Box>
                 </TableCell>
-                <TableCell align="center">
-                  <Chip
-                    label={stockStatus.label}
-                    color={stockStatus.color}
-                    size="small"
-                    icon={variant.stock < 10 ? <WarningIcon /> : <TrendingUpIcon />}
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    color="warning"
-                    startIcon={<EditIcon />}
-                    onClick={() => onAdjustStock(variant)}
-                  >
-                    Ajustar
-                  </Button>
+                <TableCell align="right">
+                  <Box display="flex" gap={0.5} justifyContent="flex-end">
+                    <Tooltip title="Ajustar Stock">
+                      <IconButton
+                        size="small"
+                        onClick={() => onAdjustStock(variant)}
+                        sx={{
+                          color: 'text.secondary',
+                          '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main' }
+                        }}
+                      >
+                        <EditIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
                 </TableCell>
               </TableRow>
             )

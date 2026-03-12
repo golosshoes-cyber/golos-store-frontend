@@ -34,14 +34,15 @@ const SalesFilters: React.FC<SalesFiltersProps> = ({
     <Box>
       <Button
         variant="outlined"
-        startIcon={<FilterIcon />}
+        startIcon={<FilterIcon sx={{ fontSize: 18 }} />}
         onClick={onMenuOpen}
+        size="small"
         sx={{
-          borderColor: 'rgba(255,255,255,0.3)',
-          color: 'white',
+          color: 'text.secondary',
+          borderColor: 'divider',
           '&:hover': {
-            borderColor: 'rgba(255,255,255,0.5)',
-            backgroundColor: 'rgba(255,255,255,0.1)',
+            borderColor: 'text.secondary',
+            bgcolor: 'action.hover',
           }
         }}
       >
@@ -52,10 +53,12 @@ const SalesFilters: React.FC<SalesFiltersProps> = ({
         anchorEl={anchorEl}
         open={isMenuOpen}
         onClose={onMenuClose}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         PaperProps={{
           sx: {
-            backgroundColor: 'white',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            mt: 1,
+            minWidth: 160,
           }
         }}
       >
@@ -64,6 +67,7 @@ const SalesFilters: React.FC<SalesFiltersProps> = ({
             key={option.value} 
             onClick={() => onFilterChange(option.value)}
             selected={currentFilter === option.value}
+            sx={{ fontSize: '13px' }}
           >
             {option.label}
           </MenuItem>

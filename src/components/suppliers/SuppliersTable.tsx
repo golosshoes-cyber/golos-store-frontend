@@ -6,15 +6,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   IconButton,
-  Chip,
   Typography,
   Box,
   Pagination,
   useTheme,
   useMediaQuery,
   Tooltip,
+  alpha,
 } from '@mui/material'
 import {
   Edit as EditIcon,
@@ -56,23 +55,46 @@ const SuppliersTable: React.FC<SuppliersTableProps> = ({
 
   if (loading) {
     return (
-      <Paper sx={{ p: 2, textAlign: 'center' }}>
-        <Typography>Cargando proveedores...</Typography>
-      </Paper>
+      <Box 
+        sx={{ 
+          p: 3, 
+          textAlign: 'center',
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+          bgcolor: 'background.paper'
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">Cargando proveedores...</Typography>
+      </Box>
     )
   }
 
   if (suppliers.length === 0) {
     return (
-      <Paper sx={{ p: 2, textAlign: 'center' }}>
-        <Typography>No se encontraron proveedores</Typography>
-      </Paper>
+      <Box 
+        sx={{ 
+          p: 3, 
+          textAlign: 'center',
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+          bgcolor: 'background.paper'
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">No se encontraron proveedores</Typography>
+      </Box>
     )
   }
 
   return (
     <Box>
-      <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+      <TableContainer 
+        sx={{ 
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+          bgcolor: 'background.paper',
+          boxShadow: 'none',
+        }}
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -87,7 +109,7 @@ const SuppliersTable: React.FC<SuppliersTableProps> = ({
                   <TableCell>Estado</TableCell>
                 </>
               )}
-              <TableCell>Acciones</TableCell>
+              <TableCell align="right">Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -132,36 +154,50 @@ const SuppliersTable: React.FC<SuppliersTableProps> = ({
                       }
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={supplier.is_active ? 'Activo' : 'Inactivo'}
-                        color={supplier.is_active ? 'success' : 'default'}
-                        size="small"
-                      />
+                      <Box sx={{ 
+                        display: 'inline-flex', 
+                        px: 1, 
+                        py: 0.25, 
+                        borderRadius: '999px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        bgcolor: supplier.is_active ? alpha(theme.palette.success.main, 0.08) : alpha(theme.palette.text.disabled, 0.08),
+                        color: supplier.is_active ? 'success.main' : 'text.disabled',
+                        border: `1px solid ${supplier.is_active ? alpha(theme.palette.success.main, 0.2) : alpha(theme.palette.text.disabled, 0.2)}`
+                      }}>
+                        {supplier.is_active ? 'Activo' : 'Inactivo'}
+                      </Box>
                     </TableCell>
                   </>
                 )}
-                <TableCell>
-                  <Box display="flex" gap={1}>
-                    <Tooltip title="Editar proveedor">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEdit(supplier)}
-                        color="primary"
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Eliminar proveedor">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleDelete(supplier.id)}
-                        color="error"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </TableCell>
+                  <TableCell align="right">
+                    <Box display="flex" justifyContent="flex-end" gap={0.5}>
+                      <Tooltip title="Editar">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleEdit(supplier)}
+                          sx={{ 
+                            color: 'text.secondary',
+                            '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main' }
+                          }}
+                        >
+                          <EditIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Eliminar">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDelete(supplier.id)}
+                          sx={{ 
+                            color: 'text.secondary',
+                            '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.08), color: 'error.main' }
+                          }}
+                        >
+                          <DeleteIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
               </TableRow>
             ))}
           </TableBody>
