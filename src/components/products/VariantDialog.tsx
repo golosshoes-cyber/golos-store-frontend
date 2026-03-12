@@ -10,6 +10,7 @@ import { useTheme, useMediaQuery } from '@mui/material'
 import { Product, ProductVariant } from '../../types'
 import VariantFormHeader from '../../components/common/VariantFormHeader'
 import DialogShell from '../common/DialogShell'
+import GradientButton from '../common/GradientButton'
 
 interface VariantDialogProps {
   open: boolean
@@ -97,13 +98,13 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
           <Button onClick={handleSafeClose} disabled={loading}>
             Cancelar
           </Button>
-          <Button type="submit" variant="contained" disabled={loading} form="variant-dialog-form">
+          <GradientButton type="submit" disabled={loading} form="variant-dialog-form">
             {loading ? (
-              <CircularProgress size={20} />
+              <CircularProgress size={20} color="inherit" />
             ) : (
               variant ? 'Actualizar' : 'Crear'
             )}
-          </Button>
+          </GradientButton>
         </>
       }
     >

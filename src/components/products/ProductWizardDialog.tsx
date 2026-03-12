@@ -22,6 +22,7 @@ import { CloudUpload as CloudUploadIcon, CheckCircle as CheckCircleIcon } from '
 import { useTheme, useMediaQuery } from '@mui/material'
 import { useProductWizard } from '../../hooks/products/useProductWizard'
 import ProductFormHeader from '../common/ProductFormHeader'
+import GradientButton from '../common/GradientButton'
 
 interface ProductWizardDialogProps {
   open: boolean
@@ -281,15 +282,14 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                     disabled={isCreatingVariant}
                   />
                 </Box>
-                <Button
+                <GradientButton
                   type="submit"
-                  variant="contained"
                   fullWidth
                   sx={{ mt: 2 }}
                   disabled={isCreatingVariant}
                 >
-                  {isCreatingVariant ? <CircularProgress size={24} /> : 'Añadir Variante'}
-                </Button>
+                  {isCreatingVariant ? <CircularProgress size={24} color="inherit" /> : 'Añadir Variante'}
+                </GradientButton>
               </form>
             </Box>
 
@@ -350,9 +350,8 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
               </TextField>
             )}
 
-            <Button
+            <GradientButton
               component="label"
-              variant="contained"
               size="large"
               startIcon={imageUploadLoading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadIcon />}
               disabled={imageUploadLoading}
@@ -369,7 +368,7 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                   e.target.value = '' // reset
                 }}
               />
-            </Button>
+            </GradientButton>
 
             {addedVariants.length > 0 && (
               <Alert severity="success" sx={{ mt: 4 }}>
@@ -386,29 +385,28 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
         </Button>
         <Box>
           {step === 0 && (
-            <Button
+            <GradientButton
               type="submit"
               form="wizard-product-form"
-              variant="contained"
               disabled={isCreatingProduct}
             >
               {isCreatingProduct ? <CircularProgress size={24} color="inherit" /> : 'Siguiente'}
-            </Button>
+            </GradientButton>
           )}
           {step === 1 && (
             <>
               <Button onClick={handleNextStep} disabled={isCreatingVariant} sx={{ mr: 1 }}>
                 Omitir
               </Button>
-              <Button onClick={handleNextStep} variant="contained" disabled={isCreatingVariant || addedVariants.length === 0}>
+              <GradientButton onClick={handleNextStep} disabled={isCreatingVariant || addedVariants.length === 0}>
                 Siguiente
-              </Button>
+              </GradientButton>
             </>
           )}
           {step === 2 && (
-            <Button onClick={handleFinish} variant="contained" color="success" disabled={imageUploadLoading}>
+            <GradientButton onClick={handleFinish} disabled={imageUploadLoading} sx={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', '&:hover': { background: 'linear-gradient(135deg, #059669 0%, #047857 100%)' } }}>
               Finalizar Creación
-            </Button>
+            </GradientButton>
           )}
         </Box>
       </DialogActions>
