@@ -6,6 +6,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useNavigate } from 'react-router-dom'
 import {
   AreaChart,
   Area,
@@ -18,6 +19,7 @@ import type { SalesChartProps } from '../../types/dashboard'
 
 const SalesChart: React.FC<SalesChartProps> = ({ chartData, loading }) => {
   const theme = useTheme()
+  const navigate = useNavigate()
 
   return (
     <Grid item xs={12} md={6}>
@@ -44,7 +46,10 @@ const SalesChart: React.FC<SalesChartProps> = ({ chartData, loading }) => {
           <Typography sx={{ fontSize: '12px', fontWeight: 600, color: 'text.primary', letterSpacing: '-0.1px' }}>
             Ventas últimos 30 días
           </Typography>
-          <Typography sx={{ fontSize: '14px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}>
+          <Typography 
+            onClick={() => navigate('/reports')}
+            sx={{ fontSize: '14px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}
+          >
             ↗
           </Typography>
         </Box>

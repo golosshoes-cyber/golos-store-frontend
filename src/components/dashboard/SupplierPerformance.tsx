@@ -6,10 +6,12 @@ import {
   Typography,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useNavigate } from 'react-router-dom'
 import type { SupplierPerformanceProps } from '../../types/dashboard'
 
 const SupplierPerformance: React.FC<SupplierPerformanceProps> = ({ suppliers, loading }) => {
   const theme = useTheme()
+  const navigate = useNavigate()
 
   return (
     <Grid item xs={12} md={6}>
@@ -36,7 +38,10 @@ const SupplierPerformance: React.FC<SupplierPerformanceProps> = ({ suppliers, lo
           <Typography sx={{ fontSize: '12px', fontWeight: 600, color: 'text.primary', letterSpacing: '-0.1px' }}>
             Rendimiento proveedores
           </Typography>
-          <Typography sx={{ fontSize: '11px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}>
+          <Typography 
+            onClick={() => navigate('/suppliers')}
+            sx={{ fontSize: '11px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}
+          >
             Ver todos →
           </Typography>
         </Box>

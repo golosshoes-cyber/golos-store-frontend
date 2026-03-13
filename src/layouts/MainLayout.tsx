@@ -42,7 +42,6 @@ import {
 import {
   TextField,
   Autocomplete,
-  Popper,
 } from '@mui/material'
 import { productService } from '../services/productService'
 import { useQuery } from '@tanstack/react-query'
@@ -385,6 +384,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               open={searchOpen && searchValue.length >= 2}
               onOpen={() => searchValue.length >= 2 && setSearchOpen(true)}
               onClose={() => setSearchOpen(false)}
+              clearOnBlur
+              blurOnSelect
+              disablePortal
               options={searchResults?.results || []}
               getOptionLabel={(option: any) =>
                 `${option.sku} - ${getProductName(option.product)} ${option.size} ${option.color || ''}`
@@ -436,11 +438,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   </li>
                 )
               }}
-              PopperComponent={(props) => <Popper {...props} sx={{ zIndex: 1400 }} />}
+              slotProps={{
+                popper: {
+                  sx: { zIndex: 1400 },
+                },
+              }}
             />
 
             <Button
-              onClick={() => window.open('https://tienda.golosshoes.shop', '_blank')}
+              onClick={() => window.open('https://golosshoes.shop', '_blank')}
               variant="outlined"
               size="small"
               startIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}

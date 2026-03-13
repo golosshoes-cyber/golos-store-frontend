@@ -6,10 +6,12 @@ import {
   Typography,
 } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
+import { useNavigate } from 'react-router-dom'
 import type { RecentMovementsProps } from '../../types/dashboard'
 
 const RecentMovements: React.FC<RecentMovementsProps> = ({ movements, loading }) => {
   const theme = useTheme()
+  const navigate = useNavigate()
 
   return (
     <Grid item xs={12} md={6}>
@@ -36,7 +38,10 @@ const RecentMovements: React.FC<RecentMovementsProps> = ({ movements, loading })
           <Typography sx={{ fontSize: '12px', fontWeight: 600, color: 'text.primary', letterSpacing: '-0.1px' }}>
             Movimientos recientes
           </Typography>
-          <Typography sx={{ fontSize: '11px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}>
+          <Typography 
+            onClick={() => navigate('/inventory')}
+            sx={{ fontSize: '11px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}
+          >
             Ver todos →
           </Typography>
         </Box>

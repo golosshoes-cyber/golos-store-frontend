@@ -7,10 +7,12 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { StarOutline } from '@mui/icons-material'
+import { useNavigate } from 'react-router-dom'
 import type { TopProductsProps } from '../../types/dashboard'
 
 const TopProducts: React.FC<TopProductsProps> = ({ products, loading }) => {
   const theme = useTheme()
+  const navigate = useNavigate()
 
   return (
     <Grid item xs={12} md={6}>
@@ -37,7 +39,10 @@ const TopProducts: React.FC<TopProductsProps> = ({ products, loading }) => {
           <Typography sx={{ fontSize: '12px', fontWeight: 600, color: 'text.primary', letterSpacing: '-0.1px' }}>
             Top productos
           </Typography>
-          <Typography sx={{ fontSize: '11px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}>
+          <Typography 
+            onClick={() => navigate('/reports')}
+            sx={{ fontSize: '11px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}
+          >
             Ver reportes →
           </Typography>
         </Box>
