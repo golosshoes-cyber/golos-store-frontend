@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useLayoutEffect, useRef } from 'react'
 import {
   Grid,
   Box,
@@ -13,13 +13,31 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  ResponsiveContainer,
 } from 'recharts'
 import type { SalesChartProps } from '../../types/dashboard'
 
 const SalesChart: React.FC<SalesChartProps> = ({ chartData, loading }) => {
   const theme = useTheme()
   const navigate = useNavigate()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [chartWidth, setChartWidth] = useState<number>(0)
+  const [mounted, setMounted] = useState(false)
+
+  // Medir dimensiones manualmente para evitar errores de ResponsiveContainer en recargas
+  useLayoutEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        // Descontar padding (16px * 2 = 32px)
+        setChartWidth(containerRef.current.offsetWidth - 32)
+      }
+    }
+
+    updateWidth()
+    setMounted(true)
+    
+    window.addEventListener('resize', updateWidth)
+    return () => window.removeEventListener('resize', updateWidth)
+  }, [])
 
   return (
     <Grid item xs={12} md={6}>
@@ -53,51 +71,54 @@ const SalesChart: React.FC<SalesChartProps> = ({ chartData, loading }) => {
             ↗
           </Typography>
         </Box>
-        {loading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" height={200}>
-            <CircularProgress size={24} />
-          </Box>
-        ) : (
-          <Box sx={{ flex: 1, p: 2, pb: 0, position: 'relative' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData || []} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={theme.palette.text.primary} stopOpacity={0.12}/>
-                    <stop offset="100%" stopColor={theme.palette.text.primary} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis 
-                  dataKey="date" 
-                  hide={true}
-                />
-                <YAxis 
-                  hide={true}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    borderRadius: 8,
-                    border: `1px solid ${theme.palette.divider}`,
-                    backgroundColor: theme.palette.background.paper,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    fontSize: '11px'
-                  }}
-                  formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Ventas']}
-                  labelFormatter={(label) => `Fecha: ${new Date(label).toLocaleDateString()}`}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="total" 
-                  stroke={theme.palette.text.primary} 
-                  strokeWidth={1.5}
-                  strokeOpacity={0.3}
-                  fillOpacity={1} 
-                  fill="url(#colorSales)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </Box>
-        )}
+        
+        <div 
+          ref={containerRef}
+          style={{ padding: '16px 16px 0', position: 'relative', height: '230px', width: '100%', boxSizing: 'border-box' }}
+        >
+          {loading || !mounted || chartWidth <= 0 ? (
+            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+              <CircularProgress size={20} thickness={4} sx={{ color: 'action.disabled' }} />
+            </Box>
+          ) : (
+            <AreaChart width={chartWidth} height={230} data={chartData || []} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={theme.palette.text.primary} stopOpacity={0.12}/>
+                  <stop offset="100%" stopColor={theme.palette.text.primary} stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <XAxis 
+                dataKey="date" 
+                hide={true}
+              />
+              <YAxis 
+                hide={true}
+              />
+              <Tooltip 
+                contentStyle={{
+                  borderRadius: 8,
+                  border: `1px solid ${theme.palette.divider}`,
+                  backgroundColor: theme.palette.background.paper,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  fontSize: '11px'
+                }}
+                formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Ventas']}
+                labelFormatter={(label) => `Fecha: ${new Date(label).toLocaleDateString()}`}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="total" 
+                stroke={theme.palette.text.primary} 
+                strokeWidth={1.5}
+                strokeOpacity={0.3}
+                fillOpacity={1} 
+                fill="url(#colorSales)"
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          )}
+        </div>
       </Box>
     </Grid>
   )

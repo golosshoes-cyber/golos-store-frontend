@@ -7,7 +7,7 @@ import {
 } from '@mui/material'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTheme, useMediaQuery } from '@mui/material'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNotification } from '../../hooks/useNotification'
 import { dashboardService } from '../../services/dashboardService'
@@ -29,7 +29,9 @@ const SalesPage: React.FC = () => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const location = useLocation()
+  const navigate = useNavigate()
   const hasProcessedPrefill = useRef(false)
+  const hasOpenedCreate = useRef(false)
 
   // Custom hooks
   const {
@@ -93,12 +95,24 @@ const SalesPage: React.FC = () => {
     }
   }, [location.search, createSaleDialogOpen])
 
-  // Check for navigation state to open create modal
+  // Check for navigation state or query param to open create modal
   useEffect(() => {
-    if (location.state?.openCreateModal) {
+    const params = new URLSearchParams(location.search)
+    const isCreateParam = params.get('create') === 'true'
+    
+    if ((location.state?.openCreateModal || isCreateParam) && !createSaleDialogOpen && !hasOpenedCreate.current) {
       handleCreateSale()
+      hasOpenedCreate.current = true
+      
+      // Clean up the URL parameter or state
+      if (isCreateParam) {
+        const newParams = new URLSearchParams(location.search)
+        newParams.delete('create')
+        const newSearch = newParams.toString()
+        navigate(`${location.pathname}${newSearch ? `?${newSearch}` : ''}`, { replace: true })
+      }
     }
-  }, [location.state])
+  }, [location.state, location.search, createSaleDialogOpen, handleCreateSale, location.pathname, navigate])
 
   const handleFilterChange = (status: string) => {
     setFilterStatus(status)

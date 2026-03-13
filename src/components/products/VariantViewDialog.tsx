@@ -2,25 +2,13 @@ import React from 'react'
 import {
   Button,
   Typography,
-  Grid,
-  Paper,
   Box,
-  Divider,
+  Chip,
 } from '@mui/material'
 import { useTheme, useMediaQuery } from '@mui/material'
-import {
-  Style as ProductIcon,
-  Height as SizeIcon,
-  Person as GenderIcon,
-  Palette as ColorIcon,
-  Inventory as StockIcon,
-  AttachMoney as PriceIcon,
-  AccountBalanceWallet as CostIcon,
-  CheckCircle as ActiveIcon,
-  Image as ImageIcon,
-} from '@mui/icons-material'
+import { alpha } from '@mui/material/styles'
 import { ProductVariant, Product } from '../../types'
-import VariantDetailsHeader from '../../components/common/VariantDetailsHeader'
+import { formatCurrency } from '../../utils/currency'
 import DialogShell from '../common/DialogShell'
 
 interface VariantViewDialogProps {
@@ -49,192 +37,136 @@ const VariantViewDialog: React.FC<VariantViewDialogProps> = ({
     <DialogShell
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="sm"
       fullScreen={isMobile}
       scroll="paper"
-      header={<VariantDetailsHeader />}
-      headerInTitle={false}
+      dialogTitle="Detalles de Variante"
+      subtitle={`${product.name} — ${variant.size} ${variant.color || ''}`}
       actions={
         <Button
           onClick={onClose}
-          variant="outlined"
-          sx={{ borderRadius: 2, px: 3 }}
+          size="small"
+          sx={{
+            borderRadius: 1.5,
+            fontSize: '12px',
+            textTransform: 'none',
+            px: 2,
+            border: `1px solid ${theme.palette.divider}`,
+            color: 'text.secondary',
+            '&:hover': { borderColor: 'text.disabled', color: 'text.primary' },
+          }}
         >
           Cerrar
         </Button>
       }
     >
-        <Grid container spacing={3}>
-          {/* Detalles Principales */}
-          <Grid item xs={12}>
-            <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ProductIcon color="primary" />
-                Detalles de la Variante
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
+      {/* Status + SKU */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <Chip
+          label={variant.active ? 'Activo' : 'Inactivo'}
+          size="small"
+          sx={{
+            height: 20,
+            fontSize: '10px',
+            fontWeight: 500,
+            bgcolor: variant.active ? alpha(theme.palette.success.main, 0.08) : alpha(theme.palette.error.main, 0.08),
+            color: variant.active ? 'success.main' : 'error.main',
+            border: 'none',
+          }}
+        />
+        <Typography sx={{ fontSize: '11px', color: 'text.disabled' }}>
+          SKU: {variant.sku || `VAR-${variant.id}`}
+        </Typography>
+      </Box>
 
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <ProductIcon color="action" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Producto
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {product.name}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
+      {/* Details Section */}
+      <Box sx={{
+        bgcolor: alpha(theme.palette.text.primary, 0.02),
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: 2,
+        p: 2,
+        mb: 2,
+      }}>
+        <Typography sx={{ fontSize: '10px', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1.5 }}>
+          Información de la variante
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+          <Box>
+            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Producto</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>{product.name}</Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Talla</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>{variant.size}</Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Color</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>{variant.color || 'Sin color'}</Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Género</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>
+              {variant.gender === 'male' ? 'Masculino' : variant.gender === 'female' ? 'Femenino' : 'Unisex'}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
 
-                <Grid item xs={12} sm={6}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <SizeIcon color="action" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Talla
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {variant.size}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
+      {/* Economics Section */}
+      <Box sx={{
+        bgcolor: alpha(theme.palette.text.primary, 0.02),
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: 2,
+        p: 2,
+        mb: 2,
+      }}>
+        <Typography sx={{ fontSize: '10px', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1.5 }}>
+          Información económica
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2 }}>
+          <Box>
+            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Stock</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 600, color: variant.stock === 0 ? 'error.main' : 'success.main' }}>
+              {variant.stock} uds
+            </Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Precio</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>{formatCurrency(variant.price)}</Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Costo</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>{formatCurrency(variant.cost)}</Typography>
+          </Box>
+        </Box>
+      </Box>
 
-                <Grid item xs={12} sm={6}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <GenderIcon color="action" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Género
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {variant.gender === 'male' ? 'Masculino' : variant.gender === 'female' ? 'Femenino' : 'Unisex'}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <ColorIcon color="action" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Color
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {variant.color || 'Sin color'}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <ActiveIcon color={variant.active ? "success" : "error"} />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Estado
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium" color={variant.active ? "success.main" : "error.main"}>
-                        {variant.active ? 'Activo' : 'Inactivo'}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-              </Grid>
-            </Paper>
-          </Grid>
-
-          {/* Imagen de la Variante */}
-          <Grid item xs={12}>
-            <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ImageIcon color="primary" />
-                Imagen de la Variante
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              
-              {assignedImage ? (
-                <Box display="flex" justifyContent="center">
-                  <Box
-                    component="img"
-                    src={assignedImage.image}
-                    alt={`${product.name} - ${variant.size} ${variant.color || ''}`}
-                    sx={{
-                      maxWidth: '100%',
-                      maxHeight: '300px',
-                      objectFit: 'contain',
-                      borderRadius: 2,
-                      border: '1px solid #e0e0e0',
-                    }}
-                  />
-                </Box>
-              ) : (
-                <Typography variant="body1" color="text.secondary" textAlign="center">
-                  No hay imagen asignada para esta variante
-                </Typography>
-              )}
-            </Paper>
-          </Grid>
-
-          {/* Estadísticas y Precios */}
-          <Grid item xs={12}>
-            <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <StockIcon color="primary" />
-                Información Económica
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <StockIcon color="action" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Stock
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold" color={variant.stock === 0 ? "error.main" : "success.main"}>
-                        {variant.stock} unidades
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-
-                <Grid item xs={12} sm={4}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <PriceIcon color="action" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Precio
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold" color="primary.main">
-                        ${parseFloat(variant.price.toString()).toFixed(2)}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-
-                <Grid item xs={12} sm={4}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <CostIcon color="action" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Costo
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold" color="secondary.main">
-                        ${parseFloat(variant.cost.toString()).toFixed(2)}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-              </Grid>
-            </Paper>
-          </Grid>
-        </Grid>
+      {/* Image Section */}
+      {assignedImage && (
+        <Box sx={{
+          bgcolor: alpha(theme.palette.text.primary, 0.02),
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: 2,
+          p: 2,
+          textAlign: 'center',
+        }}>
+          <Typography sx={{ fontSize: '10px', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1.5 }}>
+            Imagen
+          </Typography>
+          <Box
+            component="img"
+            src={assignedImage.image}
+            alt={`${product.name} - ${variant.size} ${variant.color || ''}`}
+            sx={{
+              maxWidth: '100%',
+              maxHeight: 200,
+              objectFit: 'contain',
+              borderRadius: 1.5,
+              border: `1px solid ${theme.palette.divider}`,
+            }}
+          />
+        </Box>
+      )}
     </DialogShell>
   )
 }

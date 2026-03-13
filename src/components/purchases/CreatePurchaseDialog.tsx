@@ -1,8 +1,5 @@
 import React from 'react'
 import {
-  Dialog,
-  DialogContent,
-  DialogActions,
   Button,
   Typography,
   Box,
@@ -19,10 +16,9 @@ import {
   MenuItem,
   useTheme,
 } from '@mui/material'
-import GradientButton from '../../components/common/GradientButton'
 import type { PurchaseItem, VariantOption } from '../../types/purchases'
 import type { ProductVariant, Supplier, Product } from '../../types'
-import PurchaseHeader from './PurchaseHeader'
+import DialogShell from '../common/DialogShell'
 import PurchaseItemCard from './PurchaseItemCard'
 
 interface CreatePurchaseDialogProps {
@@ -61,48 +57,93 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
   onSubmit,
 }) => {
   const theme = useTheme()
-  const handleDialogEnter = () => {
-    const activeElement = document.activeElement
-    if (activeElement instanceof HTMLElement) {
-      activeElement.blur()
-    }
-  }
 
   return (
-    <Dialog
+    <DialogShell
       open={open}
       onClose={onClose}
       maxWidth="lg"
       fullWidth
-      fullScreen={isMobile}
-      TransitionProps={{ onEnter: handleDialogEnter }}
+      dialogTitle="Nueva Compra"
+      subtitle="Registrar entrada de inventario (puedes agregar múltiples items)"
+      actions={
+        <>
+          <Button onClick={onClose} size="small" variant="outlined" sx={{ borderRadius: 1.5, fontSize: '12px' }}>
+            Cancelar
+          </Button>
+          {purchaseItems.length > 0 && (
+            <Button
+              onClick={onSubmit}
+              variant="contained"
+              size="small"
+              disabled={isLoading}
+              sx={{ 
+                bgcolor: 'text.primary', 
+                color: 'background.default',
+                borderRadius: 1.5,
+                fontSize: '12px',
+                px: 3,
+                '&:hover': { bgcolor: 'text.secondary' }
+              }}
+            >
+              {isLoading ? 'Procesando...' : 'Crear Compra'}
+            </Button>
+          )}
+        </>
+      }
     >
-      <DialogContent>
-        <PurchaseHeader
-          itemCount={purchaseItems.length}
-          onClearAll={onClearAll}
-          onAddItem={onAddItem}
-          isMobile={isMobile}
-        />
-
-        <Box 
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+        {purchaseItems.length > 0 && (
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={onClearAll}
+            size="small"
+            sx={{ borderRadius: 1.5, fontSize: '12px' }}
+          >
+            Limpiar Todo
+          </Button>
+        )}
+        <Button
+          variant="contained"
+          onClick={onAddItem}
+          size="small"
           sx={{ 
-            p: 3, 
-            mt: 2,
-            borderRadius: 2,
-            border: `1px solid ${theme.palette.divider}`,
-            bgcolor: 'background.paper',
+            bgcolor: 'text.primary', 
+            color: 'background.default',
+            borderRadius: 1.5, 
+            fontSize: '12px',
+            '&:hover': { bgcolor: 'text.secondary' }
           }}
         >
-          <Typography variant="h6" gutterBottom>
-            Items de la Compra
-          </Typography>
+          + Agregar Item
+        </Button>
+      </Box>
 
-          {purchaseItems.length === 0 ? (
-            <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-              No hay items agregados. Haz clic en "Agregar Item" para comenzar.
-            </Typography>
-          ) : (
+      <Box 
+        sx={{ 
+          p: 0,
+          borderRadius: 2,
+        }}
+      >
+        <Typography 
+          variant="overline" 
+          sx={{ 
+            display: 'block', 
+            mb: 2, 
+            fontWeight: 600, 
+            color: 'text.secondary',
+            letterSpacing: '1px'
+          }}
+        >
+          Items de la Compra
+        </Typography>
+
+        {purchaseItems.length === 0 ? (
+          <Typography color="text.secondary" sx={{ textAlign: 'center', py: 8, fontSize: '14px', border: `1px dashed ${theme.palette.divider}`, borderRadius: 2 }}>
+            No hay items agregados. Haz clic en "Agregar Item" para comenzar.
+          </Typography>
+        ) : (
             <>
               {/* Vista Desktop - Tabla */}
               {!isMobile && (
@@ -139,7 +180,7 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
                                   select
                                   label="Producto"
                                   value={item.newProductId}
-                                  onChange={(e) => onItemChange(index, 'newProductId', e.target.value)}
+                                  onChange={(e: any) => onItemChange(index, 'newProductId', e.target.value)}
                                   size="small"
                                   fullWidth
                                 >
@@ -152,20 +193,20 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
                                 <TextField
                                   label="Talla"
                                   value={item.newSize}
-                                  onChange={(e) => onItemChange(index, 'newSize', e.target.value)}
+                                  onChange={(e: any) => onItemChange(index, 'newSize', e.target.value)}
                                   size="small"
                                 />
                                 <TextField
                                   label="Color"
                                   value={item.newColor}
-                                  onChange={(e) => onItemChange(index, 'newColor', e.target.value)}
+                                  onChange={(e: any) => onItemChange(index, 'newColor', e.target.value)}
                                   size="small"
                                 />
                                 <TextField
                                   select
                                   label="Género"
                                   value={item.newGender}
-                                  onChange={(e) => onItemChange(index, 'newGender', e.target.value)}
+                                  onChange={(e: any) => onItemChange(index, 'newGender', e.target.value)}
                                   size="small"
                                 >
                                   <MenuItem value="male">Masculino</MenuItem>
@@ -190,7 +231,7 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
                             <TextField
                               type="number"
                               value={item.quantity}
-                              onChange={(e) => onItemChange(index, 'quantity', e.target.value)}
+                              onChange={(e: any) => onItemChange(index, 'quantity', e.target.value)}
                               size="small"
                               inputProps={{ min: 1 }}
                               sx={{ width: 80 }}
@@ -200,7 +241,7 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
                             <TextField
                               type="number"
                               value={item.unitCost}
-                              onChange={(e) => onItemChange(index, 'unitCost', e.target.value)}
+                              onChange={(e: any) => onItemChange(index, 'unitCost', e.target.value)}
                               size="small"
                               inputProps={{ min: 0, step: 0.01 }}
                               sx={{ width: 100 }}
@@ -210,7 +251,7 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
                             <TextField
                               select
                               value={item.supplierId}
-                              onChange={(e) => onItemChange(index, 'supplierId', e.target.value)}
+                              onChange={(e: any) => onItemChange(index, 'supplierId', e.target.value)}
                               size="small"
                               sx={{ width: 120 }}
                             >
@@ -248,7 +289,7 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
                       allProducts={allProducts}
                       suppliers={suppliers}
                       onItemChange={onItemChange}
-                      onVariantChange={(index, variantId) => onVariantChange(index, variantId, variants)}
+                      onVariantChange={(index: number, variantId: string) => onVariantChange(index, variantId, variants)}
                       onRemove={onRemoveItem}
                     />
                   ))}
@@ -256,24 +297,8 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
               )}
             </>
           )}
-          
-          {purchaseItems.length > 0 && (
-            <Box mt={3} display="flex" justifyContent="flex-end">
-              <GradientButton
-                onClick={onSubmit}
-                loading={isLoading}
-                size="large"
-              >
-                {isLoading ? 'Procesando...' : 'Crear Compra'}
-              </GradientButton>
-            </Box>
-          )}
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-      </DialogActions>
-    </Dialog>
+      </Box>
+    </DialogShell>
   )
 }
 

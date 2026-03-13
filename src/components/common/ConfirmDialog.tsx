@@ -38,28 +38,16 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 }) => {
   const theme = useTheme()
   const getIcon = () => {
+    const iconSx = { fontSize: 20 }
     switch (severity) {
       case 'error':
-        return <DeleteIcon color="error" sx={{ fontSize: 48 }} />
+        return <DeleteIcon color="error" sx={iconSx} />
       case 'warning':
-        return <WarningIcon color="warning" sx={{ fontSize: 48 }} />
+        return <WarningIcon color="warning" sx={iconSx} />
       case 'info':
-        return <BlockIcon color="info" sx={{ fontSize: 48 }} />
+        return <BlockIcon color="info" sx={iconSx} />
       default:
-        return <WarningIcon color="warning" sx={{ fontSize: 48 }} />
-    }
-  }
-
-  const getConfirmButtonColor = () => {
-    switch (severity) {
-      case 'error':
-        return 'error'
-      case 'warning':
-        return 'warning'
-      case 'info':
-        return 'primary'
-      default:
-        return 'primary'
+        return <WarningIcon color="warning" sx={iconSx} />
     }
   }
 
@@ -67,7 +55,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     <DialogShell
       open={open}
       onClose={!loading ? onCancel : () => {}}
-      maxWidth="sm"
+      maxWidth="xs"
       dialogTitle={title}
       subtitle={severity === 'error' ? 'Esta acción no se puede deshacer' : 'Por favor confirma para continuar'}
       actions={
@@ -75,23 +63,35 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <Button
             onClick={onCancel}
             disabled={loading}
-            variant="text"
-            sx={{ color: 'text.secondary' }}
+            size="small"
+            sx={{
+              borderRadius: 1.5,
+              fontSize: '12px',
+              textTransform: 'none',
+              px: 2,
+              border: `1px solid ${theme.palette.divider}`,
+              color: 'text.secondary',
+              '&:hover': { borderColor: 'text.disabled', color: 'text.primary' },
+            }}
           >
             {cancelText}
           </Button>
           <Button
             onClick={onConfirm}
-            variant="contained"
-            color={getConfirmButtonColor()}
             disabled={loading}
             autoFocus
+            size="small"
             sx={{
+              borderRadius: 1.5,
+              fontSize: '12px',
+              textTransform: 'none',
+              px: 2,
               bgcolor: severity === 'error' ? 'error.main' : 'text.primary',
-              color: 'background.default',
+              color: severity === 'error' ? '#fff' : 'background.default',
               '&:hover': {
                 bgcolor: severity === 'error' ? 'error.dark' : 'text.secondary',
-              }
+              },
+              '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },
             }}
           >
             {loading ? 'Procesando...' : confirmText}
@@ -99,28 +99,28 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         </>
       }
     >
-      <Box display="flex" flexDirection="column" gap={2}>
-        <Box 
-          sx={{ 
-            p: 2, 
-            borderRadius: 2, 
-            bgcolor: severity === 'error' ? alpha(theme.palette.error.main, 0.05) : alpha(theme.palette.warning.main, 0.05),
-            border: `1px solid ${alpha(severity === 'error' ? theme.palette.error.main : theme.palette.warning.main, 0.1)}`,
-            display: 'flex',
-            gap: 2,
-            alignItems: 'flex-start'
-          }}
-        >
-          {getIcon()}
-          <Typography variant="body2" sx={{ lineHeight: 1.6, color: 'text.primary' }}>
+      <Box
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          bgcolor: severity === 'error' ? alpha(theme.palette.error.main, 0.05) : alpha(theme.palette.warning.main, 0.05),
+          border: `1px solid ${alpha(severity === 'error' ? theme.palette.error.main : theme.palette.warning.main, 0.1)}`,
+          display: 'flex',
+          gap: 1.5,
+          alignItems: 'flex-start',
+        }}
+      >
+        {getIcon()}
+        <Box>
+          <Typography sx={{ fontSize: '13px', lineHeight: 1.6, color: 'text.primary' }}>
             {message}
           </Typography>
+          <Typography sx={{ fontSize: '11px', color: 'text.disabled', mt: 1 }}>
+            {severity === 'error'
+              ? 'Si solo quieres ocultarlo, considera marcarlo como inactivo en su lugar.'
+              : 'Asegúrate de haber revisado los detalles antes de confirmar.'}
+          </Typography>
         </Box>
-        <Typography variant="caption" sx={{ color: 'text.disabled', px: 0.5 }}>
-          {severity === 'error' 
-            ? 'Si solo quieres ocultarlo, considera marcarlo como inactivo en su lugar.' 
-            : 'Asegúrate de haber revisado los detalles antes de confirmar.'}
-        </Typography>
       </Box>
     </DialogShell>
   )

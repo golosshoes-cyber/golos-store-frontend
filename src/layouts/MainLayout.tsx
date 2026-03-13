@@ -363,23 +363,71 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
-        <Toolbar sx={{ minHeight: 52, px: { xs: 2, sm: 3 }, gap: 1.5 }}>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 1, display: { sm: 'none' } }}
-          >
-            <MenuIcon sx={{ fontSize: 20 }} />
-          </IconButton>
+        <Toolbar 
+          sx={{ 
+            minHeight: { xs: 'auto', sm: 52 }, 
+            px: { xs: 1.5, sm: 3 },
+            py: { xs: 1.5, sm: 0 },
+            flexDirection: 'column',
+          }}
+        >
+          {/* TOP ROW: Menu toggle + Title + Mode toggle */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            width: '100%', 
+            minHeight: { xs: 32, sm: 52 },
+            gap: 1.5 
+          }}>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ display: { sm: 'none' } }}
+            >
+              <MenuIcon sx={{ fontSize: 20 }} />
+            </IconButton>
 
-          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-            <Typography sx={{ fontSize: '14px', fontWeight: 600, color: 'text.primary' }}>
-              {breadcrumbLabels[pathSegments[0]] || 'Dashboard'}
-            </Typography>
+            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+              <Typography sx={{ fontSize: { xs: '13px', sm: '14px' }, fontWeight: 600, color: 'text.primary' }}>
+                {breadcrumbLabels[pathSegments[0]] || 'Dashboard'}
+              </Typography>
+            </Box>
+
+            <IconButton onClick={toggleColorMode} size="small" sx={{
+              width: 32,
+              height: 32,
+              borderRadius: 1.5,
+              border: `1px solid ${theme.palette.divider}`,
+              color: 'text.secondary',
+              display: { xs: 'flex', sm: 'none' }, // Only show mode toggle here on mobile
+              '&:hover': { borderColor: theme.palette.text.disabled, color: 'text.primary' }
+            }}>
+              {mode === 'dark' ? <LightMode style={{ fontSize: 13 }} /> : <DarkMode style={{ fontSize: 13 }} />}
+            </IconButton>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+
+          {/* BOTTOM ROW (Mobile) / SAME ROW (Desktop): Search + Buttons + Mode toggle (desktop) */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            width: '100%', 
+            mt: { xs: 1.5, sm: 0 },
+            gap: 1,
+            // In desktop it stays integrated with the row above via position absolute or flex layout
+            // But here we use Toolbar flex-direction column to stack it
+            position: { xs: 'relative', sm: 'absolute' },
+            right: { sm: 24 },
+            top: { sm: 0 },
+            height: { sm: '100%' },
+            justifyContent: 'flex-end',
+            maxWidth: { xs: '100%', sm: 'auto' },
+            overflowX: { xs: 'auto', sm: 'visible' },
+            pb: { xs: 0.5, sm: 0 },
+            // Scrollbar styling for horizontal actions on mobile
+            '&::-webkit-scrollbar': { height: 0 },
+          }}>
             <Autocomplete
               open={searchOpen && searchValue.length >= 2}
               onOpen={() => searchValue.length >= 2 && setSearchOpen(true)}
@@ -403,23 +451,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  placeholder="Buscar producto"
+                  placeholder="Buscar..."
                   size="small"
                   InputProps={{
                     ...params.InputProps,
                     startAdornment: (
-                      <SearchIcon sx={{ ml: 1, fontSize: 16, color: 'text.disabled' }} />
+                      <SearchIcon sx={{ ml: 1, fontSize: 14, color: 'text.disabled' }} />
                     ),
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       bgcolor: theme.palette.mode === 'light' ? alpha('#000', 0.02) : alpha('#fff', 0.02),
                       borderRadius: 1.5,
-                      height: 32,
-                      fontSize: '12px',
+                      height: 30,
+                      fontSize: '11px',
                       '& fieldset': { borderColor: theme.palette.divider },
                     },
-                    minWidth: 160,
+                    minWidth: { xs: 120, sm: 160 },
                   }}
                 />
               )}
@@ -428,10 +476,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 return (
                   <li key={key} {...other}>
                     <Box sx={{ py: 0.5 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '12px' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '11px' }}>
                         {option.sku}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '10px' }}>
                         {getProductName(option.product)} {option.size} {option.color || ''}
                       </Typography>
                     </Box>
@@ -449,17 +497,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               onClick={() => window.open('https://golosshoes.shop', '_blank')}
               variant="outlined"
               size="small"
-              startIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}
               sx={{
-                fontSize: '12px',
-                height: 32,
-                px: 1.5,
+                fontSize: '11px',
+                height: 30,
+                minWidth: 'auto',
+                px: 1.2,
                 borderRadius: 1.5,
                 color: 'text.secondary',
                 borderColor: theme.palette.divider,
                 textTransform: 'none',
                 fontWeight: 400,
                 bgcolor: 'background.paper',
+                whiteSpace: 'nowrap',
                 '&:hover': { borderColor: theme.palette.text.disabled, bgcolor: 'background.paper', color: 'text.primary' }
               }}
             >
@@ -467,19 +516,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </Button>
 
             <Button
-              onClick={() => navigate('/products/new')}
+              onClick={() => navigate('/products?create=true')}
               variant="contained"
               size="small"
               sx={{
-                fontSize: '11px',
-                height: 32,
-                px: 1.5,
+                fontSize: '10px',
+                height: 30,
+                minWidth: 'auto',
+                px: 1.2,
                 borderRadius: 1.5,
                 bgcolor: 'text.primary',
                 color: 'background.default',
                 textTransform: 'none',
                 fontWeight: 600,
                 boxShadow: 'none',
+                whiteSpace: 'nowrap',
                 '&:hover': { bgcolor: 'text.secondary', boxShadow: 'none' }
               }}
             >
@@ -487,19 +538,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </Button>
 
             <Button
-              onClick={() => navigate('/sales/new')}
+              onClick={() => navigate('/sales?create=true')}
               variant="contained"
               size="small"
               sx={{
-                fontSize: '11px',
-                height: 32,
-                px: 1.5,
+                fontSize: '10px',
+                height: 30,
+                minWidth: 'auto',
+                px: 1.2,
                 borderRadius: 1.5,
                 bgcolor: 'text.primary',
                 color: 'background.default',
                 textTransform: 'none',
                 fontWeight: 600,
                 boxShadow: 'none',
+                whiteSpace: 'nowrap',
                 '&:hover': { bgcolor: 'text.secondary', boxShadow: 'none' }
               }}
             >
@@ -507,14 +560,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </Button>
 
             <IconButton onClick={toggleColorMode} size="small" sx={{
-              width: 32,
-              height: 32,
+              width: 30,
+              height: 30,
               borderRadius: 1.5,
               border: `1px solid ${theme.palette.divider}`,
               color: 'text.secondary',
+              display: { xs: 'none', sm: 'flex' },
               '&:hover': { borderColor: theme.palette.text.disabled, color: 'text.primary' }
             }}>
-              {mode === 'dark' ? <LightMode style={{ fontSize: 14 }} /> : <DarkMode style={{ fontSize: 14 }} />}
+              {mode === 'dark' ? <LightMode style={{ fontSize: 13 }} /> : <DarkMode style={{ fontSize: 13 }} />}
             </IconButton>
           </Box>
         </Toolbar>
@@ -548,8 +602,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, sm: 3 }, width: { sm: `calc(100% - ${drawerWidth}px)` } }}>
-        <Toolbar sx={{ minHeight: 52 }} />
+      <Box component="main" sx={{ 
+        flexGrow: 1, 
+        p: { xs: 2, sm: 3 }, 
+        width: { sm: `calc(100% - ${drawerWidth}px)` },
+        // Adjust for taller header on mobile
+        pt: { xs: '110px !important', sm: '75px !important' }
+      }}>
         {children}
       </Box>
 

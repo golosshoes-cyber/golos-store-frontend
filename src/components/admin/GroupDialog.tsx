@@ -3,18 +3,17 @@ import {
   Box,
   Button,
   Chip,
-  Divider,
+  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
   OutlinedInput,
-  Paper,
   Select,
-  Stack,
   TextField,
   Typography,
 } from '@mui/material'
-import { GroupWork as GroupWorkIcon } from '@mui/icons-material'
+import { useTheme } from '@mui/material/styles'
+import { alpha } from '@mui/material/styles'
 import DialogShell from '../common/DialogShell'
 import type { DjangoGroup, DjangoPermission } from '../../types/auth'
 
@@ -35,6 +34,7 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
   onClose,
   onSubmit,
 }) => {
+  const theme = useTheme()
   const [name, setName] = useState('')
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([])
 
@@ -54,99 +54,111 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
     <DialogShell
       open={open}
       onClose={!loading ? onClose : undefined}
-      maxWidth="md"
-      header={
-        <Box
-          sx={{
-            px: 2.5,
-            py: 2,
-            borderTopLeftRadius: 8,
-            borderTopRightRadius: 8,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.2,
-          }}
-        >
-          <GroupWorkIcon />
-          <Box>
-            <Typography variant="subtitle1" fontWeight={700}>
-              {group ? 'Editar Grupo' : 'Crear Grupo'}
-            </Typography>
-            <Typography variant="caption" sx={{ opacity: 0.9 }}>
-              Configura nombre y permisos del rol
-            </Typography>
-          </Box>
-        </Box>
-      }
-      headerInTitle={false}
+      maxWidth="sm"
+      dialogTitle={group ? 'Editar Grupo' : 'Nuevo Grupo'}
+      subtitle="Configura nombre y permisos del rol"
       actions={
         <>
-          <Button onClick={onClose} disabled={loading} variant="outlined">
+          <Button
+            onClick={onClose}
+            disabled={loading}
+            size="small"
+            sx={{
+              borderRadius: 1.5,
+              fontSize: '12px',
+              textTransform: 'none',
+              px: 2,
+              border: `1px solid ${theme.palette.divider}`,
+              color: 'text.secondary',
+              '&:hover': { borderColor: 'text.disabled', color: 'text.primary' },
+            }}
+          >
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={loading || !name.trim()} variant="contained">
-            {loading ? 'Guardando...' : group ? 'Actualizar' : 'Crear'}
+          <Button
+            onClick={handleSave}
+            disabled={loading || !name.trim()}
+            size="small"
+            sx={{
+              borderRadius: 1.5,
+              fontSize: '12px',
+              textTransform: 'none',
+              px: 2,
+              bgcolor: 'text.primary',
+              color: 'background.default',
+              '&:hover': { bgcolor: 'text.secondary' },
+              '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },
+            }}
+          >
+            {loading ? <CircularProgress size={16} color="inherit" /> : (group ? 'Actualizar' : 'Crear grupo')}
           </Button>
         </>
       }
     >
-      <Stack spacing={2.2}>
-        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-          <TextField
-            label="Nombre del Grupo"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            fullWidth
-            required
-            autoFocus
-            disabled={loading}
-          />
-        </Paper>
+      <TextField
+        label="Nombre del Grupo"
+        size="small"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        fullWidth
+        required
+        autoFocus
+        disabled={loading}
+        sx={{ mb: 2 }}
+        InputLabelProps={{ sx: { fontSize: '12px' } }}
+        InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
+      />
 
-        <Divider />
-
-        {permissions.length > 0 ? (
-          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel id="permissions-label">Permisos</InputLabel>
-              <Select
-                labelId="permissions-label"
-                multiple
-                value={selectedPermissions}
-                onChange={(e) => setSelectedPermissions(e.target.value as number[])}
-                input={<OutlinedInput label="Permisos" />}
-                renderValue={(selected) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {selected.map((id) => {
-                      const permission = permissions.find((p) => p.id === id)
-                      return <Chip key={id} size="small" label={permission?.codename || id} />
-                    })}
+      {permissions.length > 0 ? (
+        <Box sx={{
+          bgcolor: alpha(theme.palette.text.primary, 0.02),
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: 2,
+          p: 2,
+        }}>
+          <Typography sx={{ fontSize: '10px', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1.5 }}>
+            Permisos
+          </Typography>
+          <FormControl fullWidth size="small">
+            <InputLabel id="permissions-label" sx={{ fontSize: '12px' }}>Seleccionar permisos</InputLabel>
+            <Select
+              labelId="permissions-label"
+              multiple
+              value={selectedPermissions}
+              onChange={(e) => setSelectedPermissions(e.target.value as number[])}
+              input={<OutlinedInput label="Seleccionar permisos" sx={{ borderRadius: 1.5, fontSize: '13px' }} />}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((id) => {
+                    const permission = permissions.find((p) => p.id === id)
+                    return <Chip key={id} size="small" label={permission?.codename || id} sx={{ height: 20, fontSize: '10px' }} />
+                  })}
+                </Box>
+              )}
+            >
+              {permissions.map((permission) => (
+                <MenuItem key={permission.id} value={permission.id}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography sx={{ fontSize: '12px' }}>{permission.name}</Typography>
+                    <Typography sx={{ fontSize: '10px', color: 'text.disabled' }}>{permission.codename}</Typography>
                   </Box>
-                )}
-              >
-                {permissions.map((permission) => (
-                  <MenuItem key={permission.id} value={permission.id}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                      <Typography variant="body2">{permission.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {permission.codename}
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Paper>
-        ) : (
-          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Este backend no expone permisos por API. Puedes crear/editar nombres de grupos.
-            </Typography>
-          </Paper>
-        )}
-      </Stack>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+      ) : (
+        <Box sx={{
+          bgcolor: alpha(theme.palette.text.primary, 0.02),
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: 2,
+          p: 2,
+        }}>
+          <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>
+            Este backend no expone permisos por API. Puedes crear/editar nombres de grupos.
+          </Typography>
+        </Box>
+      )}
     </DialogShell>
   )
 }

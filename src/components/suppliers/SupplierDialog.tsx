@@ -5,6 +5,7 @@ import {
   Box,
   FormControlLabel,
   Switch,
+  CircularProgress,
   useMediaQuery,
   useTheme,
 } from '@mui/material'
@@ -37,7 +38,6 @@ const SupplierDialog: React.FC<SupplierDialogProps> = ({
     is_active: true,
   })
 
-  // Cargar datos del proveedor si se está editando
   useEffect(() => {
     if (supplier) {
       setFormData({
@@ -75,76 +75,124 @@ const SupplierDialog: React.FC<SupplierDialogProps> = ({
   return (
     <DialogShell
       open={open}
-      onClose={onClose}
-      maxWidth="md"
+      onClose={!loading ? onClose : undefined}
+      maxWidth="sm"
       fullScreen={isMobile}
       scroll="paper"
-      dialogTitle={supplier ? 'Editar Proveedor' : 'Crear Proveedor'}
+      dialogTitle={supplier ? 'Editar Proveedor' : 'Nuevo Proveedor'}
+      subtitle={supplier ? 'Modifica los datos del proveedor' : 'Agrega un nuevo proveedor'}
       actions={
         <>
-          <Button onClick={onClose} disabled={loading}>
+          <Button
+            onClick={onClose}
+            disabled={loading}
+            size="small"
+            sx={{
+              borderRadius: 1.5,
+              fontSize: '12px',
+              textTransform: 'none',
+              px: 2,
+              border: `1px solid ${theme.palette.divider}`,
+              color: 'text.secondary',
+              '&:hover': { borderColor: 'text.disabled', color: 'text.primary' },
+            }}
+          >
             Cancelar
           </Button>
           <Button
             type="submit"
-            variant="contained"
-            disabled={loading || !formData.name?.trim()}
             form="supplier-dialog-form"
+            disabled={loading || !formData.name?.trim()}
+            size="small"
+            sx={{
+              borderRadius: 1.5,
+              fontSize: '12px',
+              textTransform: 'none',
+              px: 2,
+              bgcolor: 'text.primary',
+              color: 'background.default',
+              '&:hover': { bgcolor: 'text.secondary' },
+              '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },
+            }}
           >
-            {loading ? 'Guardando...' : (supplier ? 'Actualizar' : 'Crear')}
+            {loading ? <CircularProgress size={16} color="inherit" /> : (supplier ? 'Actualizar' : 'Crear proveedor')}
           </Button>
         </>
       }
     >
       <form id="supplier-dialog-form" onSubmit={handleSubmit}>
-          <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField
-              label="Nombre"
-              value={formData.name}
-              onChange={(e) => handleChange('name', e.target.value)}
-              required
-              fullWidth
-            />
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                label="Teléfono"
-                value={formData.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                fullWidth
+        <TextField
+          label="Nombre"
+          size="small"
+          value={formData.name}
+          onChange={(e) => handleChange('name', e.target.value)}
+          required
+          fullWidth
+          autoFocus
+          disabled={loading}
+          sx={{ mb: 1.5 }}
+          InputLabelProps={{ sx: { fontSize: '12px' } }}
+          InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
+        />
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 1.5 }}>
+          <TextField
+            label="Teléfono"
+            size="small"
+            value={formData.phone}
+            onChange={(e) => handleChange('phone', e.target.value)}
+            fullWidth
+            disabled={loading}
+            InputLabelProps={{ sx: { fontSize: '12px' } }}
+            InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
+          />
+          <TextField
+            label="NIT"
+            size="small"
+            value={formData.nit}
+            onChange={(e) => handleChange('nit', e.target.value)}
+            fullWidth
+            disabled={loading}
+            InputLabelProps={{ sx: { fontSize: '12px' } }}
+            InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
+          />
+        </Box>
+        <TextField
+          label="Dirección"
+          size="small"
+          value={formData.address}
+          onChange={(e) => handleChange('address', e.target.value)}
+          multiline
+          rows={2}
+          fullWidth
+          disabled={loading}
+          sx={{ mb: 1.5 }}
+          InputLabelProps={{ sx: { fontSize: '12px' } }}
+          InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
+        />
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, alignItems: 'center' }}>
+          <TextField
+            label="Precio Promedio"
+            size="small"
+            type="number"
+            value={formData.average_price || ''}
+            onChange={(e) => handleChange('average_price', e.target.value ? parseFloat(e.target.value) : undefined)}
+            fullWidth
+            disabled={loading}
+            inputProps={{ step: 0.01 }}
+            InputLabelProps={{ sx: { fontSize: '12px' } }}
+            InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={formData.is_active}
+                onChange={(e) => handleChange('is_active', e.target.checked)}
+                size="small"
               />
-              <TextField
-                label="NIT"
-                value={formData.nit}
-                onChange={(e) => handleChange('nit', e.target.value)}
-                fullWidth
-              />
-            </Box>
-            <TextField
-              label="Dirección"
-              value={formData.address}
-              onChange={(e) => handleChange('address', e.target.value)}
-              multiline
-              rows={2}
-              fullWidth
-            />
-            <TextField
-              label="Precio Promedio"
-              type="number"
-              value={formData.average_price || ''}
-              onChange={(e) => handleChange('average_price', e.target.value ? parseFloat(e.target.value) : undefined)}
-              fullWidth
-              inputProps={{ step: 0.01 }}
-            />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.is_active}
-                  onChange={(e) => handleChange('is_active', e.target.checked)}
-                />
-              }
-              label="Activo"
-            />
-          </Box>
+            }
+            label={<Box component="span" sx={{ fontSize: '12px' }}>Activo</Box>}
+          />
+        </Box>
       </form>
     </DialogShell>
   )

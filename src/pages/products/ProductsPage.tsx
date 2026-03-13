@@ -5,6 +5,7 @@ import {
   Alert,
 } from '@mui/material'
 import { useTheme, useMediaQuery } from '@mui/material'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useProductsLogic } from '../../hooks/products/useProductsLogic'
 import ProductsHeader from '../../components/products/ProductsHeader'
 import ProductsTabs from '../../components/products/ProductsTabs'
@@ -18,6 +19,9 @@ import PageShell from '../../components/common/PageShell'
 const ProductsPage: React.FC = () => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const location = useLocation()
+  const navigate = useNavigate()
+  const hasOpenedWizard = React.useRef(false)
 
   const {
     isLoading,
@@ -82,6 +86,21 @@ const ProductsPage: React.FC = () => {
     handleImageUpload,
     handleDeleteImage,
   } = useProductsLogic()
+
+  // Handle ?create=true query param to open wizard
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    if (params.get('create') === 'true' && !wizardOpen && !hasOpenedWizard.current) {
+      setWizardOpen(true)
+      hasOpenedWizard.current = true
+      
+      // Clean up the URL parameter without reloading
+      const newParams = new URLSearchParams(location.search)
+      newParams.delete('create')
+      const newSearch = newParams.toString()
+      navigate(`${location.pathname}${newSearch ? `?${newSearch}` : ''}`, { replace: true })
+    }
+  }, [location.search, wizardOpen, setWizardOpen, location.pathname, navigate])
 
   if (isLoading) {
     return (

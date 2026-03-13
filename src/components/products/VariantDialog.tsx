@@ -8,9 +8,7 @@ import {
 } from '@mui/material'
 import { useTheme, useMediaQuery } from '@mui/material'
 import { Product, ProductVariant } from '../../types'
-import VariantFormHeader from '../../components/common/VariantFormHeader'
 import DialogShell from '../common/DialogShell'
-import GradientButton from '../common/GradientButton'
 
 interface VariantDialogProps {
   open: boolean
@@ -91,86 +89,114 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
       fullScreen={isMobile}
       scroll="paper"
       disableEscapeKeyDown
-      header={<VariantFormHeader isEditing={!!variant} />}
-      headerInTitle={false}
+      dialogTitle={variant ? 'Editar Variante' : 'Nueva Variante'}
+      subtitle={variant ? 'Modifica los detalles de la variante' : 'Agrega una nueva variante al producto'}
       actions={
         <>
-          <Button onClick={handleSafeClose} disabled={loading}>
+          <Button
+            onClick={handleSafeClose}
+            disabled={loading}
+            size="small"
+            sx={{
+              borderRadius: 1.5,
+              fontSize: '12px',
+              textTransform: 'none',
+              px: 2,
+              border: `1px solid ${theme.palette.divider}`,
+              color: 'text.secondary',
+              '&:hover': { borderColor: 'text.disabled', color: 'text.primary' },
+            }}
+          >
             Cancelar
           </Button>
-          <GradientButton type="submit" disabled={loading} form="variant-dialog-form">
-            {loading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              variant ? 'Actualizar' : 'Crear'
-            )}
-          </GradientButton>
+          <Button
+            type="submit"
+            form="variant-dialog-form"
+            disabled={loading}
+            size="small"
+            sx={{
+              borderRadius: 1.5,
+              fontSize: '12px',
+              textTransform: 'none',
+              px: 2,
+              bgcolor: 'text.primary',
+              color: 'background.default',
+              '&:hover': { bgcolor: 'text.secondary' },
+              '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },
+            }}
+          >
+            {loading ? <CircularProgress size={16} color="inherit" /> : (variant ? 'Actualizar' : 'Crear variante')}
+          </Button>
         </>
       }
     >
-      <Box sx={{ 
-        maxHeight: '60vh', 
-        overflowY: 'auto',
-      }}>
-        <form id="variant-dialog-form" onSubmit={handleSubmit}>
+      <form id="variant-dialog-form" onSubmit={handleSubmit}>
+        <TextField
+          name="product"
+          size="small"
+          label="Producto"
+          select
+          fullWidth
+          required
+          value={formData.product}
+          onChange={(e) => setFormData({ ...formData, product: e.target.value })}
+          disabled={loading}
+          sx={{ mb: 1.5 }}
+          InputLabelProps={{ sx: { fontSize: '12px' } }}
+          InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
+        >
+          {products.map((p) => (
+            <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+          ))}
+        </TextField>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 1.5 }}>
           <TextField
-            id="product"
-            name="product"
-            margin="dense"
-            label="Producto"
-            select
-            fullWidth
-            required
-            value={formData.product}
-            onChange={(e) => setFormData({ ...formData, product: e.target.value })}
-            disabled={loading}
-          >
-            {products.map((p) => (
-              <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            id="size"
             name="size"
             autoFocus
-            margin="dense"
+            size="small"
             label="Talla"
             fullWidth
             required
             value={formData.size}
             onChange={(e) => setFormData({ ...formData, size: e.target.value })}
             disabled={loading}
+            InputLabelProps={{ sx: { fontSize: '12px' } }}
+            InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
           />
           <TextField
-            id="color"
             name="color"
-            margin="dense"
+            size="small"
             label="Color"
             fullWidth
             value={formData.color}
             onChange={(e) => setFormData({ ...formData, color: e.target.value })}
             disabled={loading}
+            InputLabelProps={{ sx: { fontSize: '12px' } }}
+            InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
           />
+        </Box>
+        <TextField
+          name="gender"
+          size="small"
+          label="Género"
+          select
+          fullWidth
+          required
+          value={formData.gender}
+          onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+          disabled={loading}
+          sx={{ mb: 1.5 }}
+          InputLabelProps={{ sx: { fontSize: '12px' } }}
+          InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
+        >
+          <MenuItem value="male">Masculino</MenuItem>
+          <MenuItem value="female">Femenino</MenuItem>
+          <MenuItem value="unisex">Unisex</MenuItem>
+        </TextField>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
           <TextField
-            id="gender"
-            name="gender"
-            margin="dense"
-            label="Género"
-            select
-            fullWidth
-            required
-            value={formData.gender}
-            onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-            disabled={loading}
-          >
-            <MenuItem value="male">Masculino</MenuItem>
-            <MenuItem value="female">Femenino</MenuItem>
-            <MenuItem value="unisex">Unisex</MenuItem>
-          </TextField>
-          <TextField
-            id="price"
             name="price"
-            margin="dense"
+            size="small"
             label="Precio"
             fullWidth
             type="number"
@@ -178,11 +204,12 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
             value={formData.price}
             onChange={(e) => setFormData({ ...formData, price: e.target.value })}
             disabled={loading}
+            InputLabelProps={{ sx: { fontSize: '12px' } }}
+            InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
           />
           <TextField
-            id="cost"
             name="cost"
-            margin="dense"
+            size="small"
             label="Costo"
             fullWidth
             type="number"
@@ -190,9 +217,11 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
             value={formData.cost}
             onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
             disabled={loading}
+            InputLabelProps={{ sx: { fontSize: '12px' } }}
+            InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
           />
-        </form>
-      </Box>
+        </Box>
+      </form>
     </DialogShell>
   )
 }

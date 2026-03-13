@@ -4,9 +4,11 @@ import {
   Button,
   Typography,
   Box,
+  CircularProgress,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import { alpha } from '@mui/material/styles'
 import { ProductVariant } from '../../types'
-import InventoryAdjustmentHeader from './InventoryAdjustmentHeader'
 import DialogShell from '../common/DialogShell'
 
 interface InventoryAdjustmentDialogProps {
@@ -24,10 +26,10 @@ const InventoryAdjustmentDialog: React.FC<InventoryAdjustmentDialogProps> = ({
   onSave,
   loading = false,
 }) => {
+  const theme = useTheme()
   const [newStock, setNewStock] = useState('')
   const [reason, setReason] = useState('')
 
-  // Reset form when dialog opens with a new variant
   React.useEffect(() => {
     if (open && variant) {
       setNewStock(variant.stock.toString())
@@ -61,18 +63,27 @@ const InventoryAdjustmentDialog: React.FC<InventoryAdjustmentDialogProps> = ({
       onClose={handleClose}
       maxWidth="sm"
       scroll="paper"
-      header={<InventoryAdjustmentHeader />}
-      headerInTitle={false}
+      dialogTitle="Ajustar Inventario"
+      subtitle="Modifica el stock actual de esta variante"
       actions={
         <>
           <Button
             onClick={handleClose}
             disabled={loading}
+            size="small"
+            sx={{
+              borderRadius: 1.5,
+              fontSize: '12px',
+              textTransform: 'none',
+              px: 2,
+              border: `1px solid ${theme.palette.divider}`,
+              color: 'text.secondary',
+              '&:hover': { borderColor: 'text.disabled', color: 'text.primary' },
+            }}
           >
             Cancelar
           </Button>
           <Button
-            variant="contained"
             onClick={handleSave}
             disabled={
               loading ||
@@ -81,60 +92,81 @@ const InventoryAdjustmentDialog: React.FC<InventoryAdjustmentDialogProps> = ({
               parseInt(newStock) < 0 ||
               !reason.trim()
             }
+            size="small"
+            sx={{
+              borderRadius: 1.5,
+              fontSize: '12px',
+              textTransform: 'none',
+              px: 2,
+              bgcolor: 'text.primary',
+              color: 'background.default',
+              '&:hover': { bgcolor: 'text.secondary' },
+              '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },
+            }}
           >
-            {loading ? 'Guardando...' : 'Guardar Ajuste'}
+            {loading ? <CircularProgress size={16} color="inherit" /> : 'Guardar Ajuste'}
           </Button>
         </>
       }
     >
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            Información actual:
-          </Typography>
-          <Box sx={{
-            p: 2,
-            borderRadius: 2,
-            backgroundColor: 'grey.50',
-            border: '1px solid',
-            borderColor: 'grey.200'
-          }}>
-            <Typography variant="body2">
-              <strong>SKU:</strong> {variant.sku || `VAR-${variant.id}`}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Stock actual:</strong> {variant.stock} unidades
-            </Typography>
-            <Typography variant="body2">
-              <strong>Precio:</strong> ${Number(variant.price)?.toFixed(2) || '0.00'}
-            </Typography>
+      {/* Current info */}
+      <Box sx={{
+        p: 2,
+        borderRadius: 2,
+        bgcolor: alpha(theme.palette.text.primary, 0.02),
+        border: `1px solid ${theme.palette.divider}`,
+        mb: 2,
+      }}>
+        <Typography sx={{ fontSize: '10px', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1.5 }}>
+          Información actual
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2 }}>
+          <Box>
+            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>SKU</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>{variant.sku || `VAR-${variant.id}`}</Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Stock actual</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>{variant.stock} uds</Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Precio</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>${Number(variant.price)?.toFixed(0)}</Typography>
           </Box>
         </Box>
+      </Box>
 
-        <TextField
-          fullWidth
-          label="Nuevo stock"
-          type="number"
-          value={newStock}
-          onChange={(e) => setNewStock(e.target.value)}
-          inputProps={{ min: '0' }}
-          sx={{ mb: 2 }}
-          helperText={
-            newStock !== '' && !isNaN(parseInt(newStock))
-              ? `Cambio: ${stockDifference > 0 ? '+' : ''}${stockDifference} unidades`
-              : 'Ingrese la cantidad actualizada'
-          }
-        />
+      <TextField
+        fullWidth
+        size="small"
+        label="Nuevo stock"
+        type="number"
+        value={newStock}
+        onChange={(e) => setNewStock(e.target.value)}
+        inputProps={{ min: '0' }}
+        sx={{ mb: 1.5 }}
+        InputLabelProps={{ sx: { fontSize: '12px' } }}
+        InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
+        helperText={
+          newStock !== '' && !isNaN(parseInt(newStock))
+            ? `Cambio: ${stockDifference > 0 ? '+' : ''}${stockDifference} unidades`
+            : 'Ingrese la cantidad actualizada'
+        }
+      />
 
-        <TextField
-          fullWidth
-          label="Motivo del ajuste"
-          multiline
-          rows={3}
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          placeholder="Ej: Venta, devolución, corrección de inventario..."
-          helperText="Especificar el motivo del ajuste es obligatorio"
-        />
+      <TextField
+        fullWidth
+        size="small"
+        label="Motivo del ajuste"
+        multiline
+        rows={3}
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        placeholder="Ej: Venta, devolución, corrección de inventario..."
+        helperText="Especificar el motivo del ajuste es obligatorio"
+        InputLabelProps={{ sx: { fontSize: '12px' } }}
+        InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
+      />
     </DialogShell>
   )
 }

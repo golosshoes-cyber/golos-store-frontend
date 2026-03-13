@@ -5,12 +5,11 @@ import {
 } from '@mui/material'
 import { Sale } from '../../types'
 import SaleForm from '../sales/SaleForm'
-import SaleFormHeader from '../common/SaleFormHeader'
 import DialogShell from '../common/DialogShell'
 
 interface SaleCreateEditDialogProps {
   open: boolean
-  sale: Sale | null // null para crear, Sale para editar
+  sale: Sale | null
   onClose: () => void
   onSubmit: (saleData: any) => void
   loading?: boolean
@@ -26,29 +25,20 @@ const SaleCreateEditDialog: React.FC<SaleCreateEditDialogProps> = ({
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const handleClose = () => {
-    onClose()
-  }
-
   return (
     <DialogShell
       open={open}
       maxWidth="md"
       fullScreen={isMobile}
-      onClose={handleClose}
+      onClose={!loading ? onClose : undefined}
       scroll="paper"
-      header={
-        <SaleFormHeader
-          isEditing={!!sale}
-          onClose={handleClose}
-        />
-      }
-      headerInTitle={false}
+      dialogTitle={sale ? 'Editar Venta' : 'Nueva Venta'}
+      subtitle={sale ? 'Modifica los detalles de la venta existente' : 'Registra una nueva venta directa'}
     >
       <SaleForm
         sale={sale}
         onSubmit={onSubmit}
-        onCancel={handleClose}
+        onCancel={onClose}
         loading={loading}
       />
     </DialogShell>
