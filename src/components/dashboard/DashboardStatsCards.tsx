@@ -1,7 +1,5 @@
 import React from 'react'
 import { Grid, Box } from '@mui/material'
-import {
-} from '@mui/icons-material'
 import StatCard from '../ui/StatCard'
 import { alpha, useTheme } from '@mui/material/styles'
 import type { DashboardStatsCardsProps } from '../../types/dashboard'
