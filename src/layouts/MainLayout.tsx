@@ -36,7 +36,6 @@ import {
   SystemUpdateAlt as ExportacionesIcon,
   StoreOutlined as ProveedoresIcon,
   NotificationsNone as NotificacionesIcon,
-  ArrowForward as ArrowForwardIcon,
   Search as SearchIcon,
 } from '@mui/icons-material'
 import {
@@ -363,21 +362,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
-        <Toolbar 
-          sx={{ 
-            minHeight: { xs: 'auto', sm: 52 }, 
+        <Toolbar
+          sx={{
+            minHeight: { xs: 'auto', sm: 52 },
             px: { xs: 1.5, sm: 3 },
             py: { xs: 1.5, sm: 0 },
             flexDirection: 'column',
           }}
         >
           {/* TOP ROW: Menu toggle + Title + Mode toggle */}
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            width: '100%', 
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: '100%',
             minHeight: { xs: 32, sm: 52 },
-            gap: 1.5 
+            gap: 1.5
           }}>
             <IconButton
               color="inherit"
@@ -409,10 +408,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Box>
 
           {/* BOTTOM ROW (Mobile) / SAME ROW (Desktop): Search + Buttons + Mode toggle (desktop) */}
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            width: '100%', 
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: '100%',
             mt: { xs: 1.5, sm: 0 },
             gap: 1,
             // In desktop it stays integrated with the row above via position absolute or flex layout
@@ -602,9 +601,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ 
-        flexGrow: 1, 
-        p: { xs: 2, sm: 3 }, 
+      <Box component="main" sx={{
+        flexGrow: 1,
+        p: { xs: 2, sm: 3 },
         width: { sm: `calc(100% - ${drawerWidth}px)` },
         // Adjust for taller header on mobile
         pt: { xs: '110px !important', sm: '75px !important' }
