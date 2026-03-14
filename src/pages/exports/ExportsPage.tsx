@@ -120,7 +120,7 @@ const ExportsPage: React.FC = () => {
           startIcon={<FileDownloadIcon />}
           variant="contained"
           disabled={isLoading}
-          onClick={() => runExport(() => exportService.exportSuppliersReport(format, days), 'Reporte de proveedores descargado.')}
+          onClick={() => runExport(() => exportService.exportSuppliersReport(format), 'Reporte de proveedores descargado.')}
         >
           Exportar Reporte de Proveedores
         </Button>

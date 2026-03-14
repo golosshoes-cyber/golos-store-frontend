@@ -49,6 +49,7 @@ import {
 } from '@mui/material'
 import { storeService } from '../services/storeService'
 import { notificationService } from '../services/notificationService'
+import { productService } from '../services/productService'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -88,6 +89,12 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const getProductName = (product: any) => {
+    if (!product) return ''
+    if (typeof product === 'string') return product
+    return product.name || ''
+  }
+
   const [mobileOpen, setMobileOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const profileButtonRef = useRef<HTMLDivElement>(null)

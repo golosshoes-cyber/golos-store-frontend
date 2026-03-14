@@ -140,9 +140,6 @@ const SuppliersTabs: React.FC<SuppliersTabsProps> = ({
         <SuppliersTable
           suppliers={suppliers}
           loading={loading}
-          page={page}
-          totalCount={totalCount}
-          onPageChange={onPageChange}
           onEdit={onEdit}
           onDelete={onDelete}
           search={searchTerm}

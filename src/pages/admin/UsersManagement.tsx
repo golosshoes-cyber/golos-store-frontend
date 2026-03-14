@@ -13,7 +13,7 @@ import {
   Button,
   Divider,
 } from '@mui/material'
-import { Add as AddIcon, Group as GroupIcon, Person as PersonIcon } from '@mui/icons-material'
+import { Add as AddIcon, Group as GroupIcon } from '@mui/icons-material'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { userService } from '../../services/userService'
 import { useCommonPermissions } from '../../hooks/auth/usePermissions'
