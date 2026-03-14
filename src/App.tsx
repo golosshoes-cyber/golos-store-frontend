@@ -16,8 +16,6 @@ const InventoryPage = lazy(() => import('./pages/inventory/InventoryPage'))
 const PurchasePage = lazy(() => import('./pages/purchases/PurchasePage'))
 const SuppliersPage = lazy(() => import('./pages/suppliers/SuppliersPage'))
 const ReportsPage = lazy(() => import('./pages/reports/ReportsPage'))
-const NotificationsPage = lazy(() => import('./pages/notifications/NotificationsPage'))
-const ExportsPage = lazy(() => import('./pages/exports/ExportsPage'))
 const UsersManagement = lazy(() => import('./pages/admin/UsersManagement'))
 const GroupsManagement = lazy(() => import('./pages/admin/GroupsManagement'))
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'))
@@ -31,6 +29,7 @@ const OrderStatusPage = lazy(() => import('./pages/store/OrderStatusPage'))
 const StoreOpsPage = lazy(() => import('./pages/store/StoreOpsPage'))
 const TermsPage = lazy(() => import('./pages/store/TermsPage'))
 const PrivacyPage = lazy(() => import('./pages/store/PrivacyPage'))
+const AttributionsPage = lazy(() => import('./pages/store/AttributionsPage'))
 
 const extractGroupNames = (user: User | null): string[] => {
   if (!user || !Array.isArray(user.groups)) return []
@@ -111,6 +110,7 @@ function App() {
       <Route path="/store/checkout" element={<CheckoutPage />} />
       <Route path="/store/terms" element={<TermsPage />} />
       <Route path="/store/privacy" element={<PrivacyPage />} />
+      <Route path="/store/attributions" element={<AttributionsPage />} />
       <Route path="/store/order-status" element={<OrderStatusPage />} />
       <Route
         path="/store/login"
@@ -171,28 +171,6 @@ function App() {
                         fallback={<Navigate to="/dashboard" replace />}
                       >
                         <StoreOpsPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="notifications"
-                    element={
-                      <ProtectedRoute
-                        requiredGroups={['Managers']}
-                        fallback={<Navigate to="/dashboard" replace />}
-                      >
-                        <NotificationsPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="exports"
-                    element={
-                      <ProtectedRoute
-                        requiredGroups={['Managers']}
-                        fallback={<Navigate to="/dashboard" replace />}
-                      >
-                        <ExportsPage />
                       </ProtectedRoute>
                     }
                   />

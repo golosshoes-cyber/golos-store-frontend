@@ -37,7 +37,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, isCurrency = false, m
       overflow: 'hidden',
     }}>
       <CardContent sx={{ 
-        p: 2, // 16px
+        p: 1.5, // 12px
         height: '100%',
         display: 'flex',
         flexDirection: 'column',

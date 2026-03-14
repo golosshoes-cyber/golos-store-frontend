@@ -116,6 +116,48 @@ export const useSalesActions = ({ showSuccess, showError }: UseSalesActionsProps
     }
   }
 
+  const handleBulkConfirm = async (ids: number[]) => {
+    if (ids.length === 0) return
+
+    const confirmed = await showAcrylicConfirm({
+      mode: theme.palette.mode,
+      title: 'Confirmar Ventas',
+      text: `¿Estás seguro de que quieres confirmar ${ids.length} ventas? Esta acción afectará el inventario.`,
+      icon: 'warning',
+      confirmText: 'Confirmar todo',
+      cancelText: 'Cancelar',
+      confirmButtonColor: '#2563eb',
+    })
+
+    if (confirmed) {
+      await Promise.all(ids.map(id => dashboardService.confirmSale(id)))
+      queryClient.invalidateQueries({ queryKey: ['sales'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      showSuccess(`${ids.length} ventas confirmadas`)
+    }
+  }
+
+  const handleBulkCancel = async (ids: number[]) => {
+    if (ids.length === 0) return
+
+    const confirmed = await showAcrylicConfirm({
+      mode: theme.palette.mode,
+      title: 'Cancelar Ventas',
+      text: `¿Estás seguro de que quieres cancelar ${ids.length} ventas? Esta acción no se puede deshacer.`,
+      icon: 'error',
+      confirmText: 'Cancelar ventas',
+      cancelText: 'Cerrar',
+      confirmButtonColor: '#dc2626',
+    })
+
+    if (confirmed) {
+      await Promise.all(ids.map(id => dashboardService.cancelSale(id)))
+      queryClient.invalidateQueries({ queryKey: ['sales'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      showSuccess(`${ids.length} ventas canceladas`)
+    }
+  }
+
   const handleViewDetails = (sale: Sale) => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur()
@@ -158,6 +200,9 @@ export const useSalesActions = ({ showSuccess, showError }: UseSalesActionsProps
     handleViewDetails,
     handleCloseDetails,
     handleCloseCreateDialog,
+    
+    handleBulkConfirm,
+    handleBulkCancel,
     
     // Mutations
     createSaleMutation,

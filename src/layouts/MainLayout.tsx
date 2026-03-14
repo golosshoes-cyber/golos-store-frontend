@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import {
   AppBar,
   Box,
@@ -18,6 +18,11 @@ import {
   useTheme,
   MenuItem,
   Menu,
+  Badge,
+  Breadcrumbs,
+  Link as MuiLink,
+  ClickAwayListener,
+  Paper as PopoverPaper,
 } from '@mui/material'
 import {
   Menu as MenuIcon,
@@ -33,16 +38,17 @@ import {
   HexagonOutlined as ComprasIcon,
   Tune as InventarioIcon,
   AssessmentOutlined as ReportesIcon,
-  SystemUpdateAlt as ExportacionesIcon,
   StoreOutlined as ProveedoresIcon,
   NotificationsNone as NotificacionesIcon,
   Search as SearchIcon,
+  NavigateNext as NavigateNextIcon,
 } from '@mui/icons-material'
 import {
   TextField,
   Autocomplete,
 } from '@mui/material'
-import { productService } from '../services/productService'
+import { storeService } from '../services/storeService'
+import { notificationService } from '../services/notificationService'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -66,14 +72,12 @@ const menuSections = [
     label: 'Análisis',
     items: [
       { text: 'Reportes', icon: <ReportesIcon />, path: 'reports' },
-      { text: 'Exportaciones', icon: <ExportacionesIcon />, path: 'exports' },
     ]
   },
   {
     label: 'Config',
     items: [
       { text: 'Proveedores', icon: <ProveedoresIcon />, path: 'suppliers' },
-      { text: 'Notificaciones', icon: <NotificacionesIcon />, path: 'notifications' },
       { text: 'Gestionar tienda', icon: <InventarioIcon />, path: 'store/ops' },
     ]
   }
@@ -86,6 +90,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const profileButtonRef = useRef<HTMLDivElement>(null)
   const [searchValue, setSearchValue] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const navigate = useNavigate()
@@ -112,20 +117,31 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     queryFn: () => productService.getVariants({ search: searchValue, limit: 10 }),
     enabled: searchValue.length >= 2,
   })
+  
+  // Notification menu logic
+  const [notifAnchorEl, setNotifAnchorEl] = useState<null | HTMLElement>(null)
+  const notifOpen = Boolean(notifAnchorEl)
 
-  // Get products for names in search
-  const { data: productsData } = useQuery({
-    queryKey: ['products-for-names'],
-    queryFn: () => productService.getProducts({ limit: 1000 }),
+  // Query for alerts
+  const { data: alertsData } = useQuery({
+    queryKey: ['header-low-stock-alerts'],
+    queryFn: () => notificationService.getLowStockAlerts(),
+    refetchInterval: 60000, // Refresh every minute
   })
-  const getProductName = (productId: number | string) => {
-    const products = productsData?.results || []
-    const product = products.find(p => p.id === productId)
-    return product ? product.name : `Producto #${productId}`
-  }
+
+  const totalCritical = alertsData?.summary?.critical_count || 0
+  const totalWarning = alertsData?.summary?.warning_count || 0
+  const totalAlerts = totalCritical + totalWarning
+
+  // Branding details
+  const { data: brandingData } = useQuery({
+    queryKey: ['store-branding-ops'],
+    queryFn: () => storeService.getBranding(),
+  })
+  const branding = brandingData?.branding
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen)
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget)
+  const handleMenuOpen = () => setAnchorEl(profileButtonRef.current)
   const handleMenuClose = () => setAnchorEl(null)
 
   const handleLogout = () => {
@@ -144,7 +160,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     inventory: 'Inventario',
     reports: 'Reportes',
     notifications: 'Notificaciones',
-    exports: 'Exportaciones',
     profile: 'Perfil',
     admin: 'Administración',
     users: 'Usuarios',
@@ -187,7 +202,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   })
 
   const getVisibleItems = (items: any[]) => items.filter((item) => {
-    if (['reports', 'notifications', 'exports'].includes(item.path)) return canViewReports
+    if (['reports', 'notifications'].includes(item.path)) return canViewReports
     if (item.path === 'sales') return canCreateSale
     if (['products', 'purchases', 'suppliers', 'inventory', 'store/ops'].includes(item.path)) {
       return canCreateProduct || canCreatePurchase
@@ -215,18 +230,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           height: 26,
           bgcolor: 'text.primary',
           color: 'background.default',
-          borderRadius: 1.5, // 6px
+          borderRadius: 1.5,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '11px',
           fontWeight: 600,
-          letterSpacing: '-0.5px'
+          letterSpacing: '-0.5px',
+          overflow: 'hidden'
         }}>
-          GS
+          {branding?.logo_url ? (
+            <img src={branding.logo_url} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            (branding?.store_name || 'Golos Store').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+          )}
         </Box>
-        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '13px', letterSpacing: '-0.3px' }}>
-          Golos Store
+        <Typography variant="body2" noWrap sx={{ fontWeight: 500, fontSize: '13px', letterSpacing: '-0.3px' }}>
+          {branding?.store_name || 'Golos Store'}
         </Typography>
       </Box>
 
@@ -312,8 +332,47 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         )}
       </Box>
 
-      <Box sx={{ p: 1, borderTop: `1px solid ${theme.palette.divider}` }}>
+      <Box sx={{ p: 1, borderTop: `1px solid ${theme.palette.divider}`, position: 'relative' }}>
+        {/* Inline dropdown - positioned relative to this box, no portal */}
+        {Boolean(anchorEl) && (
+          <ClickAwayListener onClickAway={handleMenuClose}>
+            <PopoverPaper
+              elevation={4}
+              sx={{
+                position: 'absolute',
+                bottom: 'calc(100% + 4px)',
+                left: 8,
+                right: 8,
+                zIndex: 9999,
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 1.5,
+                overflow: 'hidden',
+                boxShadow: theme.palette.mode === 'light' 
+                  ? '0 -4px 20px rgba(0,0,0,0.1)'
+                  : '0 -4px 20px rgba(0,0,0,0.4)',
+              }}
+            >
+              <MenuItem
+                onClick={() => { navigate('/profile'); handleMenuClose(); }}
+                sx={{ fontSize: '13px', py: 1, gap: 1 }}
+              >
+                <AccountCircleIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                Mi Perfil
+              </MenuItem>
+              <Divider sx={{ my: 0 }} />
+              <MenuItem
+                onClick={handleLogout}
+                sx={{ fontSize: '13px', py: 1, gap: 1, color: 'error.main' }}
+              >
+                <LogoutIcon sx={{ fontSize: 18 }} />
+                Cerrar Sesión
+              </MenuItem>
+            </PopoverPaper>
+          </ClickAwayListener>
+        )}
+
         <Box
+          ref={profileButtonRef}
           onClick={handleMenuOpen}
           sx={{
             display: 'flex',
@@ -389,9 +448,75 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </IconButton>
 
             <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-              <Typography sx={{ fontSize: { xs: '13px', sm: '14px' }, fontWeight: 600, color: 'text.primary' }}>
-                {breadcrumbLabels[pathSegments[0]] || 'Dashboard'}
-              </Typography>
+              <Breadcrumbs 
+                separator={<NavigateNextIcon sx={{ fontSize: 14, opacity: 0.5 }} />}
+                aria-label="breadcrumb"
+                sx={{ 
+                  '& .MuiBreadcrumbs-ol': { alignItems: 'center' },
+                  '& .MuiBreadcrumbs-separator': { mx: 0.5 }
+                }}
+              >
+                <MuiLink
+                  component="button"
+                  onClick={() => navigate('/dashboard')}
+                  sx={{ 
+                    fontSize: { xs: '12px', sm: '13px' }, 
+                    fontWeight: 500, 
+                    color: 'text.secondary',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    bgcolor: 'transparent',
+                    border: 'none',
+                    p: 0,
+                    cursor: 'pointer',
+                    '&:hover': { color: 'text.primary' }
+                  }}
+                >
+                  Golos
+                </MuiLink>
+                {pathSegments.map((segment, index) => {
+                  const path = `/${pathSegments.slice(0, index + 1).join('/')}`
+                  const label = breadcrumbLabels[segment] || breadcrumbLabels[pathSegments.slice(0, index + 1).join('/')] || segment
+                  const isLast = index === pathSegments.length - 1
+
+                  if (isLast) {
+                    return (
+                      <Typography 
+                        key={path}
+                        sx={{ 
+                          fontSize: { xs: '12px', sm: '13px' }, 
+                          fontWeight: 600, 
+                          color: 'text.primary' 
+                        }}
+                      >
+                        {label}
+                      </Typography>
+                    )
+                  }
+
+                  return (
+                    <MuiLink
+                      key={path}
+                      component="button"
+                      onClick={() => navigate(path)}
+                      sx={{ 
+                        fontSize: { xs: '12px', sm: '13px' }, 
+                        fontWeight: 500, 
+                        color: 'text.secondary',
+                        textDecoration: 'none',
+                        bgcolor: 'transparent',
+                        border: 'none',
+                        p: 0,
+                        cursor: 'pointer',
+                        '&:hover': { color: 'text.primary' }
+                      }}
+                    >
+                      {label}
+                    </MuiLink>
+                  )
+                })}
+              </Breadcrumbs>
             </Box>
 
             <IconButton onClick={toggleColorMode} size="small" sx={{
@@ -492,6 +617,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               }}
             />
 
+            <IconButton 
+              size="small" 
+              onClick={(e) => setNotifAnchorEl(e.currentTarget)}
+              sx={{
+                width: 30,
+                height: 30,
+                borderRadius: 1.5,
+                border: `1px solid ${totalAlerts > 0 ? alpha(theme.palette.warning.main, 0.3) : theme.palette.divider}`,
+                color: totalCritical > 0 ? 'error.main' : totalAlerts > 0 ? 'warning.main' : 'text.secondary',
+                bgcolor: totalAlerts > 0 ? alpha(totalCritical > 0 ? theme.palette.error.main : theme.palette.warning.main, 0.04) : 'transparent',
+                '&:hover': { borderColor: theme.palette.text.disabled, color: 'text.primary' }
+              }}
+            >
+              <Badge 
+                badgeContent={totalAlerts} 
+                color={totalCritical > 0 ? 'error' : 'warning'}
+                sx={{ 
+                  '& .MuiBadge-badge': { 
+                    fontSize: '9px', 
+                    height: 14, 
+                    minWidth: 14,
+                    top: 2,
+                    right: 2 
+                  } 
+                }}
+              >
+                <NotificacionesIcon sx={{ fontSize: 16 }} />
+              </Badge>
+            </IconButton>
+
             <Button
               onClick={() => window.open('https://golosshoes.shop', '_blank')}
               variant="outlined"
@@ -573,6 +728,80 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </Toolbar>
       </AppBar>
 
+      {/* NOTIFICATION MENU */}
+      <Menu
+        anchorEl={notifAnchorEl}
+        open={notifOpen}
+        onClose={() => setNotifAnchorEl(null)}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        slotProps={{
+          paper: {
+            sx: {
+              width: 280,
+              maxHeight: 400,
+              overflowY: 'auto',
+              borderRadius: 2,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              border: `1px solid ${theme.palette.divider}`,
+              mt: 1,
+            }
+          }
+        }}
+      >
+        <Box sx={{ p: 1.5, borderBottom: `1px solid ${theme.palette.divider}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography sx={{ fontSize: '13px', fontWeight: 600 }}>Notificaciones</Typography>
+          <Typography 
+            onClick={() => {
+              navigate('/reports?tab=3')
+              setNotifAnchorEl(null)
+            }}
+            sx={{ fontSize: '11px', color: 'primary.main', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+          >
+            Ver todo
+          </Typography>
+        </Box>
+        {totalAlerts === 0 ? (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>No hay alertas pendientes</Typography>
+          </Box>
+        ) : (
+          <List sx={{ p: 0 }}>
+            {[...(alertsData?.critical || []), ...(alertsData?.warning || [])].slice(0, 5).map((alert: any, idx: number) => (
+              <ListItem key={idx} 
+                onClick={() => {
+                  navigate(`/variant/${alert.id}`)
+                  setNotifAnchorEl(null)
+                }}
+                sx={{ 
+                  px: 1.5, 
+                  py: 1, 
+                  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                  '&:hover': { bgcolor: alpha(theme.palette.action.hover, 0.5) },
+                  cursor: 'pointer'
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                  <Box sx={{ 
+                    width: 8, height: 8, borderRadius: '50%', mt: 0.5,
+                    bgcolor: alert.urgency === 'critical' ? 'error.main' : 'warning.main',
+                    flexShrink: 0
+                  }} />
+                  <Box>
+                    <Typography sx={{ fontSize: '11px', fontWeight: 600, lineHeight: 1.2 }}>
+                      {alert.product_name}
+                    </Typography>
+                    <Typography sx={{ fontSize: '10px', color: 'text.secondary', mt: 0.2 }}>
+                      {alert.message}
+                    </Typography>
+                  </Box>
+                </Box>
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Menu>
+
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
@@ -610,33 +839,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       }}>
         {children}
       </Box>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        disableScrollLock
-        transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        PaperProps={{
-          sx: {
-            mb: 1, // Offset from bottom trigger
-            minWidth: 160,
-            boxShadow: theme.palette.mode === 'light' ? '0 10px 15px -3px rgba(0,0,0,0.1)' : '0 10px 15px -3px rgba(0,0,0,0.5)',
-            border: `1px solid ${theme.palette.divider}`,
-          }
-        }}
-      >
-        <MenuItem onClick={() => { navigate('/profile'); handleMenuClose(); }}>
-          <ListItemIcon><AccountCircleIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primary="Mi Perfil" primaryTypographyProps={{ fontSize: '13px' }} />
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={handleLogout}>
-          <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primary="Cerrar Sesión" primaryTypographyProps={{ fontSize: '13px' }} />
-        </MenuItem>
-      </Menu>
     </Box>
   )
 }

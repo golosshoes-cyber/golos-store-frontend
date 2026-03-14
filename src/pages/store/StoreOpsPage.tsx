@@ -400,18 +400,18 @@ export default function StoreOpsPage() {
       </Box>
 
       {/* Modales de Configuración */}
-      <DialogShell 
-        open={legalDialogOpen} 
-        onClose={() => setLegalDialogOpen(false)} 
+      <DialogShell
+        open={legalDialogOpen}
+        onClose={() => setLegalDialogOpen(false)}
         maxWidth="sm"
         dialogTitle="Datos Legales"
         subtitle="Configuración de identidad corporativa y fiscal de la tienda"
         actions={
           <>
             <Button variant="text" sx={{ color: 'text.secondary' }} onClick={() => setLegalDialogOpen(false)}>Cancelar</Button>
-            <Button 
-              variant="contained" 
-              onClick={handleSaveBranding} 
+            <Button
+              variant="contained"
+              onClick={handleSaveBranding}
               disabled={loading}
               sx={{ bgcolor: 'text.primary', color: 'background.default', '&:hover': { bgcolor: 'text.secondary' } }}
             >
@@ -420,23 +420,28 @@ export default function StoreOpsPage() {
           </>
         }
       >
-        <Stack spacing={2.5}>
-          <TextField 
-            label="Nombre de la Tienda" 
-            value={branding?.store_name || ''} 
-            onChange={(e) => setBranding(prev => prev ? { ...prev, store_name: e.target.value } : null)} 
-            fullWidth 
-            size="small"
-            helperText="Nombre comercial público"
-          />
-          <TextField 
-            label="Representante Legal" 
-            value={branding?.legal_representative_name || ''} 
-            onChange={(e) => setBranding(prev => prev ? { ...prev, legal_representative_name: e.target.value } : null)} 
-            fullWidth 
-            size="small"
-          />
-          <Grid container spacing={2}>
+        <Box sx={{ mt: 2 }}>
+          <Grid container spacing={2.5}>
+            <Grid item xs={12}>
+              <TextField 
+                label="Nombre de la Tienda" 
+                value={branding?.store_name || ''} 
+                onChange={(e) => setBranding(prev => prev ? { ...prev, store_name: e.target.value } : null)} 
+                fullWidth 
+                size="small"
+                placeholder="Ej: Golos Store"
+                helperText="Nombre comercial público para clientes"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField 
+                label="Representante Legal" 
+                value={branding?.legal_representative_name || ''} 
+                onChange={(e) => setBranding(prev => prev ? { ...prev, legal_representative_name: e.target.value } : null)} 
+                fullWidth 
+                size="small"
+              />
+            </Grid>
             <Grid item xs={4}>
               <TextField 
                 label="Tipo ID" 
@@ -449,16 +454,14 @@ export default function StoreOpsPage() {
             </Grid>
             <Grid item xs={8}>
               <TextField 
-                label="Número de Identificación" 
+                label="Número Identificación" 
                 value={branding?.legal_id_number || ''} 
                 onChange={(e) => setBranding(prev => prev ? { ...prev, legal_id_number: e.target.value } : null)} 
                 fullWidth 
                 size="small"
-                placeholder="Ej: 123.456.789-0"
+                placeholder="123.456.789-0"
               />
             </Grid>
-          </Grid>
-          <Grid container spacing={2}>
             <Grid item xs={7}>
               <TextField 
                 label="Correo de Contacto" 
@@ -466,7 +469,6 @@ export default function StoreOpsPage() {
                 onChange={(e) => setBranding(prev => prev ? { ...prev, legal_contact_email: e.target.value } : null)} 
                 fullWidth 
                 size="small"
-                placeholder="legal@tienda.com"
               />
             </Grid>
             <Grid item xs={5}>
@@ -478,15 +480,15 @@ export default function StoreOpsPage() {
                 size="small"
               />
             </Grid>
-          </Grid>
-          <TextField 
-            label="Dirección" 
-            value={branding?.legal_contact_address || ''} 
-            onChange={(e) => setBranding(prev => prev ? { ...prev, legal_contact_address: e.target.value } : null)} 
-            fullWidth 
-            size="small"
-          />
-          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField 
+                label="Dirección Fiscal" 
+                value={branding?.legal_contact_address || ''} 
+                onChange={(e) => setBranding(prev => prev ? { ...prev, legal_contact_address: e.target.value } : null)} 
+                fullWidth 
+                size="small"
+              />
+            </Grid>
             <Grid item xs={6}>
               <TextField 
                 label="Ciudad" 
@@ -506,21 +508,21 @@ export default function StoreOpsPage() {
               />
             </Grid>
           </Grid>
-        </Stack>
+        </Box>
       </DialogShell>
 
-      <DialogShell 
-        open={promoDialogOpen} 
-        onClose={() => setPromoDialogOpen(false)} 
+      <DialogShell
+        open={promoDialogOpen}
+        onClose={() => setPromoDialogOpen(false)}
         maxWidth="sm"
         dialogTitle="Promociones y Marketing"
         subtitle="Modifica el mensaje publicitario que aparece en la parte superior"
         actions={
           <>
             <Button variant="text" sx={{ color: 'text.secondary' }} onClick={() => setPromoDialogOpen(false)}>Cancelar</Button>
-            <Button 
-              variant="contained" 
-              onClick={handleSaveBranding} 
+            <Button
+              variant="contained"
+              onClick={handleSaveBranding}
               disabled={loading}
               sx={{ bgcolor: 'text.primary', color: 'background.default', '&:hover': { bgcolor: 'text.secondary' } }}
             >
@@ -529,21 +531,25 @@ export default function StoreOpsPage() {
           </>
         }
       >
-        <Stack spacing={2.5}>
-          <Box>
-            <Typography variant="overline" sx={{ fontWeight: 700, color: 'text.secondary', mb: 1, display: 'block' }}>Branding Principal</Typography>
-            <Stack spacing={2}>
-              <TextField 
-                label="Tagline / Promo Superior" 
-                value={branding?.tagline || ''} 
-                onChange={(e) => setBranding(prev => prev ? { ...prev, tagline: e.target.value } : null)} 
-                fullWidth 
-                size="small"
-                multiline 
-                rows={2} 
-                placeholder="Escribe el mensaje corto de la cabecera..."
-              />
-              <Grid container spacing={2}>
+        <Box sx={{ mt: 2 }}>
+          <Stack spacing={4}>
+            <Box>
+              <Typography variant="overline" sx={{ fontWeight: 700, color: theme.palette.text.secondary, mb: 2, display: 'block', letterSpacing: '0.1em' }}>
+                Identidad de Marca
+              </Typography>
+              <Grid container spacing={2.5}>
+                <Grid item xs={12}>
+                  <TextField 
+                    label="Tagline / Promo Superior" 
+                    value={branding?.tagline || ''} 
+                    onChange={(e) => setBranding(prev => prev ? { ...prev, tagline: e.target.value } : null)} 
+                    fullWidth 
+                    size="small"
+                    multiline 
+                    rows={2} 
+                    placeholder="Escribe el mensaje corto de la cabecera..."
+                  />
+                </Grid>
                 <Grid item xs={6}>
                   <TextField 
                     label="Logo URL" 
@@ -562,67 +568,88 @@ export default function StoreOpsPage() {
                     size="small"
                   />
                 </Grid>
+                <Grid item xs={12}>
+                  <TextField 
+                    label="Título Hero Principal" 
+                    value={branding?.hero_title || ''} 
+                    onChange={(e) => setBranding(prev => prev ? { ...prev, hero_title: e.target.value } : null)} 
+                    fullWidth 
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField 
+                    label="Imagen Hero (URL)" 
+                    value={branding?.hero_image_url || ''} 
+                    onChange={(e) => setBranding(prev => prev ? { ...prev, hero_image_url: e.target.value } : null)} 
+                    fullWidth 
+                    size="small"
+                    placeholder="URL de la imagen principal de la tienda..."
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField 
+                    label="Subtítulo Hero" 
+                    value={branding?.hero_subtitle || ''} 
+                    onChange={(e) => setBranding(prev => prev ? { ...prev, hero_subtitle: e.target.value } : null)} 
+                    fullWidth 
+                    multiline
+                    rows={2}
+                    size="small"
+                  />
+                </Grid>
               </Grid>
-              <TextField 
-                label="Título Hero (Principal)" 
-                value={branding?.hero_title || ''} 
-                onChange={(e) => setBranding(prev => prev ? { ...prev, hero_title: e.target.value } : null)} 
-                fullWidth 
-                size="small"
-              />
-              <TextField 
-                label="Subtítulo Hero" 
-                value={branding?.hero_subtitle || ''} 
-                onChange={(e) => setBranding(prev => prev ? { ...prev, hero_subtitle: e.target.value } : null)} 
-                fullWidth 
-                multiline
-                rows={2}
-                size="small"
-              />
-            </Stack>
-          </Box>
-
-          <Divider />
-
-          <Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-              <Typography variant="overline" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block' }}>Promo Superior (Cuerpo)</Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: branding?.promo_top_enabled ? 'success.main' : 'text.disabled' }}>
-                  {branding?.promo_top_enabled ? 'ACTIVA' : 'INACTIVA'}
-                </Typography>
-                <Button 
-                  size="small" 
-                  variant={branding?.promo_top_enabled ? "contained" : "outlined"}
-                  color={branding?.promo_top_enabled ? "success" : "inherit"}
-                  onClick={() => setBranding(prev => prev ? { ...prev, promo_top_enabled: !prev.promo_top_enabled } : null)}
-                  sx={{ minWidth: 0, px: 2, height: 24, fontSize: '10px' }}
-                >
-                  {branding?.promo_top_enabled ? 'Apagar' : 'Encender'}
-                </Button>
-              </Box>
             </Box>
-            <Stack spacing={2}>
-              <TextField 
-                label="Título Promo" 
-                value={branding?.promo_top_title || ''} 
-                onChange={(e) => setBranding(prev => prev ? { ...prev, promo_top_title: e.target.value } : null)} 
-                fullWidth 
-                size="small"
-              />
-              <TextField 
-                label="Texto Promo" 
-                value={branding?.promo_top_text || ''} 
-                onChange={(e) => setBranding(prev => prev ? { ...prev, promo_top_text: e.target.value } : null)} 
-                fullWidth 
-                multiline
-                rows={2}
-                size="small"
-              />
-              <Grid container spacing={2}>
+
+            <Divider />
+
+            <Box>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="overline" sx={{ fontWeight: 700, color: theme.palette.text.secondary, display: 'block', letterSpacing: '0.1em' }}>
+                  Banner Promocional Superior
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{
+                    px: 1, py: 0.25, borderRadius: 1, fontSize: '10px', fontWeight: 700,
+                    bgcolor: branding?.promo_top_enabled ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.text.disabled, 0.1),
+                    color: branding?.promo_top_enabled ? 'success.main' : 'text.disabled',
+                  }}>
+                    {branding?.promo_top_enabled ? 'ACTIVO' : 'INACTIVO'}
+                  </Box>
+                  <Button 
+                    size="small" 
+                    variant="outlined"
+                    onClick={() => setBranding(prev => prev ? { ...prev, promo_top_enabled: !prev.promo_top_enabled } : null)}
+                    sx={{ height: 24, fontSize: '10px', px: 1.5, borderColor: theme.palette.divider }}
+                  >
+                    {branding?.promo_top_enabled ? 'Apagar' : 'Encender'}
+                  </Button>
+                </Box>
+              </Box>
+              <Grid container spacing={2.5}>
+                <Grid item xs={12}>
+                  <TextField 
+                    label="Título Banner" 
+                    value={branding?.promo_top_title || ''} 
+                    onChange={(e) => setBranding(prev => prev ? { ...prev, promo_top_title: e.target.value } : null)} 
+                    fullWidth 
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField 
+                    label="Texto / Descripción" 
+                    value={branding?.promo_top_text || ''} 
+                    onChange={(e) => setBranding(prev => prev ? { ...prev, promo_top_text: e.target.value } : null)} 
+                    fullWidth 
+                    multiline
+                    rows={2}
+                    size="small"
+                  />
+                </Grid>
                 <Grid item xs={6}>
                   <TextField 
-                    label="Imagen Desktop URL" 
+                    label="Imagen Desktop (URL)" 
                     value={branding?.promo_top_image_desktop_url || ''} 
                     onChange={(e) => setBranding(prev => prev ? { ...prev, promo_top_image_desktop_url: e.target.value } : null)} 
                     fullWidth 
@@ -631,7 +658,7 @@ export default function StoreOpsPage() {
                 </Grid>
                 <Grid item xs={6}>
                   <TextField 
-                    label="Imagen Mobile URL" 
+                    label="Imagen Mobile (URL)" 
                     value={branding?.promo_top_image_mobile_url || ''} 
                     onChange={(e) => setBranding(prev => prev ? { ...prev, promo_top_image_mobile_url: e.target.value } : null)} 
                     fullWidth 
@@ -639,63 +666,72 @@ export default function StoreOpsPage() {
                   />
                 </Grid>
               </Grid>
-            </Stack>
-          </Box>
-
-          <Divider />
-
-          <Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-              <Typography variant="overline" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block' }}>Promo Inferior</Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: branding?.promo_bottom_enabled ? 'success.main' : 'text.disabled' }}>
-                  {branding?.promo_bottom_enabled ? 'ACTIVA' : 'INACTIVA'}
-                </Typography>
-                <Button 
-                  size="small" 
-                  variant={branding?.promo_bottom_enabled ? "contained" : "outlined"}
-                  color={branding?.promo_bottom_enabled ? "success" : "inherit"}
-                  onClick={() => setBranding(prev => prev ? { ...prev, promo_bottom_enabled: !prev.promo_bottom_enabled } : null)}
-                  sx={{ minWidth: 0, px: 2, height: 24, fontSize: '10px' }}
-                >
-                  {branding?.promo_bottom_enabled ? 'Apagar' : 'Encender'}
-                </Button>
-              </Box>
             </Box>
-            <Stack spacing={2}>
-              <TextField 
-                label="Título Promo Inferior" 
-                value={branding?.promo_bottom_title || ''} 
-                onChange={(e) => setBranding(prev => prev ? { ...prev, promo_bottom_title: e.target.value } : null)} 
-                fullWidth 
-                size="small"
-              />
-              <TextField 
-                label="Texto Promo Inferior" 
-                value={branding?.promo_bottom_text || ''} 
-                onChange={(e) => setBranding(prev => prev ? { ...prev, promo_bottom_text: e.target.value } : null)} 
-                fullWidth 
-                multiline
-                rows={2}
-                size="small"
-              />
-            </Stack>
-          </Box>
-        </Stack>
+
+            <Divider />
+
+            <Box>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="overline" sx={{ fontWeight: 700, color: theme.palette.text.secondary, display: 'block', letterSpacing: '0.1em' }}>
+                  Landing Promo (Inferior)
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{
+                    px: 1, py: 0.25, borderRadius: 1, fontSize: '10px', fontWeight: 700,
+                    bgcolor: branding?.promo_bottom_enabled ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.text.disabled, 0.1),
+                    color: branding?.promo_bottom_enabled ? 'success.main' : 'text.disabled',
+                  }}>
+                    {branding?.promo_bottom_enabled ? 'ACTIVO' : 'INACTIVO'}
+                  </Box>
+                  <Button 
+                    size="small" 
+                    variant="outlined"
+                    onClick={() => setBranding(prev => prev ? { ...prev, promo_bottom_enabled: !prev.promo_bottom_enabled } : null)}
+                    sx={{ height: 24, fontSize: '10px', px: 1.5, borderColor: theme.palette.divider }}
+                  >
+                    {branding?.promo_bottom_enabled ? 'Apagar' : 'Encender'}
+                  </Button>
+                </Box>
+              </Box>
+              <Grid container spacing={2.5}>
+                <Grid item xs={12}>
+                  <TextField 
+                    label="Título Promo Inferior" 
+                    value={branding?.promo_bottom_title || ''} 
+                    onChange={(e) => setBranding(prev => prev ? { ...prev, promo_bottom_title: e.target.value } : null)} 
+                    fullWidth 
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField 
+                    label="Texto Promo Inferior" 
+                    value={branding?.promo_bottom_text || ''} 
+                    onChange={(e) => setBranding(prev => prev ? { ...prev, promo_bottom_text: e.target.value } : null)} 
+                    fullWidth 
+                    multiline
+                    rows={2}
+                    size="small"
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          </Stack>
+        </Box>
       </DialogShell>
 
-      <DialogShell 
-        open={Boolean(manualShipmentOrder)} 
-        onClose={() => setManualShipmentOrder(null)} 
+      <DialogShell
+        open={Boolean(manualShipmentOrder)}
+        onClose={() => setManualShipmentOrder(null)}
         maxWidth="xs"
         dialogTitle="Registrar Guía Manual"
         subtitle={`Orden #${manualShipmentOrder?.sale_id} · Ingresa los datos del transportista`}
         actions={
           <>
             <Button variant="text" sx={{ color: 'text.secondary' }} onClick={() => setManualShipmentOrder(null)}>Cancelar</Button>
-            <Button 
-              variant="contained" 
-              onClick={handleSaveManualShipment} 
+            <Button
+              variant="contained"
+              onClick={handleSaveManualShipment}
               disabled={loading}
               sx={{ bgcolor: 'text.primary', color: 'background.default', '&:hover': { bgcolor: 'text.secondary' } }}
             >
@@ -704,8 +740,8 @@ export default function StoreOpsPage() {
           </>
         }
       >
-        <Stack spacing={2}>
-          <Grid container spacing={2}>
+        <Box sx={{ mt: 2 }}>
+          <Grid container spacing={2.5}>
             <Grid item xs={6}>
               <TextField 
                 label="Transportadora" 
@@ -713,6 +749,7 @@ export default function StoreOpsPage() {
                 onChange={(e) => setManualShipmentForm(p => ({ ...p, carrier: e.target.value }))} 
                 fullWidth 
                 size="small" 
+                placeholder="Ej: Servientrega"
               />
             </Grid>
             <Grid item xs={6}>
@@ -722,32 +759,39 @@ export default function StoreOpsPage() {
                 onChange={(e) => setManualShipmentForm(p => ({ ...p, service: e.target.value }))} 
                 fullWidth 
                 size="small" 
-                placeholder="Ej: Local"
+                placeholder="Ej: Estándar"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField 
+                label="Nº Guía / Tracking" 
+                value={manualShipmentForm.tracking_number} 
+                onChange={(e) => setManualShipmentForm(p => ({ ...p, tracking_number: e.target.value }))} 
+                fullWidth 
+                size="small" 
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField 
+                label="Referencia Proveedor" 
+                value={manualShipmentForm.provider_reference} 
+                onChange={(e) => setManualShipmentForm(p => ({ ...p, provider_reference: e.target.value }))} 
+                fullWidth 
+                size="small" 
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField 
+                label="Costo de Envío" 
+                value={manualShipmentForm.shipping_cost} 
+                onChange={(e) => setManualShipmentForm(p => ({ ...p, shipping_cost: e.target.value }))} 
+                fullWidth 
+                size="small" 
+                helperText="Costo total registrado en la venta"
               />
             </Grid>
           </Grid>
-          <TextField 
-            label="# Guía / Tracking" 
-            value={manualShipmentForm.tracking_number} 
-            onChange={(e) => setManualShipmentForm(p => ({ ...p, tracking_number: e.target.value }))} 
-            fullWidth 
-            size="small" 
-          />
-          <TextField 
-            label="Referencia Proveedor" 
-            value={manualShipmentForm.provider_reference} 
-            onChange={(e) => setManualShipmentForm(p => ({ ...p, provider_reference: e.target.value }))} 
-            fullWidth 
-            size="small" 
-          />
-          <TextField 
-            label="Costo de Envío" 
-            value={manualShipmentForm.shipping_cost} 
-            onChange={(e) => setManualShipmentForm(p => ({ ...p, shipping_cost: e.target.value }))} 
-            fullWidth 
-            size="small" 
-          />
-        </Stack>
+        </Box>
       </DialogShell>
     </PageShell>
   )

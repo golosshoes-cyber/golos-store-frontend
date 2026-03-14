@@ -89,6 +89,7 @@ export const createAppTheme = (mode: PaletteMode) => {
             overflowX: 'hidden',
             backgroundColor: colors.bg,
             color: colors.text,
+            fontFamily: '"Geist", "Inter", "Roboto", "Helvetica", "Arial", sans-serif',
             '& #root': {
               maxWidth: '100%',
               overflowX: 'hidden',
@@ -230,19 +231,28 @@ export const createAppTheme = (mode: PaletteMode) => {
         styleOverrides: {
           root: {
             '& .MuiOutlinedInput-root': {
-              borderRadius: 6,
+              borderRadius: 8,
               fontSize: '13px',
-              backgroundColor: colors.bgSubtle,
+              backgroundColor: isLight ? alpha(colors.bgSubtle, 0.5) : colors.bgSubtle,
+              transition: 'all 0.2s ease',
               '& fieldset': {
                 borderColor: colors.border,
-                transition: 'border-color 0.1s',
               },
               '&:hover fieldset': {
                 borderColor: colors.borderStrong,
               },
               '&.Mui-focused fieldset': {
-                borderWidth: 1,
-                borderColor: colors.borderStrong,
+                borderWidth: '1px',
+                borderColor: colors.accent,
+                boxShadow: `0 0 0 2px ${alpha(colors.accent, 0.1)}`,
+              },
+            },
+            '& .MuiInputLabel-root': {
+              fontSize: '13px',
+              fontFamily: '"Geist", "Inter", sans-serif',
+              transform: 'translate(14px, 10px) scale(1)',
+              '&.Mui-focused, &.MuiFormLabel-filled': {
+                transform: 'translate(14px, -8px) scale(0.75)',
               },
             },
           },
@@ -274,6 +284,78 @@ export const createAppTheme = (mode: PaletteMode) => {
             color: colors.text,
             boxShadow: 'none',
             borderBottom: `1px solid ${colors.border}`,
+          },
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          select: {
+            fontSize: '13px',
+          },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            fontSize: '13px',
+            borderRadius: 6,
+            margin: '2px 6px',
+            minHeight: '32px',
+          },
+        },
+      },
+      MuiMenu: {
+        styleOverrides: {
+          list: {
+            padding: '4px',
+          },
+          paper: {
+            borderRadius: 10,
+            marginTop: 4,
+            border: `1px solid ${colors.border}`,
+            boxShadow: isLight 
+              ? '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)'
+              : '0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -2px rgba(0,0,0,0.3)',
+          },
+        },
+      },
+      MuiAutocomplete: {
+        styleOverrides: {
+          inputRoot: {
+            fontSize: '13px',
+          },
+          option: {
+            fontSize: '13px',
+            borderRadius: 6,
+            margin: '2px 6px',
+          },
+          paper: {
+            borderRadius: 10,
+            border: `1px solid ${colors.border}`,
+            marginTop: 4,
+          },
+        },
+      },
+      MuiFormLabel: {
+        styleOverrides: {
+          root: {
+            fontSize: '13px',
+            fontFamily: '"Geist", "Inter", sans-serif',
+            color: colors.textMuted,
+            '&.Mui-focused': {
+              color: colors.accent,
+            },
+          },
+        },
+      },
+      MuiFormHelperText: {
+        styleOverrides: {
+          root: {
+            fontSize: '11px',
+            fontFamily: '"Geist", "Inter", sans-serif',
+            marginTop: 4,
+            marginLeft: 2,
+            color: colors.textFaint,
           },
         },
       },

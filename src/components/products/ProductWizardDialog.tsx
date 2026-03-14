@@ -125,6 +125,7 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
               borderRadius: 1.5,
               fontSize: '12px',
               textTransform: 'none',
+              px: 2,
               color: 'text.secondary',
               '&:hover': { color: 'text.primary' },
             }}
@@ -163,8 +164,8 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                     fontSize: '12px',
                     textTransform: 'none',
                     px: 2,
-                    border: `1px solid ${theme.palette.divider}`,
                     color: 'text.secondary',
+                    '&:hover': { color: 'text.primary' },
                   }}
                 >
                   Omitir
@@ -198,9 +199,9 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                   fontSize: '12px',
                   textTransform: 'none',
                   px: 2,
-                  bgcolor: 'success.main',
-                  color: '#fff',
-                  '&:hover': { bgcolor: 'success.dark' },
+                  bgcolor: 'text.primary',
+                  color: 'background.default',
+                  '&:hover': { bgcolor: 'text.secondary' },
                   '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },
                 }}
               >

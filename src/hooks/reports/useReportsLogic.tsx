@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNotification } from '../useNotification'
 import { useReports } from './useReports'
@@ -10,6 +10,9 @@ export const useReportsLogic = () => {
   const { showSuccess, showError } = useNotification()
   const [activeTab, setActiveTab] = useState(0)
   const [selectedVariants, setSelectedVariants] = useState<Set<number>>(new Set())
+  
+  // Snapshot filters/pagination
+  const [snapshotsParams, setSnapshotsParams] = useState<{ page: number }>({ page: 1 })
   
   // Inventory History filters
   const [startDate, setStartDate] = useState('')
@@ -32,9 +35,11 @@ export const useReportsLogic = () => {
     snapshots,
     isSnapshotsLoading,
     snapshotsError,
+    fetchSnapshots,
     createMonthlySnapshot,
     isCreatingSnapshot,
     lowStockVariants,
+    isLowStockLoading,
     lowStockError,
     fetchLowStockVariants,
   } = useReports({ showSuccess, showError })
@@ -62,10 +67,16 @@ export const useReportsLogic = () => {
   }, [activeTab, inventoryHistoryParams, fetchInventoryHistory])
 
   useEffect(() => {
-    if (activeTab === 3 && !lowStockVariants) {
+    if (activeTab === 1) {
+      fetchSnapshots(snapshotsParams.page)
+    }
+  }, [activeTab, snapshotsParams, fetchSnapshots])
+
+  useEffect(() => {
+    if (activeTab === 3 && !lowStockVariants && !isLowStockLoading && !lowStockError) {
       fetchLowStockVariants()
     }
-  }, [activeTab, lowStockVariants, fetchLowStockVariants])
+  }, [activeTab, lowStockVariants, isLowStockLoading, lowStockError, fetchLowStockVariants])
 
   // Auto-fetch inventory history when filters change
   useEffect(() => {
@@ -85,16 +96,16 @@ export const useReportsLogic = () => {
   }, [])
 
   // Event handlers
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
     setSelectedVariants(new Set()) // Reset selection on tab change
     // Update URL with tab parameter
     const url = new URL(window.location.href)
     url.searchParams.set('tab', newValue.toString())
     window.history.replaceState({}, '', url.toString())
-  }
+  }, [])
 
-  const handleSelectVariant = (id: number) => {
+  const handleSelectVariant = useCallback((id: number) => {
     if (id === -1) {
       setSelectedVariants(new Set())
       return
@@ -109,19 +120,20 @@ export const useReportsLogic = () => {
       }
       return newSet
     })
-  }
+  }, [])
 
-  const handleSelectAll = () => {
+  const handleSelectAll = useCallback(() => {
     setSelectedVariants(prev => {
-      if (prev.size === lowStockVariants?.products?.length) {
+      const variantsList = lowStockVariants?.products || []
+      if (prev.size === variantsList.length) {
         return new Set()
       } else {
-        return new Set(lowStockVariants.products.map((p: any) => p.id))
+        return new Set(variantsList.map((p: any) => p.id))
       }
     })
-  }
+  }, [lowStockVariants])
 
-  const handleFetchInventoryHistory = () => {
+  const handleFetchInventoryHistory = useCallback(() => {
     const params: InventoryHistoryParams = {
       start_date: startDate,
       end_date: endDate,
@@ -132,48 +144,75 @@ export const useReportsLogic = () => {
     }
     setInventoryHistoryParams(params)
     fetchInventoryHistory(params)
-  }
+  }, [startDate, endDate, productFilter, variantFilter, movementTypeFilter, fetchInventoryHistory])
 
-  const handleCreateSnapshot = () => {
+  const handleCreateSnapshot = useCallback(() => {
     // Get current month in YYYY-MM-DD format (first day of month)
     const now = new Date()
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
     
     createMonthlySnapshot({ month: currentMonth })
-  }
+  }, [createMonthlySnapshot])
 
-  const handleExportExcel = () => {
-    const data = snapshots?.results || []
-    if (data.length === 0) {
-      showError('No hay snapshots para exportar')
-      return
+  const handleExportExcel = useCallback(async () => {
+    try {
+      let allData: any[] = []
+      let page = 1
+      let hasNext = true
+
+      while (hasNext) {
+        const response = await productService.getInventorySnapshots({ page, limit: 100 })
+        allData = [...allData, ...(response.results || [])]
+        hasNext = !!response.next
+        page++
+      }
+
+      if (allData.length === 0) {
+        showError('No hay snapshots para exportar')
+        return
+      }
+
+      const exportData = allData.map((snapshot: any) => ({
+        Mes: new Date(snapshot.month).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' }),
+        Producto: snapshot.product,
+        Variante: `${snapshot.variant_color} - ${snapshot.variant_size}`,
+        'Stock Inicial': snapshot.stock_opening,
+        Entradas: snapshot.total_in,
+        Salidas: snapshot.total_out,
+        'Stock Final': snapshot.stock_closing,
+      }))
+
+      const ws = XLSX.utils.json_to_sheet(exportData)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Snapshots')
+
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const filename = `Snapshot-Completo-${year}-${month}.xlsx`
+
+      XLSX.writeFile(wb, filename)
+    } catch (error) {
+      showError('Error al exportar los datos')
+      console.error(error)
     }
+  }, [showError])
 
-    const exportData = data.map((snapshot: any) => ({
-      Mes: new Date(snapshot.month).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' }),
-      Producto: snapshot.product,
-      Variante: `${snapshot.variant_color} - ${snapshot.variant_size}`,
-      'Stock Inicial': snapshot.stock_opening,
-      Entradas: snapshot.total_in,
-      Salidas: snapshot.total_out,
-      'Stock Final': snapshot.stock_closing,
-    }))
+  const handlePageChange = useCallback((page: number) => {
+    setInventoryHistoryParams(prev => {
+      const newParams = { ...prev, page }
+      fetchInventoryHistory(newParams)
+      return newParams
+    })
+  }, [fetchInventoryHistory])
 
-    const ws = XLSX.utils.json_to_sheet(exportData)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Snapshots')
-
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = String(now.getMonth() + 1).padStart(2, '0')
-    const filename = `Snapshot-${year}-${month}.xlsx`
-
-    XLSX.writeFile(wb, filename)
-  }
-
-  const handlePageChange = (page: number) => {
-    setInventoryHistoryParams(prev => ({ ...prev, page }))
-  }
+  const handleSnapshotPageChange = useCallback((page: number) => {
+    setSnapshotsParams(prev => {
+      const newParams = { ...prev, page }
+      fetchSnapshots(newParams.page)
+      return newParams
+    })
+  }, [fetchSnapshots])
 
   return {
     // State
@@ -193,6 +232,7 @@ export const useReportsLogic = () => {
     variants,
     inventoryHistory,
     snapshots,
+    snapshotsParams,
     lowStockVariants,
     dailySummary,
     
@@ -216,6 +256,7 @@ export const useReportsLogic = () => {
     handleCreateSnapshot,
     handleExportExcel,
     handlePageChange,
+    handleSnapshotPageChange,
     
     // Setters
     setStartDate,

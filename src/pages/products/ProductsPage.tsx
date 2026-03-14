@@ -1,7 +1,5 @@
 import React from 'react'
 import {
-  Box,
-  CircularProgress,
   Alert,
 } from '@mui/material'
 import { useTheme, useMediaQuery } from '@mui/material'
@@ -85,6 +83,24 @@ const ProductsPage: React.FC = () => {
     handleDeleteVariant,
     handleImageUpload,
     handleDeleteImage,
+    
+    // Sort & Filter
+    productSort,
+    setProductSort,
+    productFilter,
+    setProductFilter,
+    variantSort,
+    setVariantSort,
+    variantFilter,
+    setVariantFilter,
+    processedProducts,
+    processedVariants,
+    selectedProducts,
+    setSelectedProducts,
+    selectedVariants,
+    setSelectedVariants,
+    handleBulkDelete,
+    handleBulkToggleActive,
   } = useProductsLogic()
 
   // Handle ?create=true query param to open wizard
@@ -102,13 +118,6 @@ const ProductsPage: React.FC = () => {
     }
   }, [location.search, wizardOpen, setWizardOpen, location.pathname, navigate])
 
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="400px">
-        <CircularProgress />
-      </Box>
-    )
-  }
 
   return (
     <PageShell>
@@ -164,6 +173,24 @@ const ProductsPage: React.FC = () => {
         onProductForImagesChange={setSelectedProductForImages}
         onImageUpload={handleImageUpload}
         onImageDelete={handleDeleteImage}
+        
+        // New Props
+        productSort={productSort}
+        setProductSort={setProductSort}
+        productFilter={productFilter}
+        setProductFilter={setProductFilter}
+        variantSort={variantSort}
+        setVariantSort={setVariantSort}
+        variantFilter={variantFilter}
+        setVariantFilter={setVariantFilter}
+        processedProducts={processedProducts}
+        processedVariants={processedVariants}
+        selectedProducts={selectedProducts}
+        setSelectedProducts={setSelectedProducts}
+        selectedVariants={selectedVariants}
+        setSelectedVariants={setSelectedVariants}
+        onBulkDelete={handleBulkDelete}
+        onBulkToggleActive={handleBulkToggleActive}
       />
 
       {/* Diálogo de ver producto */}

@@ -1,294 +1,178 @@
-import { useEffect, useRef, useState } from 'react'
-import { Alert, Box, Button, Card, CardContent, CardMedia, Container, Divider, Stack, TextField, Typography, useMediaQuery } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
-import ShoppingCartCheckoutRoundedIcon from '@mui/icons-material/ShoppingCartCheckoutRounded'
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
+import { useEffect, useState } from 'react'
+import { Alert } from '@mui/material'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useThemeMode } from '../../contexts/ThemeModeContext'
 import { storeService } from '../../services/storeService'
 import type { StoreCartValidationItem } from '../../types/store'
-import {
-  getStoreCartItems,
-  removeStoreCartItem,
-  updateStoreCartItemQuantity,
-  type StoreCartItem,
-} from '../../utils/storeCart'
+import { getStoreCartItems, removeStoreCartItem, updateStoreCartItemQuantity, type StoreCartItem } from '../../utils/storeCart'
+import StoreFooter from '../../components/store/StoreFooter'
 
-const currencyFormatter = new Intl.NumberFormat('es-CO', {
-  style: 'currency',
-  currency: 'COP',
-  maximumFractionDigits: 0,
-})
-
-const FALLBACK_IMAGE = `data:image/svg+xml;utf8,${encodeURIComponent(`
-  <svg xmlns='http://www.w3.org/2000/svg' width='320' height='240' viewBox='0 0 320 240'>
-    <defs>
-      <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-        <stop offset='0%' stop-color='#e5e7eb'/>
-        <stop offset='100%' stop-color='#cbd5e1'/>
-      </linearGradient>
-    </defs>
-    <rect width='320' height='240' fill='url(#g)'/>
-    <circle cx='160' cy='98' r='24' fill='#64748b' opacity='0.45'/>
-    <rect x='98' y='142' width='124' height='12' rx='6' fill='#64748b' opacity='0.5'/>
-  </svg>
-`)}`
-
+const currencyFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 const money = (value: string) => currencyFormatter.format(Number(value))
+
+const FALLBACK_IMAGE = `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='#f5f5f5'/><path d='M10 55 Q20 30 50 28 Q65 27 70 35 L72 45 Q60 42 45 48 Q30 54 10 55Z' fill='#c8c8c8'/><path d='M10 55 L72 52 L72 58 Q60 62 40 63 Q20 64 10 60Z' fill='#c8c8c8'/></svg>`)}`
 
 export default function CartPage() {
   const navigate = useNavigate()
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const { mode } = useThemeMode()
   const [items, setItems] = useState<StoreCartItem[]>([])
   const [validatedItems, setValidatedItems] = useState<StoreCartValidationItem[]>([])
   const [total, setTotal] = useState('0')
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [returnToStoreFly, setReturnToStoreFly] = useState<{
-    id: number
-    startX: number
-    startY: number
-    deltaX: number
-    deltaY: number
-    imageUrl: string
-    active: boolean
-  } | null>(null)
-  const storeLinkRef = useRef<HTMLAnchorElement | null>(null)
+
+  const isDark = mode === 'dark'
+  const css = isDark ? {
+    bg: '#0f0f0f', bgSubtle: '#1a1a1a', bgCard: '#181818', bgHover: '#222222',
+    border: '#2a2a2a', borderStrong: '#3a3a3a', text: '#f5f5f5', textMuted: '#a0a0a0',
+    textFaint: '#555555', accent: '#f5f5f5', accentFg: '#111111',
+  } : {
+    bg: '#ffffff', bgSubtle: '#f5f5f5', bgCard: '#ffffff', bgHover: '#f0f0f0',
+    border: '#e5e5e5', borderStrong: '#c8c8c8', text: '#111111', textMuted: '#6b6b6b',
+    textFaint: '#a8a8a8', accent: '#111111', accentFg: '#ffffff',
+  }
 
   const loadAndValidate = async () => {
     const current = getStoreCartItems()
     setItems(current)
-
-    if (current.length === 0) {
-      setValidatedItems([])
-      setTotal('0')
-      return
-    }
-
+    if (current.length === 0) { setValidatedItems([]); setTotal('0'); return }
     try {
-      setLoading(true)
-      setErrorMessage(null)
+      setLoading(true); setErrorMessage(null)
       const response = await storeService.validateCart(current)
-      setValidatedItems(response.items)
-      setTotal(response.total)
+      setValidatedItems(response.items); setTotal(response.total)
     } catch {
       setErrorMessage('No se pudo validar el carrito. Revisa stock y cantidades.')
-      setValidatedItems([])
-      setTotal('0')
-    } finally {
-      setLoading(false)
-    }
+      setValidatedItems([]); setTotal('0')
+    } finally { setLoading(false) }
   }
 
-  useEffect(() => {
-    void loadAndValidate()
-  }, [])
+  useEffect(() => { void loadAndValidate() }, [])
 
   const handleQuantityChange = (variantId: number, quantity: number) => {
     const updated = updateStoreCartItemQuantity(variantId, quantity)
     setItems(updated)
   }
 
-  const triggerReturnToStoreAnimation = (sourceElement?: HTMLElement | null, imageUrl?: string) => {
-    if (!sourceElement || !storeLinkRef.current) return
-    const sourceRect = sourceElement.getBoundingClientRect()
-    const targetRect = storeLinkRef.current.getBoundingClientRect()
-    const startX = sourceRect.left + sourceRect.width / 2 - 18
-    const startY = sourceRect.top + sourceRect.height / 2 - 18
-    const endX = targetRect.left + targetRect.width / 2 - 18
-    const endY = targetRect.top + targetRect.height / 2 - 18
-    const id = Date.now()
-    setReturnToStoreFly({
-      id,
-      startX,
-      startY,
-      deltaX: endX - startX,
-      deltaY: endY - startY,
-      imageUrl: imageUrl || FALLBACK_IMAGE,
-      active: false,
-    })
-    requestAnimationFrame(() => {
-      setReturnToStoreFly((previous) => {
-        if (!previous || previous.id !== id) return previous
-        return { ...previous, active: true }
-      })
-    })
-    window.setTimeout(() => {
-      setReturnToStoreFly((previous) => (previous && previous.id === id ? null : previous))
-    }, 650)
-  }
-
-  const handleRemove = async (variantId: number, sourceElement?: HTMLElement | null) => {
-    const detail = validatedItems.find((line) => line.variant_id === variantId)
-    triggerReturnToStoreAnimation(sourceElement, detail?.image_url || FALLBACK_IMAGE)
+  const handleRemove = async (variantId: number) => {
     const updated = removeStoreCartItem(variantId)
     setItems(updated)
     await loadAndValidate()
   }
 
-  return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Stack spacing={3}>
-        <Box display="flex" justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} gap={1} flexDirection={{ xs: 'column', sm: 'row' }}>
-          <Typography variant="h4" fontWeight={700}>Carrito</Typography>
-          <Button
-            component={RouterLink}
-            to="/store"
-            ref={storeLinkRef}
-            variant="outlined"
-            startIcon={<ArrowBackRoundedIcon />}
-            sx={{ fontWeight: 700, transition: 'all 180ms ease', '&:hover': { transform: 'translateY(-1px)' }, width: { xs: '100%', sm: 'auto' } }}
-          >
-            {isMobile ? 'Seguir' : 'Seguir comprando'}
-          </Button>
-        </Box>
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+
+  return (
+    <div style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", background: css.bg, color: css.text, minHeight: '100vh' }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');`}</style>
+
+      {/* NAV */}
+      <nav style={{ position: 'sticky', top: 0, zIndex: 50, height: 60, background: css.bg, borderBottom: `1px solid ${css.border}`, display: 'flex', alignItems: 'center', padding: '0 32px', gap: 24 }}>
+        <RouterLink to="/store" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: css.text, display: 'flex', alignItems: 'center', justifyContent: 'center', color: css.bg, fontSize: 12, fontWeight: 700 }}>GS</div>
+          <span style={{ fontSize: 15, fontWeight: 600, color: css.text }}>Golos Store</span>
+        </RouterLink>
+        <div style={{ flex: 1 }} />
+        <RouterLink to="/store" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: css.textMuted, textDecoration: 'none' }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 3L5 8l5 5" /></svg>
+          Seguir comprando
+        </RouterLink>
+      </nav>
+
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: css.text, letterSpacing: '-0.5px', margin: 0 }}>Carrito</h1>
+        </div>
+
+        {errorMessage && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage}</Alert>}
 
         {items.length === 0 ? (
-          <Card variant="outlined">
-            <CardContent>
-              <Typography color="text.secondary">Tu carrito esta vacio.</Typography>
-            </CardContent>
-          </Card>
+          <div style={{ background: css.bgCard, border: `1px solid ${css.border}`, borderRadius: 16, padding: 40, textAlign: 'center' }}>
+            <div style={{ fontSize: 15, color: css.textMuted, marginBottom: 20 }}>Tu carrito está vacío.</div>
+            <RouterLink to="/store" style={{ padding: '12px 24px', borderRadius: 6, background: css.accent, color: css.accentFg, textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>Ir a la tienda</RouterLink>
+          </div>
         ) : (
-          <Stack spacing={2}>
-            <Card variant="outlined">
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                  <Typography variant="h6">Items ({items.length})</Typography>
-                  <Button onClick={() => void loadAndValidate()} disabled={loading}>
-                    Revalidar
-                  </Button>
-                </Stack>
+          <>
+            {/* Items card */}
+            <div style={{ background: css.bgCard, border: `1px solid ${css.border}`, borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
+              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${css.border}`, background: css.bgSubtle, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: css.text }}>Ítems ({items.length})</span>
+                <button onClick={() => void loadAndValidate()} disabled={loading} style={{ fontSize: 12, color: css.textMuted, cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit' }}>Revalidar</button>
+              </div>
+              {items.map((item) => {
+                const detail = validatedItems.find((l) => l.variant_id === item.variant_id)
+                return (
+                  <div key={item.variant_id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderBottom: `1px solid ${css.border}` }}>
+                    <div style={{ width: 64, height: 64, borderRadius: 8, background: css.bgSubtle, border: `1px solid ${css.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                      <img src={detail?.image_url || FALLBACK_IMAGE} alt={detail?.product_name || `Variante ${item.variant_id}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => { if ((e.target as HTMLImageElement).src !== FALLBACK_IMAGE) (e.target as HTMLImageElement).src = FALLBACK_IMAGE }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: css.text, marginBottom: 3 }}>{detail?.product_name || `Variante #${item.variant_id}`}</div>
+                      <div style={{ fontSize: 12, color: css.textMuted }}>{detail?.variant_info || 'Pendiente de validación'}</div>
+                      {detail && <div style={{ fontSize: 13, color: css.textFaint, marginTop: 3 }}>Precio unitario: {money(detail.unit_price)}</div>}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${css.border}`, borderRadius: 6, overflow: 'hidden' }}>
+                        <button onClick={() => handleQuantityChange(item.variant_id, Math.max(1, item.quantity - 1))} style={{ width: 30, height: 32, border: 'none', background: css.bgSubtle, color: css.textMuted, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}>−</button>
+                        <div style={{ width: 32, textAlign: 'center', fontSize: 13, fontWeight: 500, color: css.text, background: css.bg, borderLeft: `1px solid ${css.border}`, borderRight: `1px solid ${css.border}`, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.quantity}</div>
+                        <button onClick={() => handleQuantityChange(item.variant_id, item.quantity + 1)} style={{ width: 30, height: 32, border: 'none', background: css.bgSubtle, color: css.textMuted, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}>+</button>
+                      </div>
+                      <button onClick={() => void handleRemove(item.variant_id)} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#b91c1c', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', padding: 4, borderRadius: 4 }}>
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 10h8l1-10" /></svg>
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
 
-                <Stack spacing={2}>
-                  {items.map((item) => {
-                    const detail = validatedItems.find((line) => line.variant_id === item.variant_id)
-                    return (
-                      <Box key={item.variant_id}>
-                        <Stack
-                          direction={{ xs: 'column', sm: 'row' }}
-                          spacing={2}
-                          alignItems={{ sm: 'center' }}
-                          sx={{
-                            p: 1.5,
-                            borderRadius: 2,
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            backgroundColor: 'background.default',
-                          }}
-                        >
-                          <CardMedia
-                            component="img"
-                            image={detail?.image_url || FALLBACK_IMAGE}
-                            alt={detail?.product_name || `Variante ${item.variant_id}`}
-                            sx={{ width: { xs: '100%', sm: 92 }, height: { xs: 160, sm: 92 }, borderRadius: 2, objectFit: 'cover' }}
-                            onError={(event) => {
-                              if (event.currentTarget.src !== FALLBACK_IMAGE) {
-                                event.currentTarget.src = FALLBACK_IMAGE
-                              }
-                            }}
-                          />
-                          <Box flex={1} minWidth={0}>
-                            <Typography fontWeight={700}>{detail?.product_name || `Variante #${item.variant_id}`}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {detail?.variant_info || 'Pendiente de validacion'}
-                            </Typography>
-                            {detail && (
-                              <Typography variant="body2" color="text.secondary">
-                                Precio unitario: {money(detail.unit_price)}
-                              </Typography>
-                            )}
-                          </Box>
+            {/* Totals card */}
+            <div style={{ background: css.bgCard, border: `1px solid ${css.border}`, borderRadius: 16, overflow: 'hidden' }}>
+              <div style={{ padding: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0' }}>
+                  <span style={{ fontSize: 13, color: css.textMuted }}>Subtotal</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: css.text }}>{money(total)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0' }}>
+                  <span style={{ fontSize: 13, color: css.textMuted }}>Envío</span>
+                  <span style={{ fontSize: 13, color: css.textFaint }}>Se calcula al finalizar</span>
+                </div>
+                <div style={{ height: 1, background: css.border, margin: '10px 0' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: css.text }}>Total estimado</span>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: css.text, letterSpacing: '-0.3px' }}>{money(total)}</span>
+                </div>
+                <button
+                  onClick={() => { if (!loading && validatedItems.length > 0) navigate('/store/checkout') }}
+                  disabled={loading || validatedItems.length === 0}
+                  style={{
+                    width: '100%', padding: 14, borderRadius: 6, background: (loading || validatedItems.length === 0) ? css.textFaint : css.accent,
+                    color: css.accentFg, border: 'none', fontSize: 14, fontWeight: 700, cursor: (loading || validatedItems.length === 0) ? 'not-allowed' : 'pointer',
+                    fontFamily: 'inherit', marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M2 2h2l2 7h6l2-5H5" /><circle cx="7" cy="13" r="1" /><circle cx="11" cy="13" r="1" />
+                  </svg>
+                  {loading ? 'Validando...' : 'Ir a finalizar compra'}
+                </button>
 
-                          <TextField
-                            label="Cantidad"
-                            type="number"
-                            size="small"
-                            value={item.quantity}
-                            inputProps={{ min: 1 }}
-                            onChange={(event) => handleQuantityChange(item.variant_id, Number(event.target.value || 1))}
-                            sx={{ width: 110 }}
-                          />
-
-                          <Button
-                            color="error"
-                            onClick={(event) => void handleRemove(item.variant_id, event.currentTarget)}
-                            startIcon={<DeleteOutlineRoundedIcon />}
-                            sx={{ transition: 'transform 160ms ease', '&:hover': { transform: 'translateY(-1px)' } }}
-                          >
-                            {isMobile ? 'Quitar' : 'Eliminar'}
-                          </Button>
-                        </Stack>
-                        <Divider sx={{ mt: 2 }} />
-                      </Box>
-                    )
-                  })}
-                </Stack>
-              </CardContent>
-            </Card>
-
-            <Card variant="outlined">
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="h6">Total estimado</Typography>
-                  <Typography variant="h6" color="primary.main">{money(total)}</Typography>
-                </Stack>
-
-                <Box mt={2} display="flex" justifyContent="flex-end">
-                  <Button
-                    variant="contained"
-                    disabled={loading || validatedItems.length === 0}
-                    onClick={() => navigate('/store/checkout')}
-                    startIcon={<ShoppingCartCheckoutRoundedIcon />}
-                    sx={{
-                      fontWeight: 700,
-                      px: 2.2,
-                      width: { xs: '100%', sm: 'auto' },
-                      transition: 'all 180ms ease',
-                      '&:hover': { transform: 'translateY(-1px)' },
-                    }}
-                  >
-                    {isMobile ? 'Finalizar' : 'Ir a finalizar compra'}
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Stack>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 20, marginTop: 16, flexWrap: 'wrap' }}>
+                  {[
+                    { icon: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M8 2L2 5v4c0 3 2.5 5.5 6 6 3.5-.5 6-3 6-6V5L8 2z" /></svg>, label: 'Pago seguro' },
+                    { icon: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M2 8h12M8 3l5 5-5 5" /></svg>, label: 'Envío rastreable' },
+                    { icon: <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M8 2a6 6 0 100 12A6 6 0 008 2z" /><path d="M8 6v4M8 10v1" /></svg>, label: 'Soporte WhatsApp' },
+                  ].map((t) => (
+                    <div key={t.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: css.textFaint }}>{t.icon}{t.label}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
         )}
-      </Stack>
-      {returnToStoreFly && (
-        <Box
-          sx={{
-            position: 'fixed',
-            left: `${returnToStoreFly.startX}px`,
-            top: `${returnToStoreFly.startY}px`,
-            width: 36,
-            height: 36,
-            borderRadius: 1.5,
-            overflow: 'hidden',
-            border: `1px solid ${theme.palette.divider}`,
-            boxShadow: `0 12px 24px rgba(0,0,0,0.18)`,
-            zIndex: 1400,
-            pointerEvents: 'none',
-            bgcolor: theme.palette.background.paper,
-            transform: returnToStoreFly.active
-              ? `translate(${returnToStoreFly.deltaX}px, ${returnToStoreFly.deltaY}px) scale(0.45) rotate(-10deg)`
-              : 'translate(0px, 0px) scale(1) rotate(0deg)',
-            opacity: returnToStoreFly.active ? 0.05 : 1,
-            transition: 'transform 620ms cubic-bezier(0.22, 1, 0.36, 1), opacity 620ms ease',
-          }}
-        >
-          <Box
-            component="img"
-            src={returnToStoreFly.imageUrl}
-            alt="Producto regresando a tienda"
-            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        </Box>
-      )}
-    </Container>
+      </div>
+      <StoreFooter />
+    </div>
   )
 }

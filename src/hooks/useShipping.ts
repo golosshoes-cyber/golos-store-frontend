@@ -17,7 +17,7 @@ export const useShippingQuote = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const getQuote = useCallback(async (destination: { city: string, department: string }, weight: number) => {
+  const getQuote = useCallback(async (destination: { city: string, department: string, city_code?: string, department_code?: string }, weight: number) => {
     setLoading(true)
     setError(null)
     try {

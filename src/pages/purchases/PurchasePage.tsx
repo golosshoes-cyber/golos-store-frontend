@@ -1,22 +1,21 @@
 import React from 'react'
 import {
-  Box,
   Alert,
-  Pagination,
   useMediaQuery,
   useTheme,
 } from '@mui/material'
 import {
-  AddShoppingCart
+  AddShoppingCart,
 } from '@mui/icons-material'
-import PurchaseFilters from '../../components/purchases/PurchaseFilters'
-import PurchasesTable from '../../components/purchases/PurchasesTable'
-import PurchasesCards from '../../components/purchases/PurchasesCards'
+import PurchasesTabs from '../../components/purchases/PurchasesTabs'
 import CreatePurchaseDialog from '../../components/purchases/CreatePurchaseDialog'
 import { usePurchaseLogic } from '../../hooks/purchases/usePurchaseLogic'
 import PageShell from '../../components/common/PageShell'
 import GlobalSectionHeader from '../../components/common/GlobalSectionHeader'
 import GradientButton from '../../components/common/GradientButton'
+import ExportButton from '../../components/common/ExportButton'
+import { exportService } from '../../services/exportService'
+import { Box } from '@mui/material'
 
 const PurchasePage: React.FC = () => {
   const theme = useTheme()
@@ -28,16 +27,18 @@ const PurchasePage: React.FC = () => {
     createModalOpen,
     detailsPage,
     filters,
-    purchases,
+    processedPurchases,
     suppliersDetails,
     productsDetails,
+    purchaseSort,
+    setPurchaseSort,
+    variantOptions,
     variants,
     allProducts,
     suppliers,
-    variantOptions,
     purchaseItems,
     detailsLoading,
-    isLoading,
+    formLoading,
     purchasesCount,
     setCreateModalOpen,
     setError,
@@ -59,12 +60,19 @@ const PurchasePage: React.FC = () => {
         subtitle="Gestiona compras y entradas de inventario de forma centralizada"
         icon={<AddShoppingCart sx={{ fontSize: { xs: 24, sm: 30 } }} />}
         actions={
-          <GradientButton
-            startIcon={<AddShoppingCart />}
-            onClick={() => setCreateModalOpen(true)}
-          >
-            Crear Compra
-          </GradientButton>
+          <Box sx={{ display: 'flex', gap: 1, width: isMobile ? '100%' : 'auto' }}>
+            <ExportButton 
+              onExport={(format) => exportService.exportPurchases(format)} 
+              fullWidth={isMobile}
+            />
+            <GradientButton
+              startIcon={<AddShoppingCart />}
+              onClick={() => setCreateModalOpen(true)}
+              fullWidth={isMobile}
+            >
+              Crear Compra
+            </GradientButton>
+          </Box>
         }
       />
 
@@ -80,44 +88,19 @@ const PurchasePage: React.FC = () => {
         </Alert>
       )}
 
-      {/* Filters */}
-      <Box sx={{ mb: 2.5 }}>
-        <PurchaseFilters
-          filters={filters}
-          suppliers={suppliersDetails}
-          products={productsDetails}
-          isMobile={isMobile}
-          onFilterChange={handleFilterChange}
-        />
-      </Box>
-
-      {/* Purchases Table - Desktop */}
-      {!isMobile && (
-        <PurchasesTable
-          purchases={purchases}
-          isLoading={detailsLoading}
-        />
-      )}
-
-      {/* Purchases Cards - Mobile */}
-      {isMobile && (
-        <PurchasesCards
-          purchases={purchases}
-          isLoading={detailsLoading}
-        />
-      )}
-
-      {/* Pagination */}
-      {purchasesCount > 20 && (
-        <Box display="flex" justifyContent="center" mt={3} mb={2}>
-          <Pagination
-            count={Math.ceil(purchasesCount / 20)}
-            page={detailsPage}
-            onChange={handleDetailsPageChange}
-            size={isMobile ? 'small' : 'medium'}
-          />
-        </Box>
-      )}
+      <PurchasesTabs
+        purchases={processedPurchases}
+        loading={detailsLoading}
+        page={detailsPage}
+        totalCount={purchasesCount}
+        onPageChange={handleDetailsPageChange}
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        suppliers={suppliersDetails}
+        products={productsDetails}
+        purchaseSort={purchaseSort}
+        onSortChange={setPurchaseSort}
+      />
 
       {/* Create Purchase Dialog */}
       <CreatePurchaseDialog
@@ -128,7 +111,7 @@ const PurchasePage: React.FC = () => {
         allProducts={allProducts}
         suppliers={suppliers}
         variants={variants}
-        isLoading={isLoading}
+        isLoading={formLoading}
         isMobile={isMobile}
         onClearAll={handleClearAll}
         onAddItem={handleAddItem}

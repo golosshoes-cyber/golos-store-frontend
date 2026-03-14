@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import {
+  alpha,
   Alert,
   Box,
   Chip,
@@ -163,88 +164,182 @@ const GroupsManagement: React.FC = () => {
       )}
 
       {!isMobile && (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Grupo</TableCell>
-                <TableCell>Permisos</TableCell>
-                <TableCell align="right">Acciones</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {groups.map((group) => {
-                const groupPermissions = getGroupPermissions(group)
-                return (
-                  <TableRow key={group.id}>
-                    <TableCell>
-                      <Typography fontWeight={700}>{group.name}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.6 }}>
-                        {groupPermissions.slice(0, 4).map((permission) => (
-                          <Chip key={permission.id} size="small" label={permission.codename} />
-                        ))}
-                        {groupPermissions.length > 4 && (
-                          <Chip size="small" color="primary" label={`+${groupPermissions.length - 4}`} />
-                        )}
-                        {groupPermissions.length === 0 && (
-                          <Typography variant="caption" color="text.secondary">
-                            Sin permisos expuestos
-                          </Typography>
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Editar grupo">
-                        <IconButton size="small" color="warning" onClick={() => handleEdit(group)}>
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Eliminar grupo">
-                        <IconButton size="small" color="error" onClick={() => handleDelete(group)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: '24px',
+            border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
+            bgcolor: 'background.paper',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Encabezado Integrado */}
+          <Box sx={{ p: 3, pb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '1.1rem', color: 'text.primary' }}>
+              Lista de Grupos
+            </Typography>
+          </Box>
+
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.01)' : 'rgba(255,255,255,0.02)' }}>
+                  <TableCell sx={{ py: 1.5, fontSize: '10px', fontWeight: 600, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', pl: 3 }}>Grupo</TableCell>
+                  <TableCell sx={{ py: 1.5, fontSize: '10px', fontWeight: 600, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Permisos</TableCell>
+                  <TableCell align="right" sx={{ py: 1.5, fontSize: '10px', fontWeight: 600, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', pr: 3 }}>Acciones</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {groups.map((group) => {
+                  const groupPermissions = getGroupPermissions(group)
+                  return (
+                    <TableRow key={group.id} sx={{ '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.005) } }}>
+                      <TableCell sx={{ pl: 3, py: 2 }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '14px', color: 'text.primary' }}>{group.name}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.6 }}>
+                          {groupPermissions.slice(0, 4).map((permission) => (
+                            <Chip 
+                              key={permission.id} 
+                              size="small" 
+                              label={permission.codename}
+                              sx={{ 
+                                fontSize: '10px', 
+                                height: 20, 
+                                borderRadius: '4px',
+                                bgcolor: alpha(theme.palette.text.primary, 0.05),
+                                color: 'text.secondary',
+                                fontWeight: 500
+                              }} 
+                            />
+                          ))}
+                          {groupPermissions.length > 4 && (
+                            <Chip 
+                              size="small" 
+                              label={`+${groupPermissions.length - 4}`}
+                              sx={{ 
+                                fontSize: '10px', 
+                                height: 20, 
+                                borderRadius: '4px',
+                                bgcolor: 'text.primary',
+                                color: 'background.paper',
+                                fontWeight: 700
+                              }} 
+                            />
+                          )}
+                          {groupPermissions.length === 0 && (
+                            <Typography variant="caption" color="text.secondary">
+                              Sin permisos expuestos
+                            </Typography>
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell align="right" sx={{ pr: 3 }}>
+                        <Box display="flex" gap={1} justifyContent="flex-end">
+                          {[
+                            { icon: <EditIcon sx={{ fontSize: 18 }} />, color: '#f59e0b', title: 'Editar grupo', onClick: () => handleEdit(group) },
+                            { icon: <DeleteIcon sx={{ fontSize: 18 }} />, color: '#ef4444', title: 'Eliminar grupo', onClick: () => handleDelete(group) }
+                          ].map((action, idx) => (
+                            <Tooltip key={idx} title={action.title}>
+                              <IconButton 
+                                size="small" 
+                                onClick={action.onClick}
+                                sx={{ 
+                                  color: action.color,
+                                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                  '&:hover': {
+                                    transform: 'translateY(-2px)',
+                                    bgcolor: alpha(action.color, 0.1),
+                                  }
+                                }}
+                              >
+                                {action.icon}
+                              </IconButton>
+                            </Tooltip>
+                          ))}
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+                {!groupsLoading && groups.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={3} sx={{ py: 6, textAlign: 'center' }}>
+                      <Typography color="text.secondary">No hay grupos creados.</Typography>
                     </TableCell>
                   </TableRow>
-                )
-              })}
-              {!groupsLoading && groups.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3}>
-                    <Typography color="text.secondary">No hay grupos creados.</Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       )}
 
       {isMobile && (
-        <Stack spacing={1.5}>
+        <Stack spacing={2}>
           {groups.map((group) => {
             const groupPermissions = getGroupPermissions(group)
             return (
-              <Paper key={group.id} sx={{ p: 1.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                  <Typography fontWeight={700}>{group.name}</Typography>
-                  <Box>
-                    <IconButton size="small" color="warning" onClick={() => handleEdit(group)}>
-                      <EditIcon />
+              <Paper 
+                key={group.id} 
+                elevation={0}
+                sx={{ 
+                  p: 2.5, 
+                  borderRadius: '24px',
+                  border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
+                  bgcolor: 'background.paper',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: '1.1rem' }}>{group.name}</Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleEdit(group)}
+                      sx={{ color: '#f59e0b', bgcolor: alpha('#f59e0b', 0.1) }}
+                    >
+                      <EditIcon sx={{ fontSize: 18 }} />
                     </IconButton>
-                    <IconButton size="small" color="error" onClick={() => handleDelete(group)}>
-                      <DeleteIcon />
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleDelete(group)}
+                      sx={{ color: '#ef4444', bgcolor: alpha('#ef4444', 0.1) }}
+                    >
+                      <DeleteIcon sx={{ fontSize: 18 }} />
                     </IconButton>
                   </Box>
                 </Box>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.6, mt: 1 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
                   {groupPermissions.slice(0, 4).map((permission) => (
-                    <Chip key={permission.id} size="small" label={permission.codename} />
+                    <Chip 
+                      key={permission.id} 
+                      size="small" 
+                      label={permission.codename}
+                      sx={{ 
+                        fontSize: '10px', 
+                        height: 20, 
+                        borderRadius: '4px',
+                        bgcolor: alpha(theme.palette.text.primary, 0.05),
+                        color: 'text.secondary',
+                        fontWeight: 500
+                      }} 
+                    />
                   ))}
                   {groupPermissions.length > 4 && (
-                    <Chip size="small" color="primary" label={`+${groupPermissions.length - 4}`} />
+                    <Chip 
+                      size="small" 
+                      label={`+${groupPermissions.length - 4}`}
+                      sx={{ 
+                        fontSize: '10px', 
+                        height: 20, 
+                        borderRadius: '4px',
+                        bgcolor: 'text.primary',
+                        color: 'background.paper',
+                        fontWeight: 700
+                      }} 
+                    />
                   )}
                   {groupPermissions.length === 0 && (
                     <Typography variant="caption" color="text.secondary">

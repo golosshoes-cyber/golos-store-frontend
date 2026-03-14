@@ -93,9 +93,8 @@ const ProductDialog: React.FC<ProductDialogProps> = ({
               fontSize: '12px',
               textTransform: 'none',
               px: 2,
-              border: `1px solid ${theme.palette.divider}`,
               color: 'text.secondary',
-              '&:hover': { borderColor: 'text.disabled', color: 'text.primary' },
+              '&:hover': { color: 'text.primary' },
             }}
           >
             Cancelar

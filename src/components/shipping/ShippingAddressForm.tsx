@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CircularProgress, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { Autocomplete, CircularProgress, Stack, TextField, Typography } from '@mui/material'
 import { useLocations } from '../../hooks/useLocations'
 import type { StoreShippingAddress } from '../../types/store'
 
@@ -17,59 +17,100 @@ export default function ShippingAddressForm({ initialAddress, onChange }: Shippi
   }, [loadDepartments])
 
   useEffect(() => {
-    if (address.department) {
-      void loadCities(address.department)
+    if (address.department_code) {
+      void loadCities(address.department_code)
     }
   }, [address.department, loadCities])
 
-  const handleChange = (field: keyof StoreShippingAddress, value: string) => {
-    const newAddress = { ...address, [field]: value }
-    if (field === 'department') {
-      newAddress.city = '' // Reset city when department changes
+  const handleDepartmentChange = (selection: { code: string, name: string } | null) => {
+    const newAddress = {
+      ...address,
+      department: selection?.name || '',
+      department_code: selection?.code || '',
+      city: '',
+      city_code: ''
     }
     setAddress(newAddress)
     onChange(newAddress)
   }
 
+  const handleCityChange = (selection: { code: string, name: string } | null) => {
+    const newAddress = {
+      ...address,
+      city: selection?.name || '',
+      city_code: selection?.code || ''
+    }
+    setAddress(newAddress)
+    onChange(newAddress)
+  }
+
+  const handleChange = (field: keyof StoreShippingAddress, value: string) => {
+    const newAddress = { ...address, [field]: value }
+    setAddress(newAddress)
+    onChange(newAddress)
+  }
+
+  const selectedDepartment = departments.find(d => d.name === address.department || d.code === address.department_code) || null
+  const selectedCity = cities.find(c => c.name === address.city || c.code === address.city_code) || null
+
   return (
     <Stack spacing={1.5}>
-      <Typography variant="subtitle2">Dirección de envío</Typography>
+      <Typography variant="subtitle2" sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Dirección de envío</Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-        <TextField
-          select
-          label="Departamento"
-          size="small"
-          value={address.department}
-          onChange={(event) => handleChange('department', event.target.value)}
+        <Autocomplete
           fullWidth
-          required
-          disabled={loading}
-          helperText={loading ? <CircularProgress size={14} /> : ''}
-        >
-          {departments.map((dep) => (
-            <MenuItem key={dep.code} value={dep.code}>
-              {dep.name}
-            </MenuItem>
-          ))}
-          {departments.length === 0 && <MenuItem value={address.department}>{address.department || 'Selecciona...'}</MenuItem>}
-        </TextField>
-        <TextField
-          select
-          label="Ciudad"
           size="small"
-          value={address.city}
-          onChange={(event) => handleChange('city', event.target.value)}
+          loading={loading}
+          options={departments}
+          getOptionLabel={(option) => option.name}
+          value={selectedDepartment}
+          onChange={(_, newValue) => handleDepartmentChange(newValue)}
+          isOptionEqualToValue={(option, value) => option.code === value.code}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Departamento *"
+              placeholder="Busca..."
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {loading ? <CircularProgress color="inherit" size={16} /> : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              }}
+            />
+          )}
+        />
+        <Autocomplete
           fullWidth
-          required
-          disabled={loading || !address.department}
-        >
-          {cities.map((city) => (
-            <MenuItem key={city.code} value={city.code}>
-              {city.name}
-            </MenuItem>
-          ))}
-          {cities.length === 0 && <MenuItem value={address.city}>{address.city || 'Selecciona...'}</MenuItem>}
-        </TextField>
+          size="small"
+          loading={loading}
+          disabled={!address.department}
+          options={cities}
+          getOptionLabel={(option) => option.name}
+          value={selectedCity}
+          onChange={(_, newValue) => handleCityChange(newValue)}
+          isOptionEqualToValue={(option, value) => option.code === value.code}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Ciudad *"
+              placeholder={address.department ? "Busca tu ciudad..." : "Primero elige departamento"}
+              required
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {loading ? <CircularProgress color="inherit" size={16} /> : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              }}
+            />
+          )}
+        />
       </Stack>
       <TextField
         label="Dirección principal"

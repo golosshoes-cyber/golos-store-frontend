@@ -1,6 +1,5 @@
 import React from 'react'
-import { Grid, Typography, Box, Paper, CircularProgress } from '@mui/material'
-import { alpha, useTheme } from '@mui/material/styles'
+import { Grid, Typography, Box, Paper, CircularProgress, alpha, Chip, useTheme } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useDashboardLogic } from '../../hooks/dashboard/useDashboardLogic'
 import DashboardStatsCards from '../../components/dashboard/DashboardStatsCards'
@@ -8,6 +7,11 @@ import RecentMovements from '../../components/dashboard/RecentMovements'
 import TopProducts from '../../components/dashboard/TopProducts'
 import SupplierPerformance from '../../components/dashboard/SupplierPerformance'
 import SalesChart from '../../components/dashboard/SalesChart'
+import MetricsWidget from '../../components/dashboard/MetricsWidget'
+import SupplierRecommendationsWidget from '../../components/dashboard/SupplierRecommendationsWidget'
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
+import LocalShippingIcon from '@mui/icons-material/LocalShipping'
+import FlareIcon from '@mui/icons-material/Flare'
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
@@ -19,15 +23,21 @@ const DashboardPage: React.FC = () => {
     supplierPerformance,
     salesChart,
     lowStock,
+    dailySummary,
+    metrics,
+    recommendations,
     isLoading,
     movementsLoading,
     topProductsLoading,
     suppliersLoading,
     chartLoading,
+    dailyLoading,
+    metricsLoading,
+    recommendationsLoading,
     error,
   } = useDashboardLogic()
 
-  if (isLoading) {
+  if (isLoading || dailyLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="400px">
         <CircularProgress />
@@ -46,21 +56,63 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
       {/* PAGE HEADER */}
-      <Box>
-        <Typography sx={{ 
-          fontSize: '15px', 
-          fontWeight: 600, 
-          letterSpacing: '-0.3px',
-          color: 'text.primary',
-          lineHeight: 1.2
-        }}>
-          Panel ejecutivo
-        </Typography>
-        <Typography sx={{ color: 'text.secondary', fontSize: '12px', mt: 0.3 }}>
-          Estado comercial, inventario y operaciones · Hoy, {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1.5 }}>
+        <Box>
+          <Typography sx={{ 
+            fontSize: '14px', 
+            fontWeight: 700, 
+            letterSpacing: '-0.3px',
+            color: 'text.primary',
+            lineHeight: 1.1
+          }}>
+            Panel ejecutivo
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: '11px', mt: 0.1, opacity: 0.8 }}>
+            Estado comercial, inventario y operaciones · Hoy, {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </Typography>
+        </Box>
+
+        {/* DAILY SUMMARY CHIPS */}
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Chip 
+            icon={<ShoppingBagIcon sx={{ fontSize: '14px !important' }} />} 
+            label={`Ventas: ${dailySummary?.activities?.sales?.today || 0}`} 
+            size="small"
+            sx={{ 
+              fontSize: '11px', 
+              fontWeight: 500,
+              bgcolor: alpha(theme.palette.success.main, 0.08),
+              color: 'success.main',
+              border: `1px solid ${alpha(theme.palette.success.main, 0.1)}`
+            }}
+          />
+          <Chip 
+            icon={<LocalShippingIcon sx={{ fontSize: '14px !important' }} />} 
+            label={`Compras: ${dailySummary?.activities?.purchases || 0}`} 
+            size="small"
+            sx={{ 
+              fontSize: '11px', 
+              fontWeight: 500,
+              bgcolor: alpha(theme.palette.primary.main, 0.08),
+              color: 'primary.main',
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
+            }}
+          />
+          <Chip 
+            icon={<FlareIcon sx={{ fontSize: '14px !important' }} />} 
+            label={`Nuevos: ${dailySummary?.activities?.new_products || 0}`} 
+            size="small"
+            sx={{ 
+              fontSize: '11px', 
+              fontWeight: 500,
+              bgcolor: alpha(theme.palette.info.main, 0.08),
+              color: 'info.main',
+              border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`
+            }}
+          />
+        </Box>
       </Box>
 
       {/* ALERT */}
@@ -98,36 +150,50 @@ const DashboardPage: React.FC = () => {
       )}
 
       {/* STATS ROW - 4 columns */}
-      <Grid container spacing={1.5}>
+      <Grid container spacing={1}>
         <DashboardStatsCards stats={stats} />
       </Grid>
 
-      {/* ROW 2: Movimientos + Top Productos (50/50) */}
-      <Grid container spacing={1.5}>
-        <RecentMovements
-          movements={recentMovements?.movements}
-          loading={movementsLoading}
-        />
-        <TopProducts
-          products={topProducts?.products}
-          loading={topProductsLoading}
-        />
+      {/* ROW 2: Movimientos + Top Productos + Rendimiento (METRICS) */}
+      <Grid container spacing={1}>
+        <Grid item xs={12} md={4}>
+          <RecentMovements
+            movements={recentMovements?.movements}
+            loading={movementsLoading}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TopProducts
+            products={topProducts?.products}
+            loading={topProductsLoading}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <MetricsWidget metrics={metrics} loading={metricsLoading} />
+        </Grid>
       </Grid>
 
-      {/* ROW 3: Chart + Proveedores (50/50) */}
-      <Grid container spacing={1.5}>
-        <SalesChart
-          chartData={salesChart?.chart_data}
-          loading={chartLoading}
-        />
-        <SupplierPerformance
-          suppliers={supplierPerformance?.suppliers}
-          loading={suppliersLoading}
-        />
+      {/* ROW 3: Chart + Proveedores + Recomendaciones */}
+      <Grid container spacing={1}>
+        <Grid item xs={12} md={5}>
+          <SalesChart
+            chartData={salesChart?.chart_data}
+            loading={chartLoading}
+          />
+        </Grid>
+        <Grid item xs={12} md={3.5}>
+          <SupplierPerformance
+            suppliers={supplierPerformance?.suppliers}
+            loading={suppliersLoading}
+          />
+        </Grid>
+        <Grid item xs={12} md={3.5}>
+          <SupplierRecommendationsWidget recommendations={recommendations} loading={recommendationsLoading} />
+        </Grid>
       </Grid>
 
       {/* ROW 4: Status Grid */}
-      <Grid container spacing={1.5}>
+      <Grid container spacing={1}>
         <Grid item xs={12} sm={4}>
           <Paper sx={{ 
             p: '12px 14px', 

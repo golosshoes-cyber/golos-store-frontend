@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useLocation } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
@@ -35,6 +35,16 @@ export const useProductsLogic = () => {
   const [variantSearch, setVariantSearch] = useState('')
   const [productInputValue, setProductInputValue] = useState('')
   const [variantInputValue, setVariantInputValue] = useState('')
+  
+  // Sorting & Filtering States
+  const [productSort, setProductSort] = useState<string>('newest')
+  const [productFilter, setProductFilter] = useState<string>('all')
+  const [variantSort, setVariantSort] = useState<string>('newest')
+  const [variantFilter, setVariantFilter] = useState<string>('all')
+  
+  // Table Selection States
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([])
+  const [selectedVariants, setSelectedVariants] = useState<number[]>([])
 
   const blurActiveElement = () => {
     const activeElement = document.activeElement
@@ -145,6 +155,82 @@ export const useProductsLogic = () => {
     queryKey: ['variants', variantPage, variantSearch],
     queryFn: () => productService.getVariants({ page: variantPage, limit: 20, search: variantSearch }),
   })
+
+  // Local Sort & Filter Logic
+  const processedProducts = useMemo(() => {
+    if (!productsData?.results) return []
+    let result = [...productsData.results]
+
+    // Local Filtering
+    if (productFilter === 'active') result = result.filter(p => p.active)
+    if (productFilter === 'inactive') result = result.filter(p => !p.active)
+
+    // Local Search Hardening
+    if (productSearch) {
+      const search = productSearch.toLowerCase()
+      result = result.filter(p => 
+        (p.name?.toLowerCase().includes(search)) || 
+        (p.brand?.toLowerCase().includes(search))
+      )
+    }
+
+    // Local Sorting
+    result.sort((a, b) => {
+      if (productSort === 'name-asc') return a.name.localeCompare(b.name)
+      if (productSort === 'name-desc') return b.name.localeCompare(a.name)
+      if (productSort === 'stock-asc') {
+        const stockA = a.variants.reduce((sum, v) => sum + v.stock, 0)
+        const stockB = b.variants.reduce((sum, v) => sum + v.stock, 0)
+        return stockA - stockB
+      }
+      if (productSort === 'stock-desc') {
+        const stockA = a.variants.reduce((sum, v) => sum + v.stock, 0)
+        const stockB = b.variants.reduce((sum, v) => sum + v.stock, 0)
+        return stockB - stockA
+      }
+      if (productSort === 'newest') return b.id - a.id
+      return 0
+    })
+
+    return result
+  }, [productsData, productFilter, productSort])
+
+  const processedVariants = useMemo(() => {
+    if (!variantsData?.results) return []
+    let result = [...variantsData.results]
+
+    // Local Filtering
+    if (variantFilter === 'active') result = result.filter(v => v.active)
+    if (variantFilter === 'inactive') result = result.filter(v => !v.active)
+    if (variantFilter === 'men') result = result.filter(v => v.gender === 'male')
+    if (variantFilter === 'women') result = result.filter(v => v.gender === 'female')
+
+    // Local Search Hardening
+    if (variantSearch) {
+      const search = variantSearch.toLowerCase()
+      result = result.filter(v => {
+        const product = allProducts?.results?.find(p => p.id === v.product)
+        const productName = product?.name || ''
+        return (productName.toLowerCase().includes(search)) ||
+               (v.sku?.toLowerCase().includes(search)) ||
+               (v.size?.toLowerCase().includes(search)) ||
+               (v.color?.toLowerCase().includes(search))
+      })
+    }
+
+    // Local Sorting
+    result.sort((a, b) => {
+      if (variantSort === 'sku-asc') return (a.sku || '').localeCompare(b.sku || '')
+      if (variantSort === 'price-asc') return a.price - b.price
+      if (variantSort === 'price-desc') return b.price - a.price
+      if (variantSort === 'stock-asc') return a.stock - b.stock
+      if (variantSort === 'stock-desc') return b.stock - a.stock
+      if (variantSort === 'newest') return b.id - a.id
+      return 0
+    })
+
+    return result
+  }, [variantsData, variantFilter, variantSort])
 
   // Mutations
   const createProductMutation = useMutation({
@@ -365,6 +451,50 @@ export const useProductsLogic = () => {
     }
   }
 
+  const handleBulkDelete = async (type: 'products' | 'variants') => {
+    const ids = type === 'products' ? selectedProducts : selectedVariants
+    if (ids.length === 0) return
+
+    const confirmed = await showAcrylicConfirm({
+      mode: theme.palette.mode,
+      title: `Eliminar ${type === 'products' ? 'Productos' : 'Variantes'}`,
+      text: `¿Estás seguro de que quieres eliminar ${ids.length} ${type === 'products' ? 'productos' : 'variantes'}? Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      confirmText: 'Eliminar todo',
+      cancelText: 'Cancelar',
+      confirmButtonColor: '#dc2626',
+    })
+
+    if (confirmed) {
+      if (type === 'products') {
+        await Promise.all(ids.map(id => productService.deleteProduct(id)))
+        queryClient.invalidateQueries({ queryKey: ['products'] })
+        queryClient.invalidateQueries({ queryKey: ['all-products'] })
+        setSelectedProducts([])
+      } else {
+        await Promise.all(ids.map(id => productService.deleteVariant(id)))
+        queryClient.invalidateQueries({ queryKey: ['variants'] })
+        setSelectedVariants([])
+      }
+    }
+  }
+
+  const handleBulkToggleActive = async (type: 'products' | 'variants', active: boolean) => {
+    const ids = type === 'products' ? selectedProducts : selectedVariants
+    if (ids.length === 0) return
+
+    if (type === 'products') {
+      await Promise.all(ids.map(id => productService.updateProduct(id, { active })))
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      queryClient.invalidateQueries({ queryKey: ['all-products'] })
+      setSelectedProducts([])
+    } else {
+      await Promise.all(ids.map(id => productService.updateVariant(id, { active })))
+      queryClient.invalidateQueries({ queryKey: ['variants'] })
+      setSelectedVariants([])
+    }
+  }
+
   return {
     // States
     wizardOpen,
@@ -437,6 +567,26 @@ export const useProductsLogic = () => {
     setProductInputValue,
     setVariantInputValue,
     
+    // Sort & Filter Setters
+    setProductSort,
+    setProductFilter,
+    setVariantSort,
+    setVariantFilter,
+    productSort,
+    productFilter,
+    variantSort,
+    variantFilter,
+    
+    // Selection
+    selectedProducts,
+    setSelectedProducts,
+    selectedVariants,
+    setSelectedVariants,
+    
+    // Processed Data
+    processedProducts,
+    processedVariants,
+    
     // Event handlers
     handlePageChange,
     handleVariantPageChange,
@@ -452,5 +602,7 @@ export const useProductsLogic = () => {
     handleDeleteVariant,
     handleImageUpload,
     handleDeleteImage,
+    handleBulkDelete,
+    handleBulkToggleActive,
   }
 }

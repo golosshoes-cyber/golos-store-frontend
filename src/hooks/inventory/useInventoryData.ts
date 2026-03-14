@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { productService } from '../../services/productService'
 import { extractApiErrorMessage } from '../../utils/apiError'
@@ -10,10 +10,17 @@ interface UseInventoryDataProps {
 
 export const useInventoryData = ({ showSuccess, showError }: UseInventoryDataProps) => {
   const [page, setPage] = useState(1)
+  const [searchTermInput, setSearchTermInput] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [lowStockOnly, setLowStockOnly] = useState(false)
 
   const queryClient = useQueryClient()
+
+  // Debounce search
+  useEffect(() => {
+    const timeout = setTimeout(() => setSearchTerm(searchTermInput), 300)
+    return () => clearTimeout(timeout)
+  }, [searchTermInput])
 
   // Fetch variants
   const {
@@ -22,7 +29,7 @@ export const useInventoryData = ({ showSuccess, showError }: UseInventoryDataPro
     error,
   } = useQuery({
     queryKey: ['variants', page, searchTerm, lowStockOnly],
-    queryFn: () => productService.getVariants(),
+    queryFn: () => productService.getVariants({ page, search: searchTerm, limit: 20 }),
   })
 
   // Fetch products to get product names
@@ -59,10 +66,12 @@ export const useInventoryData = ({ showSuccess, showError }: UseInventoryDataPro
       variants = variants.filter(variant => {
         const product = products.find(p => p.id === variant.product)
         const productName = product ? product.name : `Producto #${variant.product}`
-        return productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               variant.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               variant.size.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               (variant.color && variant.color.toLowerCase().includes(searchTerm.toLowerCase()))
+        const search = searchTerm.toLowerCase()
+        
+        return (productName?.toLowerCase().includes(search)) ||
+               (variant.sku?.toLowerCase().includes(search)) ||
+               (variant.size?.toLowerCase().includes(search)) ||
+               (variant.color?.toLowerCase().includes(search))
       })
     }
 
@@ -87,7 +96,7 @@ export const useInventoryData = ({ showSuccess, showError }: UseInventoryDataPro
   }
 
   const handleSearchChange = (value: string) => {
-    setSearchTerm(value)
+    setSearchTermInput(value)
     setPage(1) // Reset to first page when searching
   }
 
@@ -99,7 +108,7 @@ export const useInventoryData = ({ showSuccess, showError }: UseInventoryDataPro
   return {
     // State
     page,
-    searchTerm,
+    searchTerm: searchTermInput,
     lowStockOnly,
 
     // Data
@@ -109,6 +118,7 @@ export const useInventoryData = ({ showSuccess, showError }: UseInventoryDataPro
     error,
 
     // Functions
+    setPage,
     getProductInfo,
     getStockStatus,
     handleSearchChange,

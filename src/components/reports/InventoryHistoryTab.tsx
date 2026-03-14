@@ -2,7 +2,6 @@ import React from 'react'
 import {
   Box,
   Typography,
-  Paper,
   Grid,
   TextField,
   FormControl,
@@ -19,9 +18,9 @@ import {
   TableHead,
   TableRow,
   Pagination,
-  useTheme,
   useMediaQuery,
 } from '@mui/material'
+import { useTheme, alpha } from '@mui/material/styles'
 import type { Product } from '../../types'
 import type { InventoryHistoryItem, InventoryHistoryParams } from '../../types/reports'
 import InventoryHistoryCard from './InventoryHistoryCard'
@@ -64,169 +63,292 @@ const InventoryHistoryTab: React.FC<InventoryHistoryTabProps> = ({
   onProductFilterChange,
   onVariantFilterChange,
   onMovementTypeFilterChange,
-    onPageChange,
+  onPageChange,
 }) => {
   const theme = useTheme()
+  const mode = theme.palette.mode
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+
+  const totalCount = inventoryHistory?.count || 0
+  const currentPage = inventoryHistoryParams.page || 1
+  const totalPages = Math.ceil(totalCount / 20) || 1
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        Historial de Inventario
-      </Typography>
-      <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3, borderRadius: 2 }}>
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Fecha Inicio"
-              type="date"
-              value={startDate}
-              onChange={(e) => onStartDateChange(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Fecha Fin"
-              type="date"
-              value={endDate}
-              onChange={(e) => onEndDateChange(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Producto</InputLabel>
-              <Select
-                value={productFilter}
-                onChange={(e: SelectChangeEvent<string>) => onProductFilterChange(e.target.value)}
-                label="Producto"
-              >
-                <MenuItem value="">
-                  <em>Todos los productos</em>
-                </MenuItem>
-                {productsDetails.map((product: Product) => (
-                  <MenuItem key={product.id} value={product.id}>
-                    {product.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Variante"
-              value={variantFilter}
-              onChange={(e) => onVariantFilterChange(e.target.value)}
-              placeholder="ID de la variante"
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Tipo de Movimiento</InputLabel>
-              <Select
-                value={movementTypeFilter}
-                onChange={(e: SelectChangeEvent<string>) => onMovementTypeFilterChange(e.target.value)}
-                label="Tipo de Movimiento"
-              >
-                <MenuItem value="">
-                  <em>Todos</em>
-                </MenuItem>
-                <MenuItem value="Compra">Compra</MenuItem>
-                <MenuItem value="Venta">Venta</MenuItem>
-                <MenuItem value="Ajuste">Ajuste</MenuItem>
-                <MenuItem value="Devolución">Devolución</MenuItem>
-                <MenuItem value="Devolución de venta">Devolución de venta</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-      </Paper>
+      {/* TOOLBAR INTEGRATED */}
+      <Box sx={{
+        p: 1.5,
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 1.2,
+        alignItems: 'center',
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        bgcolor: mode === 'light' ? alpha('#fff', 0.5) : alpha('#000', 0.1)
+      }}>
+        <TextField
+          label="Inicio"
+          type="date"
+          value={startDate}
+          onChange={(e) => onStartDateChange(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          size="small"
+          sx={{ 
+            width: { xs: '100%', sm: 140 },
+            '& .MuiInputBase-root': { 
+              fontSize: '11px', 
+              borderRadius: 1.5,
+              height: 36,
+              bgcolor: mode === 'light' ? '#fff' : alpha('#fff', 0.03)
+            },
+            '& .MuiInputLabel-root': { 
+              fontSize: '11px',
+              '&.Mui-focused, &.MuiInputLabel-shrink': {
+                transform: 'translate(14px, -8px) scale(0.85)',
+                bgcolor: mode === 'light' ? '#fff' : theme.palette.background.paper,
+                px: 0.5,
+                fontWeight: 700
+              }
+            }
+          }}
+        />
+        <TextField
+          label="Fin"
+          type="date"
+          value={endDate}
+          onChange={(e) => onEndDateChange(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          size="small"
+          sx={{ 
+            width: { xs: '100%', sm: 140 },
+            '& .MuiInputBase-root': { 
+              fontSize: '11px', 
+              borderRadius: 1.5,
+              height: 36,
+              bgcolor: mode === 'light' ? '#fff' : alpha('#fff', 0.03)
+            },
+            '& .MuiInputLabel-root': { 
+              fontSize: '11px',
+              '&.Mui-focused, &.MuiInputLabel-shrink': {
+                transform: 'translate(14px, -8px) scale(0.85)',
+                bgcolor: mode === 'light' ? '#fff' : theme.palette.background.paper,
+                px: 0.5,
+                fontWeight: 700
+              }
+            }
+          }}
+        />
+        <FormControl size="small" sx={{ width: { xs: '100%', sm: 180 } }}>
+          <InputLabel sx={{ fontSize: '12px' }}>Producto</InputLabel>
+          <Select
+            value={productFilter}
+            onChange={(e: SelectChangeEvent<string>) => onProductFilterChange(e.target.value)}
+            label="Producto"
+            sx={{ fontSize: '12px', borderRadius: 1.5 }}
+          >
+            <MenuItem value="" sx={{ fontSize: '12px' }}>
+              <em>Todos</em>
+            </MenuItem>
+            {productsDetails.map((product: Product) => (
+              <MenuItem key={product.id} value={product.id} sx={{ fontSize: '12px' }}>
+                {product.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        
+        <FormControl size="small" sx={{ width: { xs: '100%', sm: 150 } }}>
+          <InputLabel sx={{ fontSize: '12px' }}>Movimiento</InputLabel>
+          <Select
+            value={movementTypeFilter}
+            onChange={(e: SelectChangeEvent<string>) => onMovementTypeFilterChange(e.target.value)}
+            label="Movimiento"
+            sx={{ fontSize: '12px', borderRadius: 1.5 }}
+          >
+            <MenuItem value="" sx={{ fontSize: '12px' }}>
+              <em>Todos</em>
+            </MenuItem>
+            <MenuItem value="Compra" sx={{ fontSize: '12px' }}>Compra</MenuItem>
+            <MenuItem value="Venta" sx={{ fontSize: '12px' }}>Venta</MenuItem>
+            <MenuItem value="Ajuste" sx={{ fontSize: '12px' }}>Ajuste</MenuItem>
+            <MenuItem value="Devolución" sx={{ fontSize: '12px' }}>Devolución</MenuItem>
+          </Select>
+        </FormControl>
+
+        <TextField
+          label="ID Variante"
+          value={variantFilter}
+          onChange={(e) => onVariantFilterChange(e.target.value)}
+          size="small"
+          placeholder="Escribir..."
+          sx={{ 
+            width: { xs: '100%', sm: 120 },
+            '& .MuiInputBase-root': { 
+              fontSize: '11px', 
+              borderRadius: 1.5,
+              height: 36,
+              bgcolor: mode === 'light' ? '#fff' : alpha('#fff', 0.03)
+            },
+            '& .MuiInputLabel-root': { 
+              fontSize: '11px',
+              '&.Mui-focused, &.MuiInputLabel-shrink': {
+                transform: 'translate(14px, -8px) scale(0.85)',
+                bgcolor: mode === 'light' ? '#fff' : theme.palette.background.paper,
+                px: 0.5,
+                fontWeight: 700
+              }
+            }
+          }}
+        />
+      </Box>
 
       {isInventoryHistoryLoading ? (
-        <Box display="flex" justifyContent="center" py={4}>
-          <CircularProgress />
+        <Box display="flex" justifyContent="center" py={6}>
+          <CircularProgress size={30} />
         </Box>
       ) : (
         <>
           {inventoryHistoryError && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-              Error al cargar el historial: {inventoryHistoryError.message}
+            <Alert severity="error" sx={{ m: 2, borderRadius: 1.5, py: 0.5 }}>
+              <Typography variant="caption">{inventoryHistoryError.message}</Typography>
             </Alert>
           )}
 
           {inventoryHistory && (
             isMobile ? (
-              <Grid container spacing={2}>
-                {inventoryHistory.results?.map((item: InventoryHistoryItem) => {
-                  const variant = variants?.results?.find(v => v.id === item.variant)
-                  const variantDisplay = variant ? `${variant.color} - ${variant.size}` : item.variant.toString()
-                  return (
-                    <Grid item xs={12} key={item.id}>
-                      <InventoryHistoryCard item={item} variantDisplay={variantDisplay} />
-                    </Grid>
-                  )
-                })}
-              </Grid>
+              <Box sx={{ p: 2 }}>
+                <Grid container spacing={2}>
+                  {inventoryHistory.results?.map((item: InventoryHistoryItem) => {
+                    const variant = variants?.results?.find(v => v.id === item.variant)
+                    const variantDisplay = variant ? `${variant.color} - ${variant.size}` : item.variant.toString()
+                    return (
+                      <Grid item xs={12} key={item.id}>
+                        <InventoryHistoryCard item={item} variantDisplay={variantDisplay} />
+                      </Grid>
+                    )
+                  })}
+                </Grid>
+              </Box>
             ) : (
-              <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
+              <TableContainer sx={{ boxShadow: 'none', bgcolor: 'transparent' }}>
                 <Table size="small">
-                  <TableHead>
+                  <TableHead sx={{ bgcolor: alpha(theme.palette.primary.main, 0.03) }}>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold', minWidth: 100 }}>Fecha</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>Producto</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', minWidth: 100 }}>Variante</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>Tipo</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>Cantidad</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>Balance</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>Razón</TableCell>
+                      <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}>Fecha</TableCell>
+                      <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}>Producto / Variante</TableCell>
+                      <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}>Movimiento</TableCell>
+                      <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }} align="right">Cantidad</TableCell>
+                      <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }} align="right">Stock Final</TableCell>
+                      <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}>Observación</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {inventoryHistory.results?.map((item: InventoryHistoryItem) => {
-                      const variant = variants?.results?.find(v => v.id === item.variant)
-                      return (
-                        <TableRow key={item.id} hover>
-                          <TableCell>{new Date(item.created_at).toLocaleDateString('es-ES')}</TableCell>
-                          <TableCell>{item.product}</TableCell>
-                          <TableCell>{variant ? `${variant.color} - ${variant.size}` : item.variant.toString()}</TableCell>
-                          <TableCell>{item.movement_type_display}</TableCell>
-                          <TableCell>{item.quantity}</TableCell>
-                          <TableCell>{item.stock_after}</TableCell>
-                          <TableCell>{item.observation}</TableCell>
-                        </TableRow>
-                      )
-                    })}
+                    {inventoryHistory.results?.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                          <Typography variant="body2" color="text.secondary">No hay movimientos registrados</Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      inventoryHistory.results?.map((item: InventoryHistoryItem) => {
+                        const variant = variants?.results?.find(v => v.id === item.variant)
+                        return (
+                          <TableRow 
+                            key={item.id} 
+                            hover
+                            sx={{ 
+                              '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.01) }
+                            }}
+                          >
+                            <TableCell sx={{ py: 1.2 }}>
+                              <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>
+                                {new Date(item.created_at).toLocaleDateString()}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Box>
+                                <Typography sx={{ fontSize: '12px', fontWeight: 600 }}>
+                                  {item.product}
+                                </Typography>
+                                <Typography sx={{ fontSize: '10px', color: 'text.disabled' }}>
+                                  {variant ? `${variant.color} - ${variant.size}` : `Variante #${item.variant}`}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ 
+                                display: 'inline-flex',
+                                px: 1, py: 0.2, borderRadius: 1,
+                                fontSize: '10px', fontWeight: 700,
+                                textTransform: 'uppercase',
+                                bgcolor: item.movement_type_display === 'Venta' ? alpha(theme.palette.error.main, 0.1) : 
+                                         item.movement_type_display === 'Compra' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.info.main, 0.1),
+                                color: item.movement_type_display === 'Venta' ? 'error.main' : 
+                                       item.movement_type_display === 'Compra' ? 'success.main' : 'info.main'
+                              }}>
+                                {item.movement_type_display}
+                              </Box>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography sx={{ 
+                                fontSize: '12px', 
+                                fontWeight: 700,
+                                color: item.quantity > 0 ? 'success.main' : 'error.main'
+                              }}>
+                                {item.quantity > 0 ? `+${item.quantity}` : item.quantity}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography sx={{ fontSize: '12px', fontWeight: 600 }}>
+                                {item.stock_after}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography sx={{ fontSize: '11px', color: 'text.secondary' }}>
+                                {item.observation || '-'}
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
             )
           )}
 
-          {inventoryHistory && inventoryHistory.count > 20 && (
-            <Box display="flex" justifyContent="center" mt={2}>
-              <Pagination
-                count={Math.ceil((inventoryHistory.count || 0) / 20)}
-                page={inventoryHistoryParams.page || 1}
-                onChange={(_, p) => onPageChange(p)}
-                color="primary"
-                size="small"
-                sx={{
-                  '& .MuiPaginationItem-root': {
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    minWidth: { xs: 32, sm: 36 },
-                    height: { xs: 32, sm: 36 },
-                  },
-                }}
-              />
-            </Box>
-          )}
+          {/* INTEGRATED PREMIUM FOOTER */}
+          <Box sx={{ 
+            p: 1.5, 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            borderTop: `1px solid ${theme.palette.divider}`,
+            bgcolor: mode === 'light' ? alpha('#fff', 0.5) : alpha('#000', 0.1)
+          }}>
+            <Typography sx={{ fontSize: '11px', color: 'text.disabled' }}>
+              {totalCount} movimientos · Página {currentPage} de {totalPages}
+            </Typography>
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={(_, p) => onPageChange(p)}
+              size="small"
+              shape="rounded"
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  fontSize: '11px',
+                  height: 28,
+                  minWidth: 28,
+                  borderRadius: 1.5,
+                  border: `1px solid ${theme.palette.divider}`,
+                  bgcolor: 'background.paper',
+                  '&.Mui-selected': { bgcolor: 'text.primary', color: 'background.default', border: 'none' },
+                  '&:hover': { borderColor: 'text.disabled' }
+                }
+              }}
+            />
+          </Box>
         </>
       )}
     </Box>

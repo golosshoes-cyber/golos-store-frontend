@@ -131,7 +131,21 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                   {selected.map((id) => {
                     const permission = permissions.find((p) => p.id === id)
-                    return <Chip key={id} size="small" label={permission?.codename || id} sx={{ height: 20, fontSize: '10px' }} />
+                    return (
+                      <Chip 
+                        key={id} 
+                        size="small" 
+                        label={permission?.codename || id} 
+                        sx={{ 
+                          height: 22, 
+                          fontSize: '10px',
+                          borderRadius: '4px',
+                          bgcolor: alpha(theme.palette.text.primary, 0.05),
+                          fontWeight: 600,
+                          border: `1px solid ${alpha(theme.palette.divider, 0.5)}`
+                        }} 
+                      />
+                    )
                   })}
                 </Box>
               )}

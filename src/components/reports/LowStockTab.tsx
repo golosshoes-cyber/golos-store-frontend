@@ -10,21 +10,15 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  useTheme,
-  useMediaQuery,
+  CircularProgress,
   Grid,
   Card,
   CardContent,
-  Paper,
-  IconButton,
-  Avatar,
-  Chip,
-  Tooltip,
-  Checkbox,
+  useMediaQuery,
 } from '@mui/material'
-import { Style as StyleIcon, AddShoppingCart, Edit } from '@mui/icons-material'
-import type { LowStockVariant } from '../../types/reports'
+import { useTheme, alpha } from '@mui/material/styles'
 import { useNavigate } from 'react-router-dom'
+import type { LowStockVariant } from '../../types/reports'
 
 interface LowStockTabProps {
   selectedVariants: Set<number>
@@ -42,296 +36,232 @@ const LowStockTab: React.FC<LowStockTabProps> = ({
   onSelectAll,
 }) => {
   const theme = useTheme()
+  const mode = theme.palette.mode
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const navigate = useNavigate()
 
-  return (
-    <Box>
-      <Typography variant="h6" gutterBottom>
-        Variantes con Stock Bajo
-      </Typography>
+  const items = lowStockVariants?.products || []
+  const isAnySelected = selectedVariants.size > 0
 
-      {/* Batch buttons */}
-      {selectedVariants.size > 0 && (
-        <Box display="flex" gap={2} mb={2} flexWrap="wrap">
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {}}
-            sx={{ minWidth: 180 }}
-          >
-            Comprar Seleccionados ({selectedVariants.size})
-          </Button>
-          <Button
-            variant="outlined"
-            color="warning"
-            onClick={() => {}}
-            sx={{ minWidth: 180 }}
-          >
-            Ajustar Seleccionados ({selectedVariants.size})
-          </Button>
-          <Button
-            variant="text"
-            onClick={() => onSelectVariant(-1)}
-            sx={{ minWidth: 120 }}
-          >
-            Limpiar Selección
-          </Button>
-        </Box>
-      )}
+  return (
+    <Box sx={{ position: 'relative' }}>
+      {/* TOOLBAR INTEGRATED */}
+      <Box sx={{
+        p: 1.5,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        bgcolor: mode === 'light' ? alpha('#fff', 0.5) : alpha('#000', 0.1)
+      }}>
+        <Typography sx={{ fontSize: '13px', fontWeight: 600 }}>
+          Variantes en Alerta de Stock
+        </Typography>
+        <Typography sx={{ fontSize: '11px', color: 'text.disabled' }}>
+          {items.length} variantes encontradas
+        </Typography>
+      </Box>
 
       {lowStockError && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-          Error al cargar variantes de stock bajo: {lowStockError.message}
+        <Alert severity="error" sx={{ m: 2, borderRadius: 1.5, py: 0.5 }}>
+          <Typography variant="caption">{lowStockError.message}</Typography>
         </Alert>
       )}
 
       {!lowStockVariants ? (
-        <Box sx={{ textAlign: 'center', py: 4 }}>
-          <Typography variant="h6" color="text.secondary">
-            Cargando variantes con stock bajo...
-          </Typography>
+        <Box sx={{ textAlign: 'center', py: 6 }}>
+          <CircularProgress size={30} sx={{ mb: 2 }} />
+          <Typography variant="body2" color="text.secondary">Cargando alertas...</Typography>
         </Box>
       ) : (
         <>
           {isMobile ? (
-            <Grid container spacing={2}>
-              {lowStockVariants.products?.map((item: LowStockVariant) => (
-                <Grid item xs={12} key={item.id}>
-                  <Card sx={{
-                    mb: 2,
-                    transition: 'all 0.3s ease',
-                    '&:hover': { transform: 'translateY(-2px)', boxShadow: 3 },
-                    maxWidth: '100%',
-                    minWidth: 0
-                  }}>
-                    {/* Header Visual Compacto */}
-                    <Box sx={{
-                      p: { xs: 1.5, sm: 2 },
-                      background: item.current_stock < item.stock_minimum ? 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)' : 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
-                      color: 'white',
-                      borderRadius: 2,
-                      borderTopLeftRadius: 2,
-                      borderTopRightRadius: 2,
-                      position: 'relative'
+            <Box sx={{ p: 2 }}>
+              <Grid container spacing={1.5}>
+                {items.map((item: LowStockVariant) => (
+                  <Grid item xs={12} key={item.id}>
+                    <Card sx={{ 
+                      borderRadius: 1.5, 
+                      border: `1px solid ${selectedVariants.has(item.id) ? theme.palette.primary.main : theme.palette.divider}`,
+                      bgcolor: selectedVariants.has(item.id) ? alpha(theme.palette.primary.main, 0.02) : 'background.paper',
+                      boxShadow: 'none'
                     }}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
-                        {/* Información Principal */}
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography
-                            variant="h6"
-                            fontWeight="bold"
-                            sx={{
-                              fontSize: { xs: '0.9rem', sm: '1.2rem', lg: '1.4rem' },
-                              lineHeight: 1.1,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              mb: 0.5
-                            }}
-                          >
-                            {item.product_name}
-                          </Typography>
-                          
-                          <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                                opacity: 0.9,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {item.variant_info}
-                            </Typography>
-                            
-                            {/* Estado */}
-                            <Chip
-                              label={item.current_stock < item.stock_minimum ? 'Stock Bajo' : 'Stock OK'}
-                              color={item.current_stock < item.stock_minimum ? 'error' : 'success'}
-                              size="small"
-                              sx={{
-                                fontSize: { xs: '0.55rem', sm: '0.65rem' },
-                                height: { xs: 18, sm: 22 },
-                                fontWeight: 'bold',
-                                backgroundColor: 'rgba(255,255,255,0.2)',
-                                color: 'white',
-                                '& .MuiChip-label': {
-                                  px: 1
-                                }
-                              }}
-                            />
+                      <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                        <Box display="flex" justifyContent="space-between" mb={1}>
+                          <Typography variant="subtitle2" fontWeight={700}>{item.product_name}</Typography>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedVariants.has(item.id)} 
+                            onChange={() => onSelectVariant(item.id)}
+                            style={{ width: 16, height: 16, cursor: 'pointer' }}
+                          />
+                        </Box>
+                        <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
+                          {item.variant_info}
+                        </Typography>
+                        <Box display="flex" justifyContent="space-between">
+                          <Box>
+                            <Typography sx={{ fontSize: '10px', color: 'text.disabled', textTransform: 'uppercase' }}>Actual</Typography>
+                            <Typography sx={{ fontSize: '14px', fontWeight: 700, color: 'error.main' }}>{item.current_stock}</Typography>
+                          </Box>
+                          <Box sx={{ textAlign: 'right' }}>
+                            <Typography sx={{ fontSize: '10px', color: 'text.disabled', textTransform: 'uppercase' }}>Mínimo</Typography>
+                            <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{item.stock_minimum}</Typography>
                           </Box>
                         </Box>
-                        
-                        {/* Icono */}
-                        <Avatar
-                          sx={{
-                            bgcolor: 'rgba(255,255,255,0.15)',
-                            width: { xs: 32, sm: 38, lg: 42 },
-                            height: { xs: 32, sm: 38, lg: 42 },
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                          }}
-                        >
-                          <StyleIcon sx={{ fontSize: { xs: 16, sm: 20, lg: 22 }}} />
-                        </Avatar>
-                        <Checkbox 
-                          checked={selectedVariants.has(item.id)} 
-                          onChange={() => onSelectVariant(item.id)} 
-                          sx={{ color: 'white', '&.Mui-checked': { color: 'white' } }}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          ) : (
+            <TableContainer sx={{ boxShadow: 'none', bgcolor: 'transparent' }}>
+              <Table size="small">
+                <TableHead sx={{ bgcolor: alpha(theme.palette.primary.main, 0.02) }}>
+                  <TableRow>
+                    <TableCell padding="checkbox" sx={{ py: 1.2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedVariants.size === items.length && items.length > 0} 
+                          onChange={onSelectAll} 
+                          style={{ width: 14, height: 14, cursor: 'pointer' }}
                         />
                       </Box>
-                    </Box>
-
-                    {/* Contenido Principal */}
-                    <CardContent sx={{ p: 1 }}>
-                      {/* Grid de Información - Layout Compacto */}
-                      <Box
-                        sx={{
-                          display: 'grid',
-                          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-                          gap: { xs: 1, sm: 2 },
-                          mb: { xs: 1, sm: 2 }
-                        }}
-                      >
-                        {/* Stock Actual */}
-                        <Paper
-                          sx={{
-                            p: { xs: 1, sm: 1.5 },
-                            textAlign: 'center',
-                            borderRadius: 2,
-                            background: item.current_stock < item.stock_minimum ? '#ffebee' : '#e8f5e8',
-                            border: `2px solid ${item.current_stock < item.stock_minimum ? '#f44336' : '#4caf50'}`
-                          }}
-                        >
-                          <Typography variant="caption" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary' }}>
-                            Stock Actual
-                          </Typography>
-                          <Typography
-                            variant="h6"
-                            fontWeight="bold"
-                            color={item.current_stock < item.stock_minimum ? 'error.main' : 'success.main'}
-                            sx={{ fontSize: { xs: '1rem', sm: '1.2rem' } }}
-                          >
-                            {item.current_stock}
-                          </Typography>
-                        </Paper>
-
-                        {/* Stock Mínimo */}
-                        <Paper
-                          sx={{
-                            p: { xs: 1, sm: 1.5 },
-                            textAlign: 'center',
-                            borderRadius: 2,
-                            background: '#e3f2fd',
-                            border: '1px solid #90caf9'
-                          }}
-                        >
-                          <Typography variant="caption" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary' }}>
-                            Stock Mínimo
-                          </Typography>
-                          <Typography
-                            variant="h6"
-                            fontWeight="bold"
-                            color="primary.main"
-                            sx={{ fontSize: { xs: '1rem', sm: '1.2rem' } }}
-                          >
-                            {item.stock_minimum}
-                          </Typography>
-                        </Paper>
-                      </Box>
-                    </CardContent>
-                    {/* Acciones */}
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        gap: 1,
-                        pt: 2,
-                        borderTop: '1px solid #f0f0f0'
-                      }}
-                    >
-                      <Tooltip title="Agregar a compra">
-                        <IconButton
-                          size="small"
-                          onClick={() => navigate('/purchases', { state: { openCreateModal: true } })}
-                          color="primary"
-                          sx={{
-                            width: { xs: 32, sm: 36 },
-                            height: { xs: 32, sm: 36 },
-                            '& .MuiSvgIcon-root': { fontSize: { xs: 16, sm: 18 } }
-                          }}
-                        >
-                          <AddShoppingCart />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Ajustar stock">
-                        <IconButton
-                          size="small"
-                          onClick={() => navigate('/inventory')}
-                          color="warning"
-                          sx={{
-                            width: { xs: 32, sm: 36 },
-                            height: { xs: 32, sm: 36 },
-                            '& .MuiSvgIcon-root': { fontSize: { xs: 16, sm: 18 } }
-                          }}
-                        >
-                          <Edit />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          ) : (
-            <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', minWidth: 50 }}>
-                      <Checkbox 
-                        checked={selectedVariants.size === lowStockVariants?.products?.length && lowStockVariants.products.length > 0} 
-                        onChange={onSelectAll} 
-                      />
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>Producto</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', minWidth: 100 }}>Variante</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', minWidth: 100 }}>Stock Actual</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', minWidth: 100 }}>Stock Mínimo</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>Acciones</TableCell>
+                    <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}>Producto / Variante</TableCell>
+                    <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }} align="right">Stock Actual</TableCell>
+                    <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }} align="right">Stock Mínimo</TableCell>
+                    <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }} align="right">Estado</TableCell>
+                    <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }} align="right">Acción</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {lowStockVariants.products?.map((item: LowStockVariant) => (
-                    <TableRow key={item.id} hover>
-                      <TableCell>
-                        <Checkbox 
-                          checked={selectedVariants.has(item.id)} 
-                          onChange={() => onSelectVariant(item.id)} 
-                        />
-                      </TableCell>
-                      <TableCell>{item.product_name}</TableCell>
-                      <TableCell>{item.variant_info}</TableCell>
-                      <TableCell>{item.current_stock}</TableCell>
-                      <TableCell>{item.stock_minimum}</TableCell>
-                      <TableCell>
-                        <Box display="flex" gap={1}>
-                          <Button size="small" onClick={() => navigate('/purchases', { state: { openCreateModal: true } })}>
-                            Comprar
-                          </Button>
-                          <Button size="small" onClick={() => navigate('/inventory')}>
-                            Ajustar
-                          </Button>
-                        </Box>
+                  {items.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                        <Typography variant="body2" color="text.secondary">No hay alertas de stock</Typography>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    items.map((item: LowStockVariant) => (
+                      <TableRow 
+                        key={item.id} 
+                        hover
+                        onClick={() => onSelectVariant(item.id)}
+                        sx={{ 
+                          cursor: 'pointer',
+                          bgcolor: selectedVariants.has(item.id) ? alpha(theme.palette.primary.main, 0.03) : 'transparent',
+                          '&:hover': { bgcolor: selectedVariants.has(item.id) ? alpha(theme.palette.primary.main, 0.05) : alpha(theme.palette.primary.main, 0.01) }
+                        }}
+                      >
+                        <TableCell padding="checkbox" sx={{ py: 1.2 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <input 
+                              type="checkbox" 
+                              checked={selectedVariants.has(item.id)} 
+                              readOnly
+                              style={{ width: 14, height: 14, cursor: 'pointer' }}
+                            />
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box>
+                            <Typography sx={{ fontSize: '12px', fontWeight: 600 }}>{item.product_name}</Typography>
+                            <Typography sx={{ fontSize: '10px', color: 'text.disabled' }}>{item.variant_info}</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography sx={{ fontSize: '13px', fontWeight: 700, color: 'error.main' }}>
+                            {item.current_stock}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>
+                            {item.stock_minimum}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Box sx={{ 
+                            display: 'inline-flex', px: 1, py: 0.2, borderRadius: 1, 
+                            fontSize: '9px', fontWeight: 800, textTransform: 'uppercase',
+                            bgcolor: alpha(theme.palette.error.main, 0.1), color: 'error.main'
+                          }}>
+                            Crítico
+                          </Box>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Button 
+                            size="small" 
+                            variant="outlined"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate('/purchases', { state: { openCreateModal: true, initialVariant: item.id } });
+                            }}
+                            sx={{ fontSize: '10px', py: 0.2, minWidth: 'auto', borderRadius: 1.2 }}
+                          >
+                            Comprar
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
+          )}
+
+          {/* FLOATING BULK ACTIONS */}
+          {isAnySelected && (
+            <Box sx={{
+              position: 'fixed',
+              bottom: 24,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              bgcolor: 'text.primary',
+              color: 'background.paper',
+              px: { xs: 2, sm: 3 },
+              py: 1.2,
+              borderRadius: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+              zIndex: 1300,
+              width: { xs: '90%', sm: 'auto' },
+            }}>
+              <Typography sx={{ fontSize: '13px', fontWeight: 600, borderRight: '1px solid rgba(255,255,255,0.2)', pr: 3 }}>
+                {selectedVariants.size} seleccionados
+              </Typography>
+              
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button 
+                  size="small" 
+                  variant="contained" 
+                  color="inherit"
+                  onClick={() => navigate('/purchases', { state: { openCreateModal: true, initialVariants: Array.from(selectedVariants) } })}
+                  sx={{ 
+                    bgcolor: 'background.paper', 
+                    color: 'text.primary', 
+                    fontSize: '11px', 
+                    fontWeight: 700,
+                    borderRadius: 1.5,
+                    '&:hover': { bgcolor: alpha('#fff', 0.9) } 
+                  }}
+                >
+                  Comprar ({selectedVariants.size})
+                </Button>
+                <Button 
+                  size="small" 
+                  variant="text" 
+                  onClick={() => onSelectVariant(-1)}
+                  sx={{ color: 'background.paper', fontSize: '11px', opacity: 0.8 }}
+                >
+                  Cancelar
+                </Button>
+              </Box>
+            </Box>
           )}
         </>
       )}

@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import {
-  Box,
-  Alert,
   CircularProgress,
   TextField,
   useTheme,
   alpha,
+  useMediaQuery,
+  Box,
+  Alert,
 } from '@mui/material'
 import {
   Add as AddIcon,
@@ -14,7 +15,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supplierService } from '../../services/supplierService'
 import { Supplier } from '../../types'
-import SuppliersTable from '../../components/suppliers/SuppliersTable'
+import SuppliersTabs from '../../components/suppliers/SuppliersTabs'
 import SupplierDialog from '../../components/suppliers/SupplierDialog'
 import { useLocation } from 'react-router-dom'
 import GradientButton from '../../components/common/GradientButton'
@@ -22,10 +23,13 @@ import PageShell from '../../components/common/PageShell'
 import GlobalSectionHeader from '../../components/common/GlobalSectionHeader'
 import { showAcrylicConfirm } from '../../utils/showAcrylicConfirm'
 import { extractApiErrorMessage } from '../../utils/apiError'
+import ExportButton from '../../components/common/ExportButton'
+import { exportService } from '../../services/exportService'
 
 // Componente principal de proveedores
 const SuppliersPage: React.FC = () => {
   const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const location = useLocation()
   const [page, setPage] = useState(1)
 
@@ -44,8 +48,6 @@ const SuppliersPage: React.FC = () => {
   const [error, setError] = useState<string>('')
   const [supplierSearch, setSupplierSearch] = useState('')
   const [supplierInputValue, setSupplierInputValue] = useState('')
-
-  // Función para manejar cambio de pestaña con persistencia en URL (no aplica aquí)
 
   // Debounced search for suppliers
   React.useEffect(() => {
@@ -163,14 +165,6 @@ const SuppliersPage: React.FC = () => {
     }
   }
 
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="400px">
-        <CircularProgress />
-      </Box>
-    )
-  }
-
   return (
     <PageShell>
       <GlobalSectionHeader
@@ -178,14 +172,21 @@ const SuppliersPage: React.FC = () => {
         subtitle="Gestiona tu catálogo de proveedores y sus detalles"
         icon={<BusinessIcon sx={{ fontSize: { xs: 24, sm: 30 } }} />}
         actions={
-          <GradientButton
-            startIcon={<AddIcon />}
-            onClick={handleCreateSupplier}
-            size="small"
-            sx={{ whiteSpace: 'nowrap' }}
-          >
-            Crear Proveedor
-          </GradientButton>
+          <Box sx={{ display: 'flex', gap: 1, width: isMobile ? '100%' : 'auto' }}>
+            <ExportButton 
+              onExport={(format) => exportService.exportSuppliersReport(format)} 
+              fullWidth={isMobile}
+            />
+            <GradientButton
+              startIcon={<AddIcon />}
+              onClick={handleCreateSupplier}
+              size="small"
+              fullWidth={isMobile}
+              sx={{ whiteSpace: 'nowrap' }}
+            >
+              Crear Proveedor
+            </GradientButton>
+          </Box>
         }
       />
 
@@ -195,25 +196,7 @@ const SuppliersPage: React.FC = () => {
         </Alert>
       )}
 
-
-      <TextField
-        key="supplier-search"
-        placeholder="Buscar proveedores por nombre, NIT o teléfono..."
-        value={supplierInputValue}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSupplierInputValue(e.target.value)}
-        fullWidth
-        size="small"
-        sx={{ 
-          mb: 3, 
-          mt: 2,
-          '& .MuiOutlinedInput-root': {
-            bgcolor: theme.palette.mode === 'light' ? alpha('#000', 0.02) : alpha('#fff', 0.02),
-            borderRadius: 1.5,
-          }
-        }}
-      />
-
-      <SuppliersTable
+      <SuppliersTabs
         suppliers={paginatedSuppliers}
         loading={isLoading}
         page={page}
@@ -221,7 +204,8 @@ const SuppliersPage: React.FC = () => {
         onPageChange={handlePageChange}
         onEdit={handleEditSupplier}
         onDelete={handleDeleteSupplier}
-        search={supplierSearch}
+        searchTerm={supplierInputValue}
+        onSearchChange={setSupplierInputValue}
       />
 
       {/* Diálogo de crear/editar proveedor */}

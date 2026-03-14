@@ -5,8 +5,7 @@ import {
   Box,
   Chip,
 } from '@mui/material'
-import { useTheme, useMediaQuery } from '@mui/material'
-import { alpha } from '@mui/material/styles'
+import { useTheme, useMediaQuery, alpha } from '@mui/material'
 import { Product } from '../../types'
 import DialogShell from '../common/DialogShell'
 
@@ -41,16 +40,14 @@ const ProductViewDialog: React.FC<ProductViewDialogProps> = ({
       actions={
         <Button
           onClick={onClose}
-          variant="outlined"
           size="small"
           sx={{
             borderRadius: 1.5,
             fontSize: '12px',
             textTransform: 'none',
             px: 2,
-            borderColor: theme.palette.divider,
             color: 'text.secondary',
-            '&:hover': { borderColor: 'text.disabled', color: 'text.primary' },
+            '&:hover': { color: 'text.primary' },
           }}
         >
           Cerrar

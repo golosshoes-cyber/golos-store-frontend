@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { productService } from '../../services/productService'
 import { api } from '../../services/api'
@@ -20,7 +20,11 @@ export const useReports = ({ showSuccess, showError }: UseReportsProps) => {
     product?: string
     variant?: string
     movement_type?: string
+    page?: number
   }>({})
+
+  // Inventory Snapshots Params
+  const [snapshotsParams, setSnapshotsParams] = useState<{ page?: number }>({ page: 1 })
 
   // Query for variants to map IDs to details
   const variantsQuery = useQuery({
@@ -35,12 +39,13 @@ export const useReports = ({ showSuccess, showError }: UseReportsProps) => {
       }
       return { count: allVariants.length, results: allVariants, next: null, previous: null }
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes
   })
 
   // Inventory Snapshots Query
   const snapshotsQuery = useQuery({
-    queryKey: ['inventory-snapshots'],
-    queryFn: () => api.get('/api/inventory-snapshots/').then(r => r.data),
+    queryKey: ['inventory-snapshots', snapshotsParams],
+    queryFn: () => api.get('/api/inventory-snapshots/', { params: snapshotsParams }).then(r => r.data),
   })
 
   // Inventory History Query
@@ -56,6 +61,7 @@ export const useReports = ({ showSuccess, showError }: UseReportsProps) => {
     onSuccess: () => {
       showSuccess('Snapshot mensual creado exitosamente')
       queryClient.invalidateQueries({ queryKey: ['inventory-history'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory-snapshots'] })
     },
     onError: (error: any) => {
       const errorMessage = extractApiErrorMessage(error, 'Error al crear el snapshot mensual')
@@ -70,16 +76,21 @@ export const useReports = ({ showSuccess, showError }: UseReportsProps) => {
     enabled: false,
   })
 
-  const fetchInventoryHistory = (params: typeof inventoryHistoryParams) => {
+  const fetchInventoryHistory = useCallback((params: typeof inventoryHistoryParams) => {
     setInventoryHistoryParams(params)
-    inventoryHistoryQuery.refetch()
-  }
+  }, [])
 
-  const createMonthlySnapshot = (data?: { month?: string }) => createSnapshotMutation.mutate(data)
+  const fetchSnapshots = useCallback((page: number) => {
+    setSnapshotsParams({ page })
+  }, [])
 
-  const fetchLowStockVariants = () => {
+  const createMonthlySnapshot = useCallback((data?: { month?: string }) => {
+    createSnapshotMutation.mutate(data)
+  }, [createSnapshotMutation])
+
+  const fetchLowStockVariants = useCallback(() => {
     lowStockQuery.refetch()
-  }
+  }, [lowStockQuery])
 
   return {
     // Variants for mapping
@@ -95,6 +106,7 @@ export const useReports = ({ showSuccess, showError }: UseReportsProps) => {
     snapshots: snapshotsQuery.data,
     isSnapshotsLoading: snapshotsQuery.isLoading,
     snapshotsError: snapshotsQuery.error,
+    fetchSnapshots,
     createMonthlySnapshot,
     isCreatingSnapshot: createSnapshotMutation.isPending,
 

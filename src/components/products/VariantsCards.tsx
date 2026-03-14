@@ -136,8 +136,16 @@ const VariantsCards: React.FC<VariantsCardsProps> = ({
       actions={
         <Button
           onClick={handleCloseImageViewer}
-          startIcon={<CloseIcon />}
-          color="primary"
+          startIcon={<CloseIcon sx={{ fontSize: 16 }} />}
+          size="small"
+          sx={{
+            borderRadius: 1.5,
+            fontSize: '12px',
+            textTransform: 'none',
+            px: 2,
+            color: 'text.secondary',
+            '&:hover': { color: 'text.primary' },
+          }}
         >
           Cerrar
         </Button>

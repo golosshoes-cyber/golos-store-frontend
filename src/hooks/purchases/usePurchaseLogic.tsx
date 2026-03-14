@@ -1,17 +1,20 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { productService } from '../../services/productService'
 import { supplierService } from '../../services/supplierService'
 import { purchaseService } from '../../services/purchaseService'
 import { usePurchaseItems } from './usePurchaseItems'
 import { usePurchaseForm } from './usePurchaseForm'
-import type { PurchaseFilters, PurchaseFormData, VariantOption } from '../../types/purchases'
+import type { 
+  PurchaseFilters, 
+  VariantOption,
+  Purchase
+} from '../../types/purchases'
 import type { ProductVariant, Product } from '../../types'
 
 export const usePurchaseLogic = () => {
-  // States
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+  const [error, setError] = useState<string>('')
+  const [success, setSuccess] = useState<string>('')
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [detailsPage, setDetailsPage] = useState(1)
   const [filters, setFilters] = useState<PurchaseFilters>({
@@ -21,6 +24,7 @@ export const usePurchaseLogic = () => {
     end_date: '',
     search: ''
   })
+  const [purchaseSort, setPurchaseSort] = useState<string>('newest')
 
   // Custom hooks
   const {
@@ -30,98 +34,117 @@ export const usePurchaseLogic = () => {
     handleRemoveItem,
     handleItemChange,
     handleVariantChange,
-    validateItems,
   } = usePurchaseItems()
 
-  const { handleSubmit, isLoading } = usePurchaseForm()
+  const { handleSubmit, isLoading: formLoading } = usePurchaseForm()
 
-  // Fetch data for details tab
-  const { data: purchasesData, isLoading: detailsLoading } = useQuery({
-    queryKey: ['purchases-details', detailsPage, filters],
-    queryFn: () => purchaseService.getPurchases({
-      page: detailsPage,
-      supplier: filters.supplier,
-      product: filters.product,
-      start_date: filters.start_date,
-      end_date: filters.end_date,
-      search: filters.search,
-    } as PurchaseFormData),
+  // Queries
+  const { data: purchasesData, isLoading: detailsLoading, refetch: refetchPurchases } = useQuery({
+    queryKey: ['purchases', detailsPage, filters],
+    queryFn: () => purchaseService.getPurchases(detailsPage, filters),
   })
 
-  const { data: suppliersDetailsData } = useQuery({
-    queryKey: ['suppliers-simple'],
-    queryFn: () => supplierService.getSuppliers({ limit: 1000 }),
-  })
-
-  const { data: productsDetailsData } = useQuery({
-    queryKey: ['products-simple'],
-    queryFn: () => productService.getProducts({ limit: 1000 }),
-  })
-
-  const { data: variantsData } = useQuery({
-    queryKey: ['variants'],
-    queryFn: () => productService.getVariants({ limit: 1000 }),
-  })
-
+  // We only need these for the creation dialog and filters
   const { data: suppliersData } = useQuery({
     queryKey: ['suppliers'],
-    queryFn: () => supplierService.getSuppliers({ limit: 1000 }),
+    queryFn: () => supplierService.getSuppliers(),
   })
 
   const { data: allProductsData } = useQuery({
     queryKey: ['all-products'],
-    queryFn: () => productService.getProducts({}),
+    queryFn: () => productService.getProducts(),
+  })
+
+  const { data: variantsData } = useQuery({
+    queryKey: ['variants-details'],
+    queryFn: () => productService.getVariants(),
   })
 
   // Processed data
-  const purchases = purchasesData?.results || []
-  const suppliersDetails = suppliersDetailsData?.results || []
-  const productsDetails = productsDetailsData?.results || []
-  const variants = variantsData?.results || []
-  const allProducts = allProductsData?.results || []
+  const purchases: Purchase[] = purchasesData?.results || []
   const suppliers = suppliersData?.results || []
+  const allProducts = allProductsData?.results || []
+  const variants = variantsData?.results || []
 
-  const variantOptions: VariantOption[] = variants.map((variant: ProductVariant) => {
-    const product = allProducts?.find((p: Product) => p.id === variant.product)
-    return {
-      id: variant.id,
-      size: variant.size,
-      color: variant.color,
-      gender: variant.gender,
-      product: product ? { id: product.id, name: product.name } : undefined,
-      label: `${product?.name || 'N/A'} - ${variant.size} - ${variant.color || 'Sin color'} - ${variant.gender === 'male' ? 'Masculino' : variant.gender === 'female' ? 'Femenino' : 'Unisex'}`
+  // Procesamiento local de ordenamiento
+  const processedPurchases = useMemo(() => {
+    let result = [...purchases]
+ 
+    // Local Search Hardening
+    if (filters.search) {
+      const search = filters.search.toLowerCase()
+      result = result.filter(p => 
+        (p.supplier?.name?.toLowerCase().includes(search)) || 
+        (p.variant?.product?.name?.toLowerCase().includes(search)) ||
+        (p.variant?.product?.sku?.toLowerCase().includes(search)) ||
+        (p.id?.toString().includes(search))
+      )
     }
-  })
 
-  // Event handlers
-  const handleDetailsPageChange = (_event: React.ChangeEvent<unknown>, newPage: number) => {
-    setDetailsPage(newPage)
+    // Aplicar ordenamiento
+    result.sort((a, b) => {
+      switch (purchaseSort) {
+        case 'newest':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        case 'oldest':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        case 'total-asc':
+          return Number(a.total_cost) - Number(b.total_cost)
+        case 'total-desc':
+          return Number(b.total_cost) - Number(a.total_cost)
+        case 'quantity-asc':
+          return Number(a.quantity) - Number(b.quantity)
+        case 'quantity-desc':
+          return Number(b.quantity) - Number(a.quantity)
+        case 'product-asc':
+          return (a.variant?.product?.name || '').localeCompare(b.variant?.product?.name || '')
+        case 'product-desc':
+          return (b.variant?.product?.name || '').localeCompare(a.variant?.product?.name || '')
+        default:
+          return 0
+      }
+    })
+
+    return result
+  }, [purchases, purchaseSort])
+
+  const variantOptions: VariantOption[] = useMemo(() => {
+    return variants.map((variant: ProductVariant) => {
+      const product = allProducts?.find((p: Product) => p.id === variant.product)
+      return {
+        id: variant.id,
+        size: variant.size,
+        color: variant.color,
+        gender: variant.gender,
+        product: product ? { id: product.id, name: product.name } : undefined,
+        label: product ? `${product.name} - ${variant.size} - ${variant.color || 'SC'}` : `Variante ${variant.id}`
+      }
+    })
+  }, [variants, allProducts])
+
+  // Mutation Handler
+  const onSubmit = async () => {
+    const result = await handleSubmit(purchaseItems)
+    if (result.success) {
+      setSuccess('Compra registrada exitosamente')
+      setCreateModalOpen(false)
+      handleClearAll()
+      refetchPurchases()
+    } else {
+      setError(result.error || 'Error al registrar la compra')
+    }
+  }
+
+  const handleDetailsPageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+    setDetailsPage(value)
   }
 
   const handleFilterChange = (key: keyof PurchaseFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
-  }
-
-  const onSubmit = async () => {
-    
-    const validationError = validateItems(purchaseItems)
-    if (validationError) {
-      setError(validationError)
-      return
-    }
-    
-    const result = await handleSubmit(purchaseItems)
-    
-    if (result.success) {
-      setSuccess('Compra creada exitosamente')
-      setError('')
-      handleClearAll()
-      localStorage.removeItem('purchaseItems')
-      setCreateModalOpen(false)
-    } else {
-      setError(result.error || 'Error al crear la compra')
-      setSuccess('')
-    }
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }))
+    setDetailsPage(1)
   }
 
   return {
@@ -134,17 +157,19 @@ export const usePurchaseLogic = () => {
     
     // Data
     purchases,
-    suppliersDetails,
-    productsDetails,
+    processedPurchases,
+    purchaseSort,
+    setPurchaseSort,
     variants,
     allProducts,
-    suppliers,
     variantOptions,
     purchaseItems,
+    suppliers, // For the filters/create
+    products: allProducts, // For the filters
     
     // Loading states
     detailsLoading,
-    isLoading,
+    formLoading,
     
     // Event handlers
     setCreateModalOpen,
@@ -153,7 +178,7 @@ export const usePurchaseLogic = () => {
     handleDetailsPageChange,
     handleFilterChange,
     onSubmit,
-    
+
     // Purchase items handlers
     handleClearAll,
     handleAddItem,
@@ -163,5 +188,9 @@ export const usePurchaseLogic = () => {
     
     // Data counts
     purchasesCount: purchasesData?.count || 0,
+    
+    // compatibility
+    suppliersDetails: suppliers,
+    productsDetails: allProducts,
   }
 }

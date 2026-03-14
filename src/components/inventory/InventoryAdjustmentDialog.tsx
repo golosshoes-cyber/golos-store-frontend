@@ -14,6 +14,7 @@ import DialogShell from '../common/DialogShell'
 interface InventoryAdjustmentDialogProps {
   open: boolean
   variant: ProductVariant | null
+  productInfo?: { name: string; brand: string }
   onClose: () => void
   onSave: (variantId: number, newStock: number, reason: string) => void
   loading?: boolean
@@ -22,6 +23,7 @@ interface InventoryAdjustmentDialogProps {
 const InventoryAdjustmentDialog: React.FC<InventoryAdjustmentDialogProps> = ({
   open,
   variant,
+  productInfo,
   onClose,
   onSave,
   loading = false,
@@ -111,27 +113,34 @@ const InventoryAdjustmentDialog: React.FC<InventoryAdjustmentDialogProps> = ({
     >
       {/* Current info */}
       <Box sx={{
-        p: 2,
-        borderRadius: 2,
+        p: 2.5,
+        borderRadius: 3,
         bgcolor: alpha(theme.palette.text.primary, 0.02),
-        border: `1px solid ${theme.palette.divider}`,
+        border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
         mb: 2,
       }}>
-        <Typography sx={{ fontSize: '10px', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1.5 }}>
-          Información actual
-        </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2 }}>
+        {/* Producto y Variante */}
+        <Box sx={{ mb: 2 }}>
+          <Typography sx={{ fontSize: '12px', fontWeight: 800, color: 'text.primary', mb: 0.5 }}>
+            {productInfo?.name || 'Producto'}
+          </Typography>
+          <Typography sx={{ fontSize: '11px', color: 'text.secondary' }}>
+            {variant.size && `Talla ${variant.size}`} {variant.color && `• ${variant.color}`} {variant.gender && `• ${variant.gender}`}
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2, pt: 1.5, borderTop: `1px dashed ${theme.palette.divider}` }}>
           <Box>
-            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>SKU</Typography>
-            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>{variant.sku || `VAR-${variant.id}`}</Typography>
+            <Typography sx={{ fontSize: '9px', fontWeight: 700, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>SKU</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 600 }}>{variant.sku || `VAR-${variant.id}`}</Typography>
           </Box>
           <Box>
-            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Stock actual</Typography>
-            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>{variant.stock} uds</Typography>
+            <Typography sx={{ fontSize: '9px', fontWeight: 700, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Stock actual</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 600 }}>{variant.stock} uds</Typography>
           </Box>
           <Box>
-            <Typography sx={{ fontSize: '10px', fontWeight: 500, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Precio</Typography>
-            <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>${Number(variant.price)?.toFixed(0)}</Typography>
+            <Typography sx={{ fontSize: '9px', fontWeight: 700, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>Precio</Typography>
+            <Typography sx={{ fontSize: '13px', fontWeight: 600 }}>${Number(variant.price)?.toLocaleString('es-CO')}</Typography>
           </Box>
         </Box>
       </Box>

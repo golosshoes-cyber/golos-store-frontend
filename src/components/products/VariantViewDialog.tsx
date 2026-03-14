@@ -5,8 +5,7 @@ import {
   Box,
   Chip,
 } from '@mui/material'
-import { useTheme, useMediaQuery } from '@mui/material'
-import { alpha } from '@mui/material/styles'
+import { useTheme, useMediaQuery, alpha } from '@mui/material'
 import { ProductVariant, Product } from '../../types'
 import { formatCurrency } from '../../utils/currency'
 import DialogShell from '../common/DialogShell'
@@ -51,9 +50,8 @@ const VariantViewDialog: React.FC<VariantViewDialogProps> = ({
             fontSize: '12px',
             textTransform: 'none',
             px: 2,
-            border: `1px solid ${theme.palette.divider}`,
             color: 'text.secondary',
-            '&:hover': { borderColor: 'text.disabled', color: 'text.primary' },
+            '&:hover': { color: 'text.primary' },
           }}
         >
           Cerrar

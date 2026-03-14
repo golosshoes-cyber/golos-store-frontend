@@ -1,6 +1,5 @@
 import React, { useState, useLayoutEffect, useRef } from 'react'
 import {
-  Grid,
   Box,
   CircularProgress,
   Typography,
@@ -40,10 +39,9 @@ const SalesChart: React.FC<SalesChartProps> = ({ chartData, loading }) => {
   }, [])
 
   return (
-    <Grid item xs={12} md={6}>
-      <Box
+    <Box
         sx={{
-          height: 280,
+          height: 180,
           display: 'flex',
           flexDirection: 'column',
           borderRadius: 2,
@@ -74,14 +72,18 @@ const SalesChart: React.FC<SalesChartProps> = ({ chartData, loading }) => {
         
         <div 
           ref={containerRef}
-          style={{ padding: '16px 16px 0', position: 'relative', height: '230px', width: '100%', boxSizing: 'border-box' }}
+          style={{ padding: '8px 12px 0', position: 'relative', height: '128px', width: '100%', boxSizing: 'border-box' }}
         >
           {loading || !mounted || chartWidth <= 0 ? (
             <Box display="flex" justifyContent="center" alignItems="center" height="100%">
               <CircularProgress size={20} thickness={4} sx={{ color: 'action.disabled' }} />
             </Box>
+          ) : !chartData || chartData.length === 0 ? (
+            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="100%" gap={0.5}>
+              <Typography sx={{ fontSize: '11px', color: 'text.secondary', opacity: 0.5 }}>Sin ventas en los últimos 30 días</Typography>
+            </Box>
           ) : (
-            <AreaChart width={chartWidth} height={230} data={chartData || []} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+            <AreaChart width={chartWidth} height={120} data={chartData || []} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={theme.palette.text.primary} stopOpacity={0.12}/>
@@ -119,8 +121,7 @@ const SalesChart: React.FC<SalesChartProps> = ({ chartData, loading }) => {
             </AreaChart>
           )}
         </div>
-      </Box>
-    </Grid>
+    </Box>
   )
 }
 

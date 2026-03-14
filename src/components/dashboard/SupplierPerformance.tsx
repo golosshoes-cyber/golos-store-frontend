@@ -1,6 +1,5 @@
 import React from 'react'
 import {
-  Grid,
   Box,
   CircularProgress,
   Typography,
@@ -14,10 +13,9 @@ const SupplierPerformance: React.FC<SupplierPerformanceProps> = ({ suppliers, lo
   const navigate = useNavigate()
 
   return (
-    <Grid item xs={12} md={6}>
-      <Box
+    <Box
         sx={{
-          height: 280,
+          height: 180,
           display: 'flex',
           flexDirection: 'column',
           borderRadius: 2,
@@ -28,8 +26,8 @@ const SupplierPerformance: React.FC<SupplierPerformanceProps> = ({ suppliers, lo
         }}
       >
         <Box sx={{ 
-          px: 2, 
-          py: 1.5, 
+          px: 1.5, 
+          py: 1, 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
@@ -55,9 +53,9 @@ const SupplierPerformance: React.FC<SupplierPerformanceProps> = ({ suppliers, lo
               <Box key={supplier.id} sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1.2,
-                px: 2,
-                py: 1.2,
+                gap: 1,
+                px: 1.5,
+                py: 1,
                 borderBottom: index === suppliers.length - 1 ? 'none' : `1px solid ${theme.palette.divider}`,
                 transition: 'background 0.1s',
                 '&:hover': { bgcolor: 'action.hover' }
@@ -97,7 +95,6 @@ const SupplierPerformance: React.FC<SupplierPerformanceProps> = ({ suppliers, lo
           </Box>
         )}
       </Box>
-    </Grid>
   )
 }
 

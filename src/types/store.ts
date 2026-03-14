@@ -34,6 +34,7 @@ export interface StoreBranding {
   favicon_url: string
   hero_title: string
   hero_subtitle: string
+  hero_image_url: string | null
   legal_representative_name: string
   legal_id_type: string
   legal_id_number: string
@@ -130,7 +131,9 @@ export interface StoreCommercialSummary {
 
 export interface StoreShippingAddress {
   department: string
+  department_code?: string
   city: string
+  city_code?: string
   address_line1: string
   address_line2?: string
   reference?: string

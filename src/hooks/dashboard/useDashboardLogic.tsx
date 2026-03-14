@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { dashboardService } from '../../services/dashboardService'
 import { productService } from '../../services/productService'
+import { notificationService } from '../../services/notificationService'
 
 export const useDashboardLogic = () => {
   const [searchValue, setSearchValue] = useState('')
@@ -49,6 +50,40 @@ export const useDashboardLogic = () => {
     queryFn: () => dashboardService.getSalesChart(30),
   })
 
+  // Nuevas queries integradas de notificaciones
+  const { 
+    data: dailySummary, 
+    isLoading: dailyLoading 
+  } = useQuery({
+    queryKey: ['notifications-daily-summary'],
+    queryFn: () => notificationService.getDailySummary(),
+  })
+
+  const { 
+    data: recommendations, 
+    isLoading: recommendationsLoading 
+  } = useQuery({
+    queryKey: ['notifications-supplier-recommendations'],
+    queryFn: () => notificationService.getSupplierRecommendations(),
+  })
+
+  const { 
+    data: metrics, 
+    isLoading: metricsLoading 
+  } = useQuery({
+    queryKey: ['notifications-performance-metrics'],
+    queryFn: () => notificationService.getPerformanceMetrics(),
+  })
+
+  // Alertas de stock bajo
+  const {
+    data: lowStockAlerts,
+    isLoading: alertsLoading
+  } = useQuery({
+    queryKey: ['notifications-low-stock'],
+    queryFn: () => notificationService.getLowStockAlerts(),
+  })
+
   // Query para obtener productos para nombres
   const { data: productsData } = useQuery({
     queryKey: ['products-for-search'],
@@ -85,7 +120,6 @@ export const useDashboardLogic = () => {
 
   const handleNavigateToVariant = () => {
     // Esta función será implementada en el componente principal
-    // ya que necesita acceso a navigate
   }
 
   const handleNavigateToCreateProduct = () => {
@@ -110,6 +144,10 @@ export const useDashboardLogic = () => {
     searchResults,
     products,
     lowStock,
+    dailySummary,
+    recommendations,
+    metrics,
+    lowStockAlerts,
     
     // Loading states
     isLoading,
@@ -118,6 +156,10 @@ export const useDashboardLogic = () => {
     suppliersLoading,
     chartLoading,
     searchLoading,
+    dailyLoading,
+    recommendationsLoading,
+    metricsLoading,
+    alertsLoading,
     
     // Error state
     error,
@@ -129,7 +171,7 @@ export const useDashboardLogic = () => {
     // Utility functions
     getProductName,
     
-    // Navigation handlers (para ser implementados en el componente)
+    // Navigation handlers
     onNavigateToVariant: handleNavigateToVariant,
     onNavigateToCreateProduct: handleNavigateToCreateProduct,
     onNavigateToCreateSale: handleNavigateToCreateSale,

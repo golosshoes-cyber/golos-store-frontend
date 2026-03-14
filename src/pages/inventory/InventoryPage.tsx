@@ -1,36 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
-  Box,
-  Typography,
-  CircularProgress,
-  useTheme,
-  useMediaQuery,
-  alpha,
 } from '@mui/material'
 import { useLocation } from 'react-router-dom'
 import { useInventoryData } from '../../hooks/inventory/useInventoryData'
 import { useNotification } from '../../hooks/useNotification'
-import InventoryHeader from '../../components/inventory/InventoryHeader'
-import InventoryCard from '../../components/inventory/InventoryCard'
-import InventoryTable from '../../components/inventory/InventoryTable'
+import InventoryTabs from '../../components/inventory/InventoryTabs'
 import InventoryAdjustmentDialog from '../../components/inventory/InventoryAdjustmentDialog'
 import PageShell from '../../components/common/PageShell'
+import GlobalSectionHeader from '../../components/common/GlobalSectionHeader'
+import { Inventory as InventoryIcon } from '@mui/icons-material'
+import ExportButton from '../../components/common/ExportButton'
+import { exportService } from '../../services/exportService'
+import { useTheme, useMediaQuery } from '@mui/material'
 
 const InventoryPage: React.FC = () => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const [adjustmentDialogOpen, setAdjustmentDialogOpen] = useState(false)
   const [selectedVariant, setSelectedVariant] = useState<any>(null)
   const location = useLocation()
   const hasProcessedPrefill = useRef(false)
 
   const { showSuccess, showError } = useNotification()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const {
-    filteredVariants,
-    isLoading,
+    page,
+    setPage,
     searchTerm,
     lowStockOnly,
+    filteredVariants,
+    totalCount,
+    isLoading,
     getProductInfo,
     getStockStatus,
     handleSearchChange,
@@ -54,10 +54,8 @@ const InventoryPage: React.FC = () => {
     const state = location.state as { prefillVariant?: number }
     if (state?.prefillVariant && state.prefillVariant > 0 && !adjustmentDialogOpen && !isLoading && !hasProcessedPrefill.current) {
       hasProcessedPrefill.current = true
-      // Buscar la variante pre-llenada en los datos cargados
       const variant = filteredVariants.find((v: any) => v.id === state.prefillVariant)
       if (variant) {
-        // Limpiar el state inmediatamente para evitar re-aperturas
         window.history.replaceState({}, document.title)
         handleAdjustStock(variant)
       }
@@ -81,99 +79,44 @@ const InventoryPage: React.FC = () => {
     })
   }
 
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="400px">
-        <CircularProgress />
-      </Box>
-    )
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value)
   }
 
   return (
     <PageShell>
-      <InventoryHeader
-        searchTerm={searchTerm}
-        lowStockOnly={lowStockOnly}
-        onSearchChange={handleSearchChange}
-        onToggleLowStock={toggleLowStockOnly}
+      <GlobalSectionHeader 
+        title="Inventario"
+        subtitle="Control de existencias y ajustes de stock para todas las variantes"
+        icon={<InventoryIcon sx={{ fontSize: 30 }} />}
+        actions={
+          <ExportButton 
+            onExport={(format) => exportService.exportInventory(format)} 
+            fullWidth={isMobile}
+          />
+        }
       />
 
-      {/* Vista Desktop - Tabla */}
-      {!isMobile && (
-        <Box 
-          sx={{ 
-            borderRadius: 2, 
-            border: `1px solid ${theme.palette.divider}`,
-            bgcolor: 'background.paper',
-            overflow: 'hidden'
-          }}
-        >
-          <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}`, bgcolor: alpha(theme.palette.text.primary, 0.02) }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-              Inventario ({filteredVariants.length} variantes)
-            </Typography>
-          </Box>
-
-          {filteredVariants.length === 0 ? (
-            <Box sx={{ p: 8, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                {lowStockOnly ? 'No hay productos con stock bajo' : 'No se encontraron variantes'}
-              </Typography>
-            </Box>
-          ) : (
-            <InventoryTable
-              variants={filteredVariants}
-              getProductInfo={getProductInfo}
-              getStockStatus={getStockStatus}
-              onAdjustStock={handleAdjustStock}
-            />
-          )}
-        </Box>
-      )}
-
-      {/* Vista Mobile - Cards */}
-      {isMobile && (
-        <Box>
-          <Box sx={{ mb: 2, px: 0.5 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-              Inventario ({filteredVariants.length} variantes)
-            </Typography>
-          </Box>
-
-          {filteredVariants.length === 0 ? (
-            <Box 
-              sx={{ 
-                p: 8, 
-                textAlign: 'center', 
-                borderRadius: 2,
-                border: `1px solid ${theme.palette.divider}`,
-                bgcolor: 'background.paper'
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                {lowStockOnly ? 'No hay productos con stock bajo' : 'No se encontraron variantes'}
-              </Typography>
-            </Box>
-          ) : (
-            <Box sx={{ display: 'grid', gap: 2 }}>
-              {filteredVariants.map((variant) => (
-                <InventoryCard
-                  key={variant.id}
-                  variant={variant}
-                  getProductInfo={getProductInfo}
-                  getStockStatus={getStockStatus}
-                  onAdjustStock={handleAdjustStock}
-                />
-              ))}
-            </Box>
-          )}
-        </Box>
-      )}
+      <InventoryTabs
+        variants={filteredVariants}
+        loading={isLoading}
+        page={page}
+        totalCount={totalCount}
+        onPageChange={handlePageChange}
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        lowStockOnly={lowStockOnly}
+        onToggleLowStock={toggleLowStockOnly}
+        getProductInfo={getProductInfo}
+        getStockStatus={getStockStatus}
+        onAdjustStock={handleAdjustStock}
+      />
 
       {/* Diálogo de ajuste de stock */}
       <InventoryAdjustmentDialog
         open={adjustmentDialogOpen}
         variant={selectedVariant}
+        productInfo={selectedVariant ? getProductInfo(selectedVariant.product) : undefined}
         onClose={() => {
           setAdjustmentDialogOpen(false)
           setSelectedVariant(null)

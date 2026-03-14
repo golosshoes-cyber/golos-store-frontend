@@ -1,20 +1,23 @@
 export interface Purchase {
   id: number
+  movement_type: string
   created_at: string
   variant?: {
     id: number
     size: string
-    color?: string
-    gender: 'male' | 'female' | 'unisex'
+    color: string
+    gender: string
     product?: {
       id: number
       name: string
+      sku: string
     }
   }
-  supplier?: {
+  supplier: {
     id: number
     name: string
-  }
+    nit?: string
+  } | null
   quantity: number
   unit_cost: number
   total_cost: number
@@ -46,11 +49,12 @@ export interface VariantOption {
 }
 
 export interface PurchaseFilters {
-  supplier: string
-  product: string
-  start_date: string
-  end_date: string
-  search: string
+  supplier?: string
+  product?: string
+  start_date?: string
+  end_date?: string
+  search?: string
+  ordering?: string
 }
 
 export interface PurchaseFormData {

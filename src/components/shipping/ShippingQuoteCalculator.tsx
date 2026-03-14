@@ -5,10 +5,13 @@ import { useShippingQuote, type ShippingQuoteService } from '../../hooks/useShip
 
 interface ShippingQuoteCalculatorProps {
   destinationCity: string
+  destinationCityCode?: string
   destinationDepartment: string
+  destinationDepartmentCode?: string
   weightGrams: number
   selectedService: ShippingQuoteService | null
   onSelectService: (service: ShippingQuoteService) => void
+  onQuotesLoaded?: (services: ShippingQuoteService[]) => void
 }
 
 const currencyFormatter = new Intl.NumberFormat('es-CO', {
@@ -19,18 +22,32 @@ const currencyFormatter = new Intl.NumberFormat('es-CO', {
 
 export default function ShippingQuoteCalculator({
   destinationCity,
+  destinationCityCode,
   destinationDepartment,
+  destinationDepartmentCode,
   weightGrams,
   selectedService,
   onSelectService,
+  onQuotesLoaded,
 }: ShippingQuoteCalculatorProps) {
   const { quote, loading, error, getQuote } = useShippingQuote()
 
   useEffect(() => {
     if (destinationCity && destinationDepartment && weightGrams > 0) {
-      void getQuote({ city: destinationCity, department: destinationDepartment }, weightGrams)
+      void getQuote({
+        city: destinationCity,
+        department: destinationDepartment,
+        city_code: destinationCityCode,
+        department_code: destinationDepartmentCode
+      }, weightGrams)
     }
   }, [destinationCity, destinationDepartment, weightGrams, getQuote])
+
+  useEffect(() => {
+    if (quote && onQuotesLoaded) {
+      onQuotesLoaded(quote.services)
+    }
+  }, [quote, onQuotesLoaded])
 
   if (!destinationCity || !destinationDepartment) {
     return (

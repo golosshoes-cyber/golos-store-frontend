@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import {
+  alpha,
   Box,
   Typography,
   Alert,
@@ -215,45 +216,52 @@ const UsersManagement: React.FC = () => {
           )}
 
           <Grid item xs={12}>
-            <Paper
-              elevation={2}
-              sx={{
-                borderRadius: 3,
-                overflow: 'hidden',
-                background: theme.palette.background.paper,
-              }}
-            >
-              <Box sx={{ p: { xs: 2, md: 3 } }}>
+            {isMobile ? (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: '24px',
+                  border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
+                  bgcolor: 'background.paper',
+                }}
+              >
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-                  <Typography variant="h6" fontWeight={700} color="primary.main">
+                  <Typography variant="h6" fontWeight={800} color="text.primary">
                     Lista de Usuarios
                   </Typography>
-                  <Chip label={`Total: ${totalCount}`} size="small" color="primary" variant="outlined" />
+                  <Box sx={{ 
+                    px: 1.2, py: 0.4, borderRadius: 1.5, 
+                    border: `1px solid ${theme.palette.divider}`,
+                    bgcolor: alpha(theme.palette.text.primary, 0.01)
+                  }}>
+                    <Typography sx={{ fontSize: '11px', fontWeight: 700, color: 'text.secondary' }}>
+                      Total: {totalCount}
+                    </Typography>
+                  </Box>
                 </Stack>
-
-                {isMobile ? (
-                  <UsersCards
-                    users={users}
-                    loading={isLoading}
-                    onEdit={handleEditUser}
-                    onDelete={handleDeleteUser}
-                    onView={handleViewUser}
-                  />
-                ) : (
-                  <UserTable
-                    users={users}
-                    loading={isLoading}
-                    page={page}
-                    totalCount={totalCount}
-                    onPageChange={setPage}
-                    onEdit={handleEditUser}
-                    onDelete={handleDeleteUser}
-                    onView={handleViewUser}
-                    onRefresh={refetch}
-                  />
-                )}
-              </Box>
-            </Paper>
+                <UsersCards
+                  users={users}
+                  loading={isLoading}
+                  onEdit={handleEditUser}
+                  onDelete={handleDeleteUser}
+                  onView={handleViewUser}
+                />
+              </Paper>
+            ) : (
+              <UserTable
+                title="Lista de Usuarios"
+                users={users}
+                loading={isLoading}
+                page={page}
+                totalCount={totalCount}
+                onPageChange={setPage}
+                onEdit={handleEditUser}
+                onDelete={handleDeleteUser}
+                onView={handleViewUser}
+                onRefresh={refetch}
+              />
+            )}
           </Grid>
         </Grid>
 
@@ -278,34 +286,10 @@ const UsersManagement: React.FC = () => {
           open={viewDialogOpen}
           onClose={() => setViewDialogOpen(false)}
           maxWidth="sm"
-          header={
-            <Box
-              sx={{
-                px: 2.5,
-                py: 2,
-                borderTopLeftRadius: 8,
-                borderTopRightRadius: 8,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.2,
-              }}
-            >
-              <PersonIcon />
-              <Box>
-                <Typography variant="subtitle1" fontWeight={700}>
-                  Detalles del Usuario
-                </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                  Información general y grupos asignados
-                </Typography>
-              </Box>
-            </Box>
-          }
-          headerInTitle={false}
+          dialogTitle="Detalles del Usuario"
+          subtitle="Información general y grupos asignados"
           actions={
-            <Button onClick={() => setViewDialogOpen(false)} variant="outlined">
+            <Button onClick={() => setViewDialogOpen(false)} variant="outlined" sx={{ borderRadius: 1.5 }}>
               Cerrar
             </Button>
           }

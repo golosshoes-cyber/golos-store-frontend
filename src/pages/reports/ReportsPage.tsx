@@ -1,11 +1,10 @@
 import React from 'react'
 import {
   Box,
-  Paper,
   Tabs,
   Tab,
 } from '@mui/material'
-import { alpha, useTheme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import InventoryHistoryTab from '../../components/reports/InventoryHistoryTab'
 import SnapshotTab from '../../components/reports/SnapshotTab'
 import DailySummaryTab from '../../components/reports/DailySummaryTab'
@@ -33,6 +32,7 @@ const ReportsPage: React.FC = () => {
     variants,
     inventoryHistory,
     snapshots,
+    snapshotsParams,
     lowStockVariants,
     dailySummary,
     isInventoryHistoryLoading,
@@ -50,6 +50,7 @@ const ReportsPage: React.FC = () => {
     handleCreateSnapshot,
     handleExportExcel,
     handlePageChange,
+    handleSnapshotPageChange,
     setStartDate,
     setEndDate,
     setProductFilter,
@@ -68,33 +69,53 @@ const ReportsPage: React.FC = () => {
         icon={<AssessmentIcon sx={{ fontSize: { xs: 24, sm: 30 } }} />}
       />
 
-      {/* Tabs */}
-      <Paper sx={{ width: '100%', borderRadius: 3, overflow: 'hidden' }}>
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-        variant="scrollable"
-        scrollButtons="auto"
-        sx={{
-            backgroundColor:
-              theme.palette.mode === 'light'
-                ? alpha(theme.palette.primary.main, 0.08)
-                : alpha(theme.palette.primary.main, 0.2),
-            '& .MuiTabs-flexContainer': {
-              flexDirection: { xs: 'column', sm: 'row' },
-            },
-            '& .MuiTab-root': {
-              minHeight: 48,
-              fontWeight: 'medium',
-            },
-          }}
-        >
-          <Tab label="Historial de Inventario" />
-          <Tab label="Snapshot Mensual" />
-          <Tab label="Resumen Diario" />
-          <Tab label="Stock Bajo" />
-        </Tabs>
-        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+      <Box sx={{
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`,
+        boxShadow: theme.palette.mode === 'light' ? '0 1px 3px rgba(0,0,0,0.06)' : '0 1px 3px rgba(0,0,0,0.3)',
+        overflow: 'hidden',
+        mt: 2,
+      }}>
+        {/* Tabs Header */}
+        <Box sx={{ borderBottom: `1px solid ${theme.palette.divider}`, px: 0.5, bgcolor: 'background.paper' }}>
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              minHeight: 44,
+              '& .MuiTabs-indicator': {
+                backgroundColor: 'text.primary',
+                height: 2,
+              },
+              '& .MuiTab-root': {
+                minHeight: 44,
+                textTransform: 'none',
+                fontSize: '12px',
+                fontWeight: 500,
+                color: 'text.disabled',
+                px: 2,
+                minWidth: 'auto',
+                transition: 'all 0.1s ease',
+                '&.Mui-selected': {
+                  color: 'text.primary',
+                },
+                '&:hover': {
+                  color: 'text.secondary',
+                }
+              },
+            }}
+          >
+            <Tab label="Historial de Inventario" />
+            <Tab label="Snapshot Mensual" />
+            <Tab label="Resumen Diario" />
+            <Tab label="Stock Bajo" />
+          </Tabs>
+        </Box>
+
+        <Box sx={{ p: 0 }}>
           {activeTab === 0 && (
             <InventoryHistoryTab
               startDate={startDate}
@@ -120,11 +141,13 @@ const ReportsPage: React.FC = () => {
           {activeTab === 1 && (
             <SnapshotTab
               snapshots={snapshots}
+              snapshotsParams={snapshotsParams}
               isSnapshotsLoading={isSnapshotsLoading}
               snapshotsError={snapshotsError ? { message: snapshotsError.message } : undefined}
               isCreatingSnapshot={isCreatingSnapshot}
               onCreateSnapshot={handleCreateSnapshot}
               onExportExcel={handleExportExcel}
+              onPageChange={handleSnapshotPageChange}
             />
           )}
           {activeTab === 2 && (
@@ -149,7 +172,7 @@ const ReportsPage: React.FC = () => {
             />
           )}
         </Box>
-      </Paper>
+      </Box>
     </PageShell>
   )
 }

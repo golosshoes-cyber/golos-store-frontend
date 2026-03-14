@@ -9,7 +9,6 @@ import {
   TableHead,
   TableRow,
   CircularProgress,
-  Pagination,
   IconButton,
   Tooltip,
   alpha,
@@ -20,6 +19,8 @@ import {
   Edit as EditIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  ArrowDownward as ArrowDownwardIcon,
 } from '@mui/icons-material'
 import { Sale } from '../../types'
 import { formatCurrency } from '../../utils/currency'
@@ -27,25 +28,28 @@ import { formatCurrency } from '../../utils/currency'
 interface SalesTableProps {
   sales: Sale[]
   loading: boolean
-  page: number
-  totalCount: number
-  onPageChange: (page: number) => void
   onEdit: (sale: Sale) => void
   onConfirm: (saleId: number) => void
   onCancel: (saleId: number) => void
   onViewDetails: (sale: Sale) => void
+  // Nuevos props
+  selectedIds: number[]
+  onSelectionChange: (ids: number[]) => void
+  currentSort: string
+  onSortChange: (sort: string) => void
 }
 
 const SalesTable: React.FC<SalesTableProps> = ({
   sales,
   loading,
-  page,
-  totalCount,
-  onPageChange,
   onEdit,
   onConfirm,
   onCancel,
   onViewDetails,
+  selectedIds,
+  onSelectionChange,
+  currentSort,
+  onSortChange,
 }) => {
   const theme = useTheme()
 
@@ -75,6 +79,40 @@ const SalesTable: React.FC<SalesTableProps> = ({
     }
   }
 
+  // Lógica de selección
+  const isAllSelected = sales.length > 0 && selectedIds.length === sales.length
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      onSelectionChange(sales.map(s => s.id))
+    } else {
+      onSelectionChange([])
+    }
+  }
+
+  const handleSelectOne = (id: number, checked: boolean) => {
+    if (checked) {
+      onSelectionChange([...selectedIds, id])
+    } else {
+      onSelectionChange(selectedIds.filter(selectedId => selectedId !== id))
+    }
+  }
+
+  // Lógica de ordenamiento interactivo
+  const handleSortToggle = (field: string) => {
+    if (currentSort === `${field}-asc`) {
+      onSortChange(`${field}-desc`)
+    } else {
+      onSortChange(`${field}-asc`)
+    }
+  }
+
+  const getSortIcon = (field: string) => {
+    if (currentSort === `${field}-asc`) return <ArrowUpwardIcon sx={{ fontSize: 14, ml: 0.5 }} />
+    if (currentSort === `${field}-desc`) return <ArrowDownwardIcon sx={{ fontSize: 14, ml: 0.5 }} />
+    return null
+  }
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="400px">
@@ -93,22 +131,69 @@ const SalesTable: React.FC<SalesTableProps> = ({
           boxShadow: 'none',
         }}
       >
-        <Table>
-          <TableHead>
+        <Table size="small">
+          <TableHead sx={{ bgcolor: alpha(theme.palette.primary.main, 0.03) }}>
             <TableRow>
-              <TableCell>Cliente</TableCell>
-              <TableCell>Fecha</TableCell>
-              <TableCell>Total</TableCell>
-              <TableCell>Método Pago</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell align="right">Acciones</TableCell>
+              <TableCell padding="checkbox" sx={{ pl: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                <input 
+                  type="checkbox" 
+                  style={{ accentColor: theme.palette.text.primary, width: 14, height: 14 }} 
+                  checked={isAllSelected}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                />
+              </TableCell>
+              <TableCell 
+                onClick={() => handleSortToggle('customer')}
+                sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' }, fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Cliente {getSortIcon('customer')}
+                </Box>
+              </TableCell>
+              <TableCell 
+                onClick={() => onSortChange(currentSort === 'newest' ? 'oldest' : 'newest')}
+                sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' }, fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Fecha {currentSort === 'newest' ? <ArrowDownwardIcon sx={{ fontSize: 14, ml: 0.5 }} /> : currentSort === 'oldest' ? <ArrowUpwardIcon sx={{ fontSize: 14, ml: 0.5 }} /> : null}
+                </Box>
+              </TableCell>
+              <TableCell 
+                onClick={() => handleSortToggle('total')}
+                sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' }, fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Total {getSortIcon('total')}
+                </Box>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}>Método Pago</TableCell>
+              <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}>Estado</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {sales.map((sale) => {
               const statusColor = getStatusColor(sale.status)
+              const isSelected = selectedIds.includes(sale.id)
               return (
-                <TableRow key={sale.id} hover>
+                <TableRow 
+                  key={sale.id} 
+                  hover 
+                  selected={isSelected}
+                  sx={{
+                    '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.01) },
+                    '&.Mui-selected': { bgcolor: alpha(theme.palette.text.primary, 0.04) },
+                    '&.Mui-selected:hover': { bgcolor: alpha(theme.palette.text.primary, 0.06) }
+                  }}
+                >
+                  <TableCell padding="checkbox" sx={{ pl: 2 }}>
+                    <input 
+                      type="checkbox" 
+                      style={{ accentColor: theme.palette.text.primary, width: 14, height: 14 }} 
+                      checked={isSelected}
+                      onChange={(e) => handleSelectOne(sale.id, e.target.checked)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
                       {sale.customer}
@@ -196,16 +281,6 @@ const SalesTable: React.FC<SalesTableProps> = ({
           </TableBody>
         </Table>
       </TableContainer>
-
-      {totalCount > 20 && (
-        <Box display="flex" justifyContent="center" mt={3} mb={2}>
-          <Pagination
-            count={Math.ceil(totalCount / 20)}
-            page={page}
-            onChange={(_, newPage) => onPageChange(newPage)}
-          />
-        </Box>
-      )}
     </Box>
   )
 }

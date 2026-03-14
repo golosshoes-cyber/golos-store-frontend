@@ -36,6 +36,12 @@ interface VariantsTableProps {
   images: any[]
   search?: string
   onView: (variant: ProductVariant) => void
+  
+  // New Props
+  selectedIds: number[]
+  onSelectionChange: (ids: number[]) => void
+  currentSort: string
+  onSortChange: (sort: string) => void
 }
 
 const VariantsTable: React.FC<VariantsTableProps> = ({
@@ -50,6 +56,10 @@ const VariantsTable: React.FC<VariantsTableProps> = ({
   images,
   search,
   onView,
+  selectedIds,
+  onSelectionChange,
+  currentSort,
+  onSortChange,
 }) => {
   const [imageViewerOpen, setImageViewerOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string>('')
@@ -98,148 +108,276 @@ const VariantsTable: React.FC<VariantsTableProps> = ({
 
   return (
     <>
-      <TableContainer sx={{ 
-        width: '100%', 
-        overflowX: 'auto',
-        borderRadius: 2,
-        border: `1px solid ${theme.palette.divider}`,
-        boxShadow: 'none',
-        bgcolor: 'background.paper',
-        mb: 2
-      }}>
-        {variants.length === 0 && search && !loading ? (
-          <Box display="flex" justifyContent="center" p={4}>
-            <Typography variant="body2" color="text.secondary">
-              No se encontraron variantes con esa búsqueda
-            </Typography>
-          </Box>
-        ) : (
-          <Table aria-label="variants table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Producto</TableCell>
-                <TableCell>SKU</TableCell>
-                <TableCell>Género</TableCell>
-                <TableCell>Stock</TableCell>
-                <TableCell>Precio</TableCell>
-                <TableCell>Estado</TableCell>
-                <TableCell>Imagen</TableCell>
-                <TableCell align="right">Acciones</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {variants?.map((variant) => {
-                const product = allProducts?.find(p => p.id === variant.product)
-                return (
-                  <TableRow key={variant.id} hover>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {product?.name || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
-                        {product ? generateSKUVariant(variant, product) : 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
-                        {variant.gender}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color={variant.stock === 0 ? 'error.main' : 'text.primary'}>
-                        {variant.stock}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        ${parseFloat(variant.price.toString()).toFixed(2)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ 
-                        display: 'inline-flex', 
-                        px: 1, 
-                        py: 0.25, 
-                        borderRadius: '999px',
-                        fontSize: '11px',
-                        fontWeight: 500,
-                        bgcolor: variant.active ? alpha(theme.palette.success.main, 0.08) : alpha(theme.palette.error.main, 0.08),
-                        color: variant.active ? theme.palette.success.main : theme.palette.error.main,
-                        border: `1px solid ${variant.active ? alpha(theme.palette.success.main, 0.2) : alpha(theme.palette.error.main, 0.2)}`
-                      }}>
-                        {variant.active ? 'Activo' : 'Inactivo'}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      {(() => {
-                        const assignedImage = images.find(img => img.variant === variant.id)
-                        return assignedImage ? (
-                          <Box
-                            component="img"
-                            src={assignedImage.image}
-                            alt=""
-                            sx={{
-                              width: 36,
-                              height: 36,
-                              objectFit: 'cover',
-                              cursor: 'pointer',
-                              borderRadius: 1.5,
-                              border: `1px solid ${theme.palette.divider}`,
-                              transition: 'all 0.2s ease',
-                              '&:hover': {
-                                opacity: 0.8,
-                                transform: 'scale(1.05)',
-                              }
-                            }}
-                            onClick={() => handleImageClick(assignedImage.image, variant)}
-                          />
-                        ) : (
-                          <Typography variant="caption" color="text.disabled">Sin imagen</Typography>
-                        )
-                      })()}
-                    </TableCell>
-                    <TableCell align="right">
-                      <Box display="flex" gap={0.5} justifyContent="flex-end">
-                        <Tooltip title="Ver">
-                          <IconButton size="small" onClick={() => onView(variant)} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}>
-                            <VisibilityIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Editar">
-                          <IconButton size="small" onClick={() => onEdit(variant)} sx={{ color: 'text.secondary', '&:hover': { color: 'warning.main' } }}>
-                            <EditIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Eliminar">
-                          <IconButton size="small" onClick={() => onDelete(variant.id)} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
-                            <DeleteIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        )}
-      </TableContainer>
+      <Box>
+        <TableContainer sx={{ 
+          width: '100%', 
+          overflowX: 'auto',
+          bgcolor: 'transparent',
+        }}>
+          {variants.length === 0 && search && !loading ? (
+            <Box display="flex" justifyContent="center" p={4}>
+              <Typography variant="body2" color="text.secondary">
+                No se encontraron variantes con esa búsqueda
+              </Typography>
+            </Box>
+          ) : (
+            <Table aria-label="variants table" size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.015)' : 'rgba(255,255,255,0.02)' }}>
+                  <TableCell padding="checkbox" sx={{ borderBottom: `1px solid ${theme.palette.divider}`, pl: 2 }}>
+                    <input 
+                      type="checkbox" 
+                      style={{ accentColor: theme.palette.text.primary, width: 14, height: 14 }} 
+                      checked={variants.length > 0 && selectedIds.length === variants.length}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          onSelectionChange(variants.map(v => v.id))
+                        } else {
+                          onSelectionChange([])
+                        }
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ 
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                    fontSize: '10px', fontWeight: 600, color: 'text.disabled',
+                    textTransform: 'uppercase', letterSpacing: '0.5px', py: 1.2
+                  }}>
+                    Producto
+                  </TableCell>
+                  <TableCell sx={{ 
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                    fontSize: '10px', fontWeight: 600, color: 'text.disabled',
+                    textTransform: 'uppercase', letterSpacing: '0.5px'
+                  }}>
+                    SKU
+                  </TableCell>
+                  <TableCell sx={{ 
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                    fontSize: '10px', fontWeight: 600, color: 'text.disabled',
+                    textTransform: 'uppercase', letterSpacing: '0.5px'
+                  }}>
+                    Género
+                  </TableCell>
+                  <TableCell sx={{ 
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                    fontSize: '10px', fontWeight: 600, color: currentSort.includes('stock') ? 'text.primary' : 'text.disabled',
+                    textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer',
+                    '&:hover': { color: 'text.primary' }
+                  }}
+                  onClick={() => onSortChange(currentSort === 'stock-desc' ? 'stock-asc' : 'stock-desc')}
+                  >
+                    Stock 
+                    <Box component="span" sx={{ opacity: currentSort.includes('stock') ? 1 : 0.5, ml: 0.5 }}>
+                      {currentSort === 'stock-asc' ? '↑' : currentSort === 'stock-desc' ? '↓' : '↕'}
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={{ 
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                    fontSize: '10px', fontWeight: 600, color: currentSort.includes('price') ? 'text.primary' : 'text.disabled',
+                    textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer',
+                    '&:hover': { color: 'text.primary' }
+                  }}
+                  onClick={() => onSortChange(currentSort === 'price-desc' ? 'price-asc' : 'price-desc')}
+                  >
+                    Precio 
+                    <Box component="span" sx={{ opacity: currentSort.includes('price') ? 1 : 0.5, ml: 0.5 }}>
+                      {currentSort === 'price-asc' ? '↑' : currentSort === 'price-desc' ? '↓' : '↕'}
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={{ 
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                    fontSize: '10px', fontWeight: 600, color: 'text.disabled',
+                    textTransform: 'uppercase', letterSpacing: '0.5px'
+                  }}>
+                    Estado
+                  </TableCell>
+                  <TableCell sx={{ 
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                    fontSize: '10px', fontWeight: 600, color: 'text.disabled',
+                    textTransform: 'uppercase', letterSpacing: '0.5px'
+                  }}>
+                    Imagen
+                  </TableCell>
+                  <TableCell align="right" sx={{ 
+                    borderBottom: `1px solid ${theme.palette.divider}`, pr: 2,
+                    fontSize: '10px', fontWeight: 600, color: 'text.disabled',
+                    textTransform: 'uppercase', letterSpacing: '0.5px'
+                  }}>
+                    Acciones
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {variants?.map((variant) => {
+                  const product = allProducts?.find(p => p.id === variant.product)
+                  return (
+                    <TableRow 
+                      key={variant.id} 
+                      hover 
+                      selected={selectedIds.includes(variant.id)}
+                      sx={{ 
+                        '&:last-child td': { border: 0 },
+                        '&.Mui-selected': { bgcolor: alpha(theme.palette.text.primary, 0.04) },
+                        '&.Mui-selected:hover': { bgcolor: alpha(theme.palette.text.primary, 0.06) }
+                      }}
+                    >
+                      <TableCell padding="checkbox" sx={{ pl: 2 }}>
+                        <input 
+                          type="checkbox" 
+                          style={{ accentColor: theme.palette.text.primary, width: 14, height: 14 }} 
+                          checked={selectedIds.includes(variant.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              onSelectionChange([...selectedIds, variant.id])
+                            } else {
+                              onSelectionChange(selectedIds.filter(id => id !== variant.id))
+                            }
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ py: 1.5 }}>
+                        <Typography variant="body2" sx={{ fontSize: '12px', fontWeight: 600 }}>
+                          {product?.name || 'N/A'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ 
+                          fontSize: '10px', color: 'text.secondary', bgcolor: alpha(theme.palette.text.disabled, 0.08),
+                          px: 0.8, py: 0.2, borderRadius: 1, display: 'inline-flex', fontFamily: 'monospace'
+                        }}>
+                          {product ? generateSKUVariant(variant, product) : 'N/A'}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ 
+                          px: 0.8, py: 0.2, borderRadius: 1, bgcolor: alpha(theme.palette.text.disabled, 0.08), 
+                          color: 'text.secondary', fontSize: '10px', fontWeight: 500, display: 'inline-flex', textTransform: 'capitalize'
+                        }}>
+                          {variant.gender}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ 
+                          fontSize: '12px', fontWeight: 600, 
+                          color: variant.stock === 0 ? 'error.main' : variant.stock < 5 ? 'warning.main' : 'success.main' 
+                        }}>
+                          {variant.stock}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: '12px', fontWeight: 600 }}>
+                          ${parseFloat(variant.price.toString()).toLocaleString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ 
+                          display: 'inline-flex', px: 1, py: 0.3, borderRadius: 1,
+                          fontSize: '10px', fontWeight: 600,
+                          bgcolor: variant.active ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
+                          color: variant.active ? theme.palette.success.main : theme.palette.error.main,
+                        }}>
+                          {variant.active ? 'Activo' : 'Inactivo'}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const assignedImage = images.find(img => img.variant === variant.id)
+                          return assignedImage ? (
+                            <Box
+                              component="img"
+                              src={assignedImage.image}
+                              alt=""
+                              sx={{
+                                width: 32,
+                                height: 32,
+                                objectFit: 'cover',
+                                cursor: 'pointer',
+                                borderRadius: 1,
+                                border: `1px solid ${theme.palette.divider}`,
+                                transition: 'all 0.1s ease',
+                                '&:hover': { transform: 'scale(1.05)' }
+                              }}
+                              onClick={() => handleImageClick(assignedImage.image, variant)}
+                            />
+                          ) : (
+                            <Box sx={{ 
+                              width: 32, height: 32, borderRadius: 1, border: `1px solid ${theme.palette.divider}`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              bgcolor: 'action.hover', color: 'text.disabled'
+                            }}>
+                              <VisibilityIcon sx={{ fontSize: 14, opacity: 0.5 }} />
+                            </Box>
+                          )
+                        })()}
+                      </TableCell>
+                      <TableCell align="right" sx={{ pr: 2 }}>
+                        <Box display="flex" gap={0.5} justifyContent="flex-end">
+                          {[
+                            { icon: <VisibilityIcon sx={{ fontSize: 13 }} />, title: 'Ver', onClick: () => onView(variant) },
+                            { icon: <EditIcon sx={{ fontSize: 13 }} />, title: 'Editar', onClick: () => onEdit(variant) },
+                            { icon: <DeleteIcon sx={{ fontSize: 13 }} />, title: 'Eliminar', onClick: () => onDelete(variant.id), danger: true }
+                          ].map((action, idx) => (
+                            <Tooltip key={idx} title={action.title}>
+                              <IconButton 
+                                size="small" 
+                                onClick={action.onClick}
+                                sx={{ 
+                                  width: 28, height: 28, borderRadius: 1.5,
+                                  border: `1px solid ${theme.palette.divider}`,
+                                  color: 'text.disabled',
+                                  '&:hover': { 
+                                    color: action.danger ? 'error.main' : 'text.primary',
+                                    borderColor: action.danger ? 'error.main' : 'text.disabled',
+                                    bgcolor: action.danger ? alpha(theme.palette.error.main, 0.05) : 'action.hover'
+                                  }
+                                }}
+                              >
+                                {action.icon}
+                              </IconButton>
+                            </Tooltip>
+                          ))}
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </TableContainer>
 
-      {(() => {
-        const count = totalCount || 0
-        return count > 20 && (
-          <Box display="flex" justifyContent="center" p={2}>
-            <Pagination
-              count={Math.ceil(count / 20)}
-              page={page}
-              onChange={(_, newPage) => onPageChange(newPage)}
-              size="small"
-            />
-          </Box>
-        )
-      })()}
+        {/* PAGINATION INTEGRATED */}
+        <Box sx={{ 
+          p: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          borderTop: `1px solid ${theme.palette.divider}`, bgcolor: theme.palette.mode === 'light' ? alpha('#fff', 0.5) : alpha('#000', 0.1)
+        }}>
+          <Typography sx={{ fontSize: '11px', color: 'text.disabled' }}>
+            {totalCount || 0} variantes · Página {page} de {Math.ceil((totalCount || 0) / 20) || 1}
+          </Typography>
+          <Pagination
+            count={Math.ceil((totalCount || 0) / 20)}
+            page={page}
+            onChange={(_, newPage) => onPageChange(newPage)}
+            size="small"
+            shape="rounded"
+            sx={{
+              '& .MuiPaginationItem-root': {
+                fontSize: '11px',
+                height: 28,
+                minWidth: 28,
+                borderRadius: 1.5,
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: 'background.paper',
+                '&.Mui-selected': { bgcolor: 'text.primary', color: 'background.default', border: 'none' },
+                '&:hover': { borderColor: 'text.disabled' }
+              }
+            }}
+          />
+        </Box>
+      </Box>
+
+      {/* PAGINATION MOVED INTO TABLE BOX */}
 
       <DialogShell
         open={imageViewerOpen}
@@ -250,8 +388,16 @@ const VariantsTable: React.FC<VariantsTableProps> = ({
         actions={
           <Button
             onClick={handleCloseImageViewer}
-            startIcon={<CloseIcon />}
-            color="primary"
+            startIcon={<CloseIcon sx={{ fontSize: 16 }} />}
+            size="small"
+            sx={{
+              borderRadius: 1.5,
+              fontSize: '12px',
+              textTransform: 'none',
+              px: 2,
+              color: 'text.secondary',
+              '&:hover': { color: 'text.primary' },
+            }}
           >
             Cerrar
           </Button>

@@ -24,7 +24,7 @@ export const productService = {
   },
 
   updateProduct: async (id: number, product: Partial<Product>): Promise<Product> => {
-    const response = await api.put(`/api/products/${id}/`, product)
+    const response = await api.patch(`/api/products/${id}/`, product)
     return response.data
   },
 
@@ -48,7 +48,7 @@ export const productService = {
   },
 
   updateVariant: async (id: number, variant: Partial<ProductVariant>): Promise<ProductVariant> => {
-    const response = await api.put(`/api/product-variants/${id}/`, variant)
+    const response = await api.patch(`/api/product-variants/${id}/`, variant)
     return response.data
   },
 
@@ -161,6 +161,14 @@ export const productService = {
     if (params.movement_type) query.append('movement_type', params.movement_type)
     if (params.page) query.append('page', params.page.toString())
     const response = await api.get(`/api/inventory-history/?${query.toString()}`)
+    return response.data
+  },
+
+  getInventorySnapshots: async (params: { page?: number; limit?: number } = {}): Promise<any> => {
+    const query = new URLSearchParams()
+    if (params.page) query.append('page', params.page.toString())
+    if (params.limit) query.append('limit', params.limit.toString())
+    const response = await api.get(`/api/inventory-snapshots/?${query.toString()}`)
     return response.data
   },
 }
