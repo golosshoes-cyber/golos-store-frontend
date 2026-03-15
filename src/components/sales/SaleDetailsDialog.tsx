@@ -79,25 +79,85 @@ const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({ sale, open, onClo
               color: black !important;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
+              font-family: 'Inter', system-ui, -apple-system, sans-serif;
             }
             #print-container { 
               width: 80mm; 
               background: white;
+              padding: 0;
             }
             * { 
               box-sizing: border-box; 
               -webkit-print-color-adjust: exact; 
               print-color-adjust: exact; 
             }
-            /* Reset base para asegurar consistencia */
-            p, span, div, hr { 
+            
+            /* Thermal Optimization Classes */
+            .pos-ticket {
+              width: 80mm;
+              padding: 4mm;
+              background: white;
+            }
+            .pos-header {
+              text-align: center;
+              margin-bottom: 8px;
+            }
+            .pos-store-name {
+              font-size: 16px;
+              font-weight: 800;
+              text-transform: uppercase;
+              margin: 0 0 2px 0;
+            }
+            .pos-nit-badge {
+              border: 1px solid black;
+              display: inline-block;
+              padding: 1px 8px;
+              margin-bottom: 4px;
+            }
+            .pos-divider {
+              border: none;
+              border-top: 1px solid black;
+              margin: 8px 0;
+            }
+            .pos-divider-dashed {
+              border: none;
+              border-top: 1px dashed black;
+              margin: 8px 0;
+            }
+            .pos-info-row {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 2px;
+            }
+            .pos-table-header {
+              display: flex;
+              border-bottom: 1px solid black;
+              padding-bottom: 4px;
+              margin-bottom: 4px;
+            }
+            .pos-item-row {
+              margin-bottom: 6px;
+            }
+            .pos-mono {
+              font-family: 'JetBrains Mono', monospace;
+            }
+            .pos-grand-total {
+              padding-top: 4px;
+              border-top: 1px solid #eee;
+            }
+            .pos-qr-sim {
+              background: black;
+              width: 24mm;
+              height: 24mm;
+            }
+            
+            p, span, div { 
               margin: 0; 
               padding: 0; 
-              font-family: 'Inter', system-ui, -apple-system, sans-serif;
             }
           </style>
         </head>
-        <body onload="setTimeout(() => { window.print(); window.close(); }, 1000)">
+        <body onload="setTimeout(() => { window.print(); window.close(); }, 1200)">
           <div id="print-container">${content}</div>
         </body>
       </html>
@@ -206,7 +266,14 @@ const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({ sale, open, onClo
       {sale && (
         <Box>
           {/* Componente de tiquete oculto (solo para impresión) */}
-          <Box sx={{ display: 'none' }}>
+          <Box sx={{ 
+            position: 'absolute', 
+            opacity: 0, 
+            pointerEvents: 'none', 
+            zIndex: -1,
+            height: 0,
+            overflow: 'hidden'
+          }}>
             <POSTicket ref={ticketRef} sale={sale} branding={branding} />
           </Box>
 
