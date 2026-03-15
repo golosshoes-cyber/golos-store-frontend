@@ -37,10 +37,11 @@ export const useSalesActions = ({ showSuccess, showError }: UseSalesActionsProps
 
   // Mutación para confirmar venta
   const confirmSaleMutation = useMutation({
-    mutationFn: ({ id, invoice_required }: { id: number; invoice_required?: boolean }) => 
-      dashboardService.confirmSale(id, invoice_required),
+    mutationFn: ({ id, invoicing_method }: { id: number; invoicing_method?: string }) => 
+      dashboardService.confirmSale(id, { invoicing_method }),
     onSuccess: (_, variables) => {
-      showSuccess(variables.invoice_required ? 'Venta confirmada y Factura Electrónica emitida' : 'Venta confirmada exitosamente')
+      const isElectronic = variables.invoicing_method === 'AUTOMATIC' || variables.invoicing_method === 'MANUAL'
+      showSuccess(isElectronic ? 'Venta confirmada y Factura Electrónica emitida' : 'Venta confirmada exitosamente')
       queryClient.invalidateQueries({ queryKey: ['sales'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
     },
@@ -89,7 +90,7 @@ export const useSalesActions = ({ showSuccess, showError }: UseSalesActionsProps
 
     if (confirmed) {
       try {
-        await confirmSaleMutation.mutateAsync({ id: saleId, invoice_required: false })
+        await confirmSaleMutation.mutateAsync({ id: saleId, invoicing_method: 'NONE' })
       } catch (_error: any) {
         // onError mutation already handles user feedback
       }

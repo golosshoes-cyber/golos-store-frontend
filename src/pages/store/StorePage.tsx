@@ -55,6 +55,8 @@ const DEFAULT_BRANDING: StoreBranding = {
   promo_bottom_enabled: false,
   promo_bottom_title: '',
   promo_bottom_text: '',
+  maintenance_mode: false,
+  maintenance_message: '',
 }
 
 const FALLBACK_IMAGE = `data:image/svg+xml;utf8,${encodeURIComponent(`
