@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Divider, Stack } from '@mui/material';
+
 import { Sale } from '../../types';
 import { formatCurrency } from '../../utils/currency';
 
@@ -25,188 +25,184 @@ const POSTicket = React.forwardRef<HTMLDivElement, POSTicketProps>(({ sale, bran
   };
 
   return (
-    <Box
+    <div
       ref={ref}
-      sx={{
+      style={{
         width: '80mm',
         padding: '4mm',
         backgroundColor: '#fff',
-        ...commonText,
-        '@media print': {
-          width: '80mm',
-          padding: '0',
-          margin: '0',
-          pageBreakInside: 'avoid',
-        },
+        ...commonText as any,
+        fontFamily: "'Inter', 'system-ui', -apple-system, sans-serif",
       }}
     >
       {/* HEADER: Premium Identity */}
-      <Stack spacing={0.5} alignItems="center" sx={{ mb: 2, textAlign: 'center' }}>
-        <Typography sx={{ 
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '8px', textAlign: 'center' }}>
+        <p style={{ 
           fontSize: '16px', 
           fontWeight: 800, 
           letterSpacing: '-0.02em',
           textTransform: 'uppercase',
-          mb: 0.2
+          margin: '0 0 2px 0'
         }}>
           {branding?.store_name || 'GOLOS STORE'}
-        </Typography>
+        </p>
         
-        <Box sx={{ border: '1px solid #000', px: 1, py: 0.2, mb: 0.5 }}>
-          <Typography sx={{ fontSize: '9px', fontWeight: 700 }}>
+        <div style={{ border: '1px solid #000', padding: '1px 8px', marginBottom: '4px' }}>
+          <p style={{ fontSize: '9px', fontWeight: 700, margin: 0 }}>
             {branding?.legal_id_type || 'NIT'}: {branding?.legal_id_number || '107531206'}
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
-        <Typography sx={{ fontSize: '9px', fontWeight: 500, maxWidth: '80%' }}>
+        <p style={{ fontSize: '9px', fontWeight: 500, maxWidth: '80%', margin: '0 0 2px 0' }}>
           {branding?.legal_contact_address || 'C.C. Portal del Quindío, Local 214'}
-        </Typography>
-        <Typography sx={{ fontSize: '9px', fontWeight: 500 }}>
+        </p>
+        <p style={{ fontSize: '9px', fontWeight: 500, margin: 0 }}>
           Armenia, Quindío • Tel: {branding?.legal_contact_phone || '317 291 7178'}
-        </Typography>
-      </Stack>
+        </p>
+      </div>
 
-      <Divider sx={{ borderStyle: 'solid', my: 1, borderColor: '#000', borderWidth: '1px' }} />
+      <hr style={{ border: 'none', borderTop: '1px solid #000', margin: '8px 0' }} />
 
       {/* SALE INFO: Clean Grid */}
-      <Box sx={{ mb: 1.5 }}>
-        <Typography sx={{ 
+      <div style={{ marginBottom: '12px' }}>
+        <p style={{ 
           fontSize: '10px', 
           fontWeight: 800, 
-          bgcolor: '#000', 
+          backgroundColor: '#000', 
           color: '#fff', 
-          px: 1, py: 0.3,
+          padding: '3px 8px',
           display: 'inline-block',
-          mb: 0.8
+          margin: '0 0 8px 0'
         }}>
           {sale.is_electronic_invoice ? 'FACTURA ELECTRÓNICA DE VENTA' : 'DOCUMENTO EQUIVALENTE POS'}
-        </Typography>
+        </p>
 
-        <Stack spacing={0.2}>
-          <Box display="flex" justifyContent="space-between">
-            <Typography sx={{ fontSize: '9px', fontWeight: 600 }}>NÚMERO:</Typography>
-            <Typography sx={{ fontSize: '9px', fontWeight: 800 }}>{sale.document_number || `V-${sale.id}`}</Typography>
-          </Box>
-          <Box display="flex" justifyContent="space-between">
-            <Typography sx={{ fontSize: '9px', fontWeight: 600 }}>FECHA:</Typography>
-            <Typography sx={{ fontSize: '9px' }}>{new Date(sale.created_at).toLocaleString()}</Typography>
-          </Box>
-          <Box display="flex" justifyContent="space-between">
-            <Typography sx={{ fontSize: '9px', fontWeight: 600 }}>CLIENTE:</Typography>
-            <Typography sx={{ fontSize: '9px', fontWeight: 700 }}>{sale.customer.toUpperCase()}</Typography>
-          </Box>
-          <Box display="flex" justifyContent="space-between">
-            <Typography sx={{ fontSize: '9px', fontWeight: 600 }}>CAJERO:</Typography>
-            <Typography sx={{ fontSize: '9px' }}>{sale.created_by.toUpperCase()}</Typography>
-          </Box>
-        </Stack>
-      </Box>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '9px', fontWeight: 600 }}>NÚMERO:</span>
+            <span style={{ fontSize: '9px', fontWeight: 800 }}>{sale.document_number || `V-${sale.id}`}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '9px', fontWeight: 600 }}>FECHA:</span>
+            <span style={{ fontSize: '9px' }}>{new Date(sale.created_at).toLocaleString()}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '9px', fontWeight: 600 }}>CLIENTE:</span>
+            <span style={{ fontSize: '9px', fontWeight: 700 }}>{sale.customer.toUpperCase()}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '9px', fontWeight: 600 }}>CAJERO:</span>
+            <span style={{ fontSize: '9px' }}>{sale.created_by.toUpperCase()}</span>
+          </div>
+        </div>
+      </div>
 
-      <Divider sx={{ borderStyle: 'dashed', my: 1, borderColor: '#000' }} />
+      <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '8px 0' }} />
 
       {/* ITEMS TABLE: High Density */}
-      <Box sx={{ mb: 1.5 }}>
-        <Box display="flex" sx={{ borderBottom: '1px solid #000', pb: 0.5, mb: 0.5 }}>
-          <Typography sx={{ fontSize: '8px', fontWeight: 800, flex: 1 }}>DESCRIPCIÓN</Typography>
-          <Typography sx={{ fontSize: '8px', fontWeight: 800, width: '25px', textAlign: 'center' }}>CT.</Typography>
-          <Typography sx={{ fontSize: '8px', fontWeight: 800, width: '65px', textAlign: 'right' }}>VALOR</Typography>
-        </Box>
+      <div style={{ marginBottom: '12px' }}>
+        <div style={{ display: 'flex', borderBottom: '1px solid #000', paddingBottom: '4px', marginBottom: '4px' }}>
+          <span style={{ fontSize: '8px', fontWeight: 800, flex: 1 }}>DESCRIPCIÓN</span>
+          <span style={{ fontSize: '8px', fontWeight: 800, width: '25px', textAlign: 'center' }}>CT.</span>
+          <span style={{ fontSize: '8px', fontWeight: 800, width: '65px', textAlign: 'right' }}>VALOR</span>
+        </div>
 
         {sale.details.map((item, idx) => {
           const variant = typeof item.variant === 'object' ? item.variant : null;
           const productName = variant && (variant as any).product_name ? (variant as any).product_name : `PROD-${item.variant}`;
           
           return (
-            <Box key={idx} sx={{ mb: 0.8 }}>
-              <Box display="flex" alignItems="flex-start">
-                <Typography sx={{ fontSize: '9px', fontWeight: 600, flex: 1, lineHeight: 1.1 }}>
+            <div key={idx} style={{ marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '9px', fontWeight: 600, flex: 1, lineHeight: 1.1 }}>
                   {productName.toUpperCase()}
-                </Typography>
-                <Typography sx={{ fontSize: '9px', width: '25px', textAlign: 'center', ...monoText }}>
+                </span>
+                <span style={{ fontSize: '9px', width: '25px', textAlign: 'center', ...monoText as any }}>
                   {item.quantity}
-                </Typography>
-                <Typography sx={{ fontSize: '9px', width: '65px', textAlign: 'right', ...monoText }}>
+                </span>
+                <span style={{ fontSize: '9px', width: '65px', textAlign: 'right', ...monoText as any }}>
                   {formatCurrency(Number(item.price) * item.quantity)}
-                </Typography>
-              </Box>
+                </span>
+              </div>
               {variant && (
-                <Typography sx={{ fontSize: '8px', color: '#444', fontStyle: 'italic', mt: 0.1 }}>
+                <p style={{ fontSize: '8px', color: '#444', fontStyle: 'italic', margin: '2px 0 0 0' }}>
                   Ref: {(variant as any).sku} • Talla: {(variant as any).size} • {(variant as any).color}
-                </Typography>
+                </p>
               )}
-            </Box>
+            </div>
           );
         })}
-      </Box>
+      </div>
 
-      <Divider sx={{ borderStyle: 'solid', my: 1, borderColor: '#000' }} />
+      <hr style={{ border: 'none', borderTop: '1px solid #000', margin: '8px 0' }} />
 
       {/* TOTALS: Bold & Clear */}
-      <Stack spacing={0.3} sx={{ mb: 1.5 }}>
-        <Box display="flex" justifyContent="space-between">
-          <Typography sx={{ fontSize: '9px', fontWeight: 600 }}>SUBTOTAL:</Typography>
-          <Typography sx={{ fontSize: '9px', ...monoText }}>{formatCurrency(Number(sale.total))}</Typography>
-        </Box>
-        <Box display="flex" justifyContent="space-between">
-          <Typography sx={{ fontSize: '9px', fontWeight: 600 }}>TRIBUTOS (IVA 0%):</Typography>
-          <Typography sx={{ fontSize: '9px', ...monoText }}>$0</Typography>
-        </Box>
-        <Box display="flex" justifyContent="space-between" sx={{ pt: 0.5 }}>
-          <Typography sx={{ fontSize: '12px', fontWeight: 900 }}>TOTAL:</Typography>
-          <Typography sx={{ fontSize: '13px', fontWeight: 900, ...monoText }}>{formatCurrency(sale.total)}</Typography>
-        </Box>
-        <Box display="flex" justifyContent="space-between" sx={{ mt: 0.5 }}>
-          <Typography sx={{ fontSize: '9px', fontWeight: 600 }}>MÉTODO DE PAGO:</Typography>
-          <Typography sx={{ fontSize: '9px', fontWeight: 700 }}>{sale.payment_method || 'EFECTIVO'}</Typography>
-        </Box>
-      </Stack>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '9px', fontWeight: 600 }}>SUBTOTAL:</span>
+          <span style={{ fontSize: '9px', ...monoText as any }}>{formatCurrency(Number(sale.total))}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '9px', fontWeight: 600 }}>TRIBUTOS (IVA 0%):</span>
+          <span style={{ fontSize: '9px', ...monoText as any }}>$0</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '4px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 900 }}>TOTAL:</span>
+          <span style={{ fontSize: '13px', fontWeight: 900, ...monoText as any }}>{formatCurrency(sale.total)}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+          <span style={{ fontSize: '9px', fontWeight: 600 }}>MÉTODO DE PAGO:</span>
+          <span style={{ fontSize: '9px', fontWeight: 700 }}>{sale.payment_method || 'EFECTIVO'}</span>
+        </div>
+      </div>
 
-      <Divider sx={{ borderStyle: 'solid', my: 1, borderColor: '#000' }} />
+      <hr style={{ border: 'none', borderTop: '1px solid #000', margin: '8px 0' }} />
 
       {/* FOOTER: Legal Compliance & Branding */}
-      <Stack spacing={1} alignItems="center" sx={{ textAlign: 'center', mt: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginTop: '8px', gap: '8px' }}>
         {sale.is_electronic_invoice && sale.electronic_invoice && (
-          <Box sx={{ width: '100%', mb: 1 }}>
-             <Typography sx={{ fontSize: '7px', fontWeight: 700, mb: 0.5 }}>CUFE / CUDE:</Typography>
-            <Typography sx={{ fontSize: '7px', wordBreak: 'break-all', fontFamily: 'monospace' }}>
+          <div style={{ width: '100%', marginBottom: '8px' }}>
+             <p style={{ fontSize: '7px', fontWeight: 700, margin: '0 0 4px 0' }}>CUFE / CUDE:</p>
+            <p style={{ fontSize: '7px', wordBreak: 'break-all', fontFamily: 'monospace', margin: 0 }}>
               {sale.electronic_invoice.cufe}
-            </Typography>
+            </p>
             
-            <Box sx={{ 
-              mt: 1, 
+            <div style={{ 
+              marginTop: '8px', 
               width: '28mm', 
               height: '28mm', 
-              mx: 'auto',
+              marginLeft: 'auto',
+              marginRight: 'auto',
               border: '1px solid #eee', 
               display: 'flex', 
               flexDirection: 'column',
               alignItems: 'center', 
               justifyContent: 'center' 
             }}>
-              <Box sx={{ width: '24mm', height: '24mm', bgcolor: '#000', mb: 0.2 }} /> {/* Simulación de QR */}
-              <Typography sx={{ fontSize: '6px', fontWeight: 700 }}>VERIFICACIÓN DIAN</Typography>
-            </Box>
-          </Box>
+              <div style={{ width: '24mm', height: '24mm', backgroundColor: '#000', marginBottom: '1px' }} /> {/* Simulación de QR */}
+              <p style={{ fontSize: '6px', fontWeight: 700, margin: 0 }}>VERIFICACIÓN DIAN</p>
+            </div>
+          </div>
         )}
 
-        <Typography sx={{ fontSize: '9px', fontWeight: 700, fontStyle: 'italic' }}>
+        <p style={{ fontSize: '9px', fontWeight: 700, fontStyle: 'italic', margin: 0 }}>
           ¡GRACIAS POR ELEGIR GOLOS STORE!
-        </Typography>
-        <Typography sx={{ fontSize: '8px', fontWeight: 500, maxWidth: '90%' }}>
+        </p>
+        <p style={{ fontSize: '8px', fontWeight: 500, maxWidth: '90%', margin: 0 }}>
           {sale.is_electronic_invoice 
             ? 'Esta es una representación gráfica de la factura electrónica.' 
             : 'Este documento no es factura de venta, es un tiquete de control interno.'}
-        </Typography>
+        </p>
         
-        <Box sx={{ mt: 1, borderTop: '0.5px solid #ccc', pt: 0.5, width: '100%' }}>
-          <Typography sx={{ fontSize: '7px', color: '#666' }}>
+        <div style={{ marginTop: '8px', borderTop: '0.5px solid #ccc', paddingTop: '4px', width: '100%' }}>
+          <p style={{ fontSize: '7px', color: '#666', margin: 0 }}>
             Software: Golos Inventory v2.0 • {new Date().getFullYear()}
-          </Typography>
-        </Box>
-      </Stack>
+          </p>
+        </div>
+      </div>
 
-      <Box sx={{ height: '8mm' }} />
-    </Box>
+      <div style={{ height: '8mm' }} />
+    </div>
   );
 });
 

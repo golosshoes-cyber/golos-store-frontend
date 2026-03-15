@@ -58,32 +58,19 @@ const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({ sale, open, onClo
     if (!printWindow) return;
 
     const content = ticketRef.current.innerHTML;
-    const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
-      .map(node => {
-        if (node.tagName === 'LINK') {
-          const href = node.getAttribute('href');
-          if (href && !href.startsWith('http')) {
-            // Convertir rutas relativas a absolutas
-            const absoluteLink = node.cloneNode() as HTMLLinkElement;
-            absoluteLink.href = new URL(href, window.location.origin).href;
-            return absoluteLink.outerHTML;
-          }
-        }
-        return node.outerHTML;
-      })
-      .join('\n');
     
     printWindow.document.write(`
       <html>
         <head>
           <title>Imprimir Tiquete - Golos Store</title>
-          <base href="${window.location.origin}/">
           <link rel="preconnect" href="https://fonts.googleapis.com">
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
           <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-          ${styles}
           <style>
-            @page { size: auto; margin: 0mm; }
+            @page { 
+              size: 80mm auto; 
+              margin: 0mm; 
+            }
             html, body { 
               margin: 0; 
               padding: 0; 
@@ -91,13 +78,26 @@ const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({ sale, open, onClo
               background-color: white !important;
               color: black !important;
               -webkit-print-color-adjust: exact;
-              font-family: 'Inter', system-ui, sans-serif;
+              print-color-adjust: exact;
             }
-            #print-container { width: 80mm; overflow: hidden; }
-            * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            #print-container { 
+              width: 80mm; 
+              background: white;
+            }
+            * { 
+              box-sizing: border-box; 
+              -webkit-print-color-adjust: exact; 
+              print-color-adjust: exact; 
+            }
+            /* Reset base para asegurar consistencia */
+            p, span, div, hr { 
+              margin: 0; 
+              padding: 0; 
+              font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            }
           </style>
         </head>
-        <body onload="setTimeout(() => { window.print(); window.close(); }, 800)">
+        <body onload="setTimeout(() => { window.print(); window.close(); }, 1000)">
           <div id="print-container">${content}</div>
         </body>
       </html>
