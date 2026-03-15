@@ -99,6 +99,8 @@ export const dashboardService = {
     is_order?: boolean;
     payment_method: 'CASH' | 'NEQUI' | 'DAVIPLATA' | 'CARD' | 'TRANSFER' | 'PSE' | 'OTHER';
     payment_reference?: string;
+    invoice_required?: boolean;
+    invoicing_method?: 'NONE' | 'AUTOMATIC' | 'MANUAL';
     created_by?: string;
   }): Promise<Sale> => {
     const response = await api.post('/api/sales/', saleData)
@@ -115,8 +117,8 @@ export const dashboardService = {
     return response.data
   },
 
-  confirmSale: async (saleId: number): Promise<Sale> => {
-    const response = await api.post(`/api/sales/${saleId}/confirm/`)
+  confirmSale: async (saleId: number, options?: { invoicing_method?: string }): Promise<Sale> => {
+    const response = await api.post(`/api/sales/${saleId}/confirm/`, options)
     return response.data
   },
 

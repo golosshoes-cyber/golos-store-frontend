@@ -18,6 +18,7 @@ import {
   CampaignOutlined as CampaignIcon,
   Search as SearchIcon,
   LocalShippingOutlined as ShippingIcon,
+  EngineeringOutlined as MaintenanceIcon,
 } from '@mui/icons-material'
 import { storeService } from '../../services/storeService'
 import type {
@@ -73,6 +74,7 @@ export default function StoreOpsPage() {
   const [manualShipmentOrder, setManualShipmentOrder] = useState<StoreOrder | null>(null)
   const [legalDialogOpen, setLegalDialogOpen] = useState(false)
   const [promoDialogOpen, setPromoDialogOpen] = useState(false)
+  const [maintenanceDialogOpen, setMaintenanceDialogOpen] = useState(false)
   const [manualShipmentForm, setManualShipmentForm] = useState<StoreOpsManualShipmentPayload>({
     carrier: '',
     tracking_number: '',
@@ -183,7 +185,8 @@ export default function StoreOpsPage() {
       setBranding(resp.branding)
       setLegalDialogOpen(false)
       setPromoDialogOpen(false)
-      setSuccessMessage('Configuración guardada.')
+      setMaintenanceDialogOpen(false)
+      setSuccessMessage('Configuracion guardada.')
     } catch {
       setErrorMessage('Error al guardar configuración.')
     } finally {
@@ -269,6 +272,20 @@ export default function StoreOpsPage() {
                       sx={{ borderRadius: 1.5, fontSize: '11px' }}
                     >
                       Promos
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<MaintenanceIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => setMaintenanceDialogOpen(true)}
+                      sx={{ 
+                        borderRadius: 1.5, 
+                        fontSize: '11px',
+                        borderColor: branding?.maintenance_mode ? 'warning.main' : theme.palette.divider,
+                        color: branding?.maintenance_mode ? 'warning.main' : 'inherit',
+                      }}
+                    >
+                      {branding?.maintenance_mode ? 'Mantenimiento (ON)' : 'Mantenimiento'}
                     </Button>
                   </Stack>
                 </Box>
@@ -731,6 +748,87 @@ export default function StoreOpsPage() {
               />
             </Grid>
           </Grid>
+        </Box>
+      </DialogShell>
+
+      <DialogShell
+        open={maintenanceDialogOpen}
+        onClose={() => setMaintenanceDialogOpen(false)}
+        maxWidth="xs"
+        dialogTitle="Modo Mantenimiento"
+        subtitle="Activa o desactiva la visibilidad pública de la tienda"
+        actions={
+          <>
+            <Button variant="text" sx={{ color: 'text.secondary' }} onClick={() => setMaintenanceDialogOpen(false)}>Cancelar</Button>
+            <Button
+              variant="contained"
+              onClick={handleSaveBranding}
+              disabled={loading}
+              sx={{ bgcolor: 'text.primary', color: 'background.default', '&:hover': { bgcolor: 'text.secondary' } }}
+            >
+              {loading ? 'Guardando...' : 'Guardar Estado'}
+            </Button>
+          </>
+        }
+      >
+        <Box sx={{ mt: 2 }}>
+          <Stack spacing={3}>
+            <Box sx={{ 
+              p: 2, 
+              borderRadius: 2, 
+              bgcolor: branding?.maintenance_mode ? alpha(theme.palette.warning.main, 0.05) : alpha(theme.palette.success.main, 0.05),
+              border: `1px solid ${alpha(branding?.maintenance_mode ? theme.palette.warning.main : theme.palette.success.main, 0.1)}`,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+              textAlign: 'center'
+            }}>
+              <Box sx={{ 
+                width: 48, height: 48, borderRadius: '50%', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                bgcolor: branding?.maintenance_mode ? 'warning.main' : 'success.main',
+                color: '#fff'
+              }}>
+                <MaintenanceIcon />
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  La tienda está {branding?.maintenance_mode ? 'en MANTENIMIENTO' : 'ACTIVA'}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {branding?.maintenance_mode 
+                    ? 'Los clientes verán la página de mantenimiento.' 
+                    : 'La tienda es visible para todo el público.'}
+                </Typography>
+              </Box>
+              <Button 
+                variant="outlined" 
+                color={branding?.maintenance_mode ? 'success' : 'warning'}
+                onClick={() => setBranding(prev => prev ? { ...prev, maintenance_mode: !prev.maintenance_mode } : null)}
+                sx={{ borderRadius: 2, px: 3 }}
+              >
+                {branding?.maintenance_mode ? 'Activar Tienda' : 'Desactivar Tienda'}
+              </Button>
+            </Box>
+
+            <TextField 
+              label="Mensaje para los clientes"
+              placeholder="Ej: Estamos mejorando nuestra tienda..."
+              value={branding?.maintenance_message || ''}
+              onChange={(e) => setBranding(prev => prev ? { ...prev, maintenance_message: e.target.value } : null)}
+              fullWidth
+              multiline
+              rows={3}
+              size="small"
+              disabled={!branding?.maintenance_mode}
+              helperText="Este mensaje aparecerá en la página de mantenimiento."
+            />
+
+            <Alert severity="info" sx={{ '& .MuiAlert-message': { fontSize: '11px' } }}>
+              Como administrador, tú siempre podrás ver la tienda normalmente para revisar tus cambios, incluso si el mantenimiento está activo.
+            </Alert>
+          </Stack>
         </Box>
       </DialogShell>
     </PageShell>

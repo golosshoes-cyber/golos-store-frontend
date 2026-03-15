@@ -17,7 +17,6 @@ import {
   FilterList as FilterIcon,
   Sort as SortIcon,
   Check as CheckIcon,
-  Close as CloseIcon,
 } from '@mui/icons-material'
 import { useThemeMode } from '../../contexts/ThemeModeContext'
 import SalesTable from './SalesTable'
@@ -309,59 +308,6 @@ const SalesTabs: React.FC<SalesTabsProps> = ({
         />
       </Box>
 
-      {/* FLOATING BULK ACTION BAR */}
-      {selectedSales.length > 0 && (
-        <Box sx={{
-          position: 'fixed',
-          bottom: 24,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          bgcolor: 'text.primary',
-          color: 'background.paper',
-          px: 2,
-          py: 1.2,
-          borderRadius: 3,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-          zIndex: 1000,
-          animation: 'slideUp 0.3s ease-out',
-          '@keyframes slideUp': {
-            from: { transform: 'translateX(-50%) translateY(100%)', opacity: 0 },
-            to: { transform: 'translateX(-50%) translateY(0)', opacity: 1 }
-          }
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pr: 2, borderRight: '1px solid rgba(255,255,255,0.2)' }}>
-            <Box sx={{ 
-              width: 20, height: 20, borderRadius: '50%', 
-              bgcolor: 'background.paper', color: 'text.primary',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '10px', fontWeight: 700
-            }}>
-              {selectedSales.length}
-            </Box>
-            <Typography sx={{ fontSize: '12px', fontWeight: 500 }}>
-              {selectedSales.length === 1 ? 'Seleccionada' : 'Seleccionadas'}
-            </Typography>
-          </Box>
-
-          <Typography sx={{ fontSize: '11px', color: alpha('#fff', 0.6), fontStyle: 'italic' }}>
-            Acciones masivas próximamente
-          </Typography>
-
-          <Box
-            onClick={() => setSelectedSales([])}
-            sx={{ 
-              ml: 1, p: 0.5, borderRadius: '50%', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              '&:hover': { bgcolor: alpha('#fff', 0.1) }
-            }}
-          >
-            <CloseIcon sx={{ fontSize: 16 }} />
-          </Box>
-        </Box>
-      )}
     </Box>
   )
 }

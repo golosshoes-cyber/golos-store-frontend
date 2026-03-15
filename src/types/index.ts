@@ -122,6 +122,19 @@ export interface ProductImage {
   updated_by: string;
 }
 
+export interface ElectronicInvoice {
+  id: number;
+  external_id: string;
+  number: string;
+  cufe?: string;
+  qr_data?: string;
+  pdf_url?: string;
+  xml_url?: string;
+  status: string;
+  created_at: string;
+  sent_at?: string;
+}
+
 /**
  * Sale interface
  */
@@ -138,16 +151,23 @@ export interface Sale {
   details: SaleDetail[];
   is_order?: boolean;
   active?: boolean;
+  document_number?: string | null;
+  invoice_required?: boolean;
+  invoicing_method?: 'NONE' | 'AUTOMATIC' | 'MANUAL';
+  is_electronic_invoice?: boolean;
+  electronic_invoice?: ElectronicInvoice | null;
 }
 
 /**
  * Sale detail interface
  */
 export interface SaleDetail {
+  id: number;
   sale: number;
   variant: number | ProductVariant;
   quantity: number;
   price: string | number;
+  subtotal: string | number;
 }
 
 /**

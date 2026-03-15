@@ -37,6 +37,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onSubmit, onCancel, loading =
   const [isOrder, setIsOrder] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'NEQUI' | 'DAVIPLATA' | 'CARD' | 'TRANSFER' | 'PSE' | 'OTHER'>('CASH')
   const [paymentReference, setPaymentReference] = useState('')
+  const [invoicingMethod, setInvoicingMethod] = useState<'NONE' | 'AUTOMATIC' | 'MANUAL'>('NONE')
   const [saleItems, setSaleItems] = useState<{variantId: string; quantity: string; price: string}[]>([])
 
   // Fetch variants for better display
@@ -62,6 +63,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onSubmit, onCancel, loading =
       setIsOrder(sale.is_order || false)
       setPaymentMethod((sale.payment_method as any) || 'CASH')
       setPaymentReference(sale.payment_reference || '')
+      setInvoicingMethod((sale.invoicing_method as any) || 'NONE')
       const saleItemsData = sale.details.map(detail => ({
         variantId: typeof detail.variant === 'object' ? detail.variant.id.toString() : detail.variant.toString(),
         quantity: detail.quantity.toString(),
@@ -73,29 +75,31 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onSubmit, onCancel, loading =
       setIsOrder(false)
       setPaymentMethod('CASH')
       setPaymentReference('')
+      setInvoicingMethod('NONE')
       setSaleItems([])
     }
   }, [sale])
 
   const getProductName = (product: any) => {
-    if (!product) return 'Producto desconocido'
+    if (!product) return 'Producto'
     
     // Si product es un objeto completo con nombre
     if (typeof product === 'object' && product.name) {
       return product.name
     }
     
-    // Si product es solo un ID numérico, buscar en la lista de products
-    if (typeof product === 'number' || (typeof product === 'object' && product.id && !product.name)) {
-      const productId = typeof product === 'number' ? product : product.id
+    // Si product es solo un ID numérico o un objeto con ID, buscar en la lista de products
+    const productId = typeof product === 'number' ? product : (product.id || null)
+    if (productId) {
       const foundProduct = products.find(p => p.id === productId)
       if (foundProduct) {
-        return foundProduct.name || foundProduct.brand || `Producto ${productId}`
+        return foundProduct.name || foundProduct.brand || `Producto #${productId}`
       }
+      return `Producto #${productId}`
     }
     
     // Fallback
-    return product.brand || product.name || 'Producto desconocido'
+    return product.brand || product.name || 'Producto'
   }
 
   const handleUpdateSaleItem = (index: number, field: 'variantId' | 'quantity' | 'price', value: string) => {
@@ -162,15 +166,19 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onSubmit, onCancel, loading =
       is_order: isOrder,
       payment_method: paymentMethod,
       payment_reference: paymentReference.trim() || undefined,
+      invoicing_method: invoicingMethod,
+      invoice_required: invoicingMethod !== 'NONE',
       items: saleItems,
     }
 
     onSubmit(saleData)
   }
 
-  const total = saleItems.reduce((total, item) =>
-    total + (parseFloat(item.quantity || '0') * parseFloat(item.price || '0')), 0
-  ).toFixed(2)
+  const total = saleItems.reduce((acc, item) => {
+    const qty = parseFloat(item.quantity) || 0
+    const price = parseFloat(item.price) || 0
+    return acc + (qty * price)
+  }, 0).toFixed(2)
 
   return (
     <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
@@ -182,7 +190,24 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onSubmit, onCancel, loading =
         sx={{ mb: 3 }}
       />
 
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'center' }}>
+        <TextField
+          select
+          label="Facturación Electrónica"
+          value={invoicingMethod}
+          onChange={(e) => setInvoicingMethod(e.target.value as any)}
+          sx={{ minWidth: 300, flexGrow: 1 }}
+          helperText={
+            invoicingMethod === 'AUTOMATIC' ? "Se emitirá automáticamente vía Factus (Costo aplica)" :
+            invoicingMethod === 'MANUAL' ? "Debes registrar la venta manualmente en el portal DIAN" :
+            "Solo tiquete POS para control interno"
+          }
+        >
+          <MenuItem value="NONE">Solo Tiquete POS (Sin DIAN)</MenuItem>
+          <MenuItem value="AUTOMATIC">Factura Electrónica (Automática - Factus)</MenuItem>
+          <MenuItem value="MANUAL">Factura Electrónica (Manual - Portal DIAN)</MenuItem>
+        </TextField>
+
         <FormControlLabel
           control={
             <Checkbox
@@ -190,11 +215,8 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onSubmit, onCancel, loading =
               onChange={(e) => setIsOrder(e.target.checked)}
             />
           }
-          label="Es Orden"
+          label="Es Orden / Pedido"
         />
-        <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
-          No afecta inventario hasta confirmar
-        </Typography>
       </Box>
 
       <Box sx={{ mb: 3, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>

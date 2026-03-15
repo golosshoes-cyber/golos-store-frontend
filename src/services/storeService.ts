@@ -211,6 +211,8 @@ export const storeService = {
       promo_bottom_enabled: boolean
       promo_bottom_title: string
       promo_bottom_text: string
+      maintenance_mode: boolean
+      maintenance_message: string
     }>,
   ): Promise<StoreOpsBrandingUpdateResponse> => {
     const response = await api.patch('/api/store/ops/branding/', payload)

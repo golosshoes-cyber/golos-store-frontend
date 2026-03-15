@@ -51,6 +51,8 @@ export interface StoreBranding {
   promo_bottom_enabled: boolean
   promo_bottom_title: string
   promo_bottom_text: string
+  maintenance_mode: boolean
+  maintenance_message: string
   updated_at?: string
 }
 
@@ -149,7 +151,14 @@ export interface StoreCheckoutRequest {
   is_order?: boolean
   shipping_zone?: 'local' | 'regional' | 'national'
   estimated_weight_grams?: number
-  shipping_address: StoreShippingAddress
+  shipping_address: StoreShippingAddress;
+  invoice_required?: boolean;
+  billing_data?: {
+    id_type: string;
+    id_number: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface StoreCheckoutResponse {
@@ -214,8 +223,15 @@ export interface StoreOrder {
   updated_at: string
   items: StoreOrderItem[]
   timeline: StoreOrderTimelineEvent[]
-  shipment?: StoreShipment | null
-  shipping_address?: StoreShippingAddress
+  shipment?: StoreShipment | null;
+  shipping_address?: StoreShippingAddress;
+  invoice_required?: boolean;
+  billing_data?: {
+    id_type: string;
+    id_number: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface StoreOrderStatusResponse {

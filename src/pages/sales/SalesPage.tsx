@@ -131,6 +131,7 @@ const SalesPage: React.FC = () => {
         is_order: saleData.is_order,
         payment_method: saleData.payment_method,
         payment_reference: saleData.payment_reference,
+        invoice_required: saleData.invoice_required,
         created_by: user?.username || 'system'
       })
       

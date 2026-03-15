@@ -39,6 +39,8 @@ export default function CheckoutPage() {
     return { department: '', city: '', address_line1: '', address_line2: '', reference: '', postal_code: '', recipient_name: '', recipient_phone: '' }
   })
   const [selectedShippingService, setSelectedShippingService] = useState<ShippingQuoteService | null>(null)
+  const [invoiceRequired, setInvoiceRequired] = useState(false)
+  const [billingData, setBillingData] = useState({ id_type: 'NIT', id_number: '', name: '', email: '' })
 
   const displayTotal = String((Number(total) || 0) + (selectedShippingService ? Number(selectedShippingService.cost) : 0))
 
@@ -103,6 +105,8 @@ export default function CheckoutPage() {
         customer_name: customerName, customer_contact: customerContact, items: cartItems, is_order: true,
         shipping_zone: shippingZone, estimated_weight_grams: estimatedWeightGrams, shipping_address: shippingAddress,
         shipping_service: selectedShippingService?.name,
+        invoice_required: invoiceRequired,
+        billing_data: invoiceRequired ? billingData : undefined,
       }
       const response = await storeService.checkout(checkoutPayload)
       clearStoreCart()
@@ -229,6 +233,102 @@ export default function CheckoutPage() {
                   }
                 }}
               />
+            </motion.div>
+
+            {/* Invoicing info */}
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15 }}
+              style={{ marginBottom: 24 }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 600, color: css.text, marginBottom: 14, paddingBottom: 10, borderBottom: `1px solid ${css.border}` }}>Facturación Electrónica (Opcional)</div>
+              <div style={{ padding: '16px', background: css.bgSubtle, border: `1px solid ${css.border}`, borderRadius: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: invoiceRequired ? 16 : 0 }}>
+                  <input 
+                    type="checkbox" 
+                    id="require-invoice" 
+                    checked={invoiceRequired} 
+                    onChange={(e) => setInvoiceRequired(e.target.checked)}
+                    style={{ accentColor: css.text }}
+                  />
+                  <label htmlFor="require-invoice" style={{ fontSize: 13, fontWeight: 500, color: css.text, cursor: 'pointer' }}>
+                    Deseo solicitar factura electrónica legal
+                  </label>
+                </div>
+
+                <AnimatePresence>
+                  {invoiceRequired && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 4 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <label style={{ fontSize: 11, color: css.textMuted }}>Tipo Documento</label>
+                          <select 
+                            value={billingData.id_type} 
+                            onChange={(e) => setBillingData({...billingData, id_type: e.target.value})}
+                            style={{ 
+                              padding: '8px 12px', borderRadius: 6, border: `1px solid ${css.border}`, 
+                              background: css.bg, color: css.text, fontSize: 13, outline: 'none' 
+                            }}
+                          >
+                            <option value="NIT">NIT (Empresa)</option>
+                            <option value="CC">Cédula de Ciudadanía</option>
+                            <option value="CE">Cédula de Extranjería</option>
+                            <option value="PP">Pasaporte</option>
+                          </select>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <label style={{ fontSize: 11, color: css.textMuted }}>Número Documento</label>
+                          <input 
+                            type="text" 
+                            placeholder="Ej: 901.234.567-8"
+                            value={billingData.id_number} 
+                            onChange={(e) => setBillingData({...billingData, id_number: e.target.value})}
+                            style={{ 
+                              padding: '8px 12px', borderRadius: 6, border: `1px solid ${css.border}`, 
+                              background: css.bg, color: css.text, fontSize: 13, outline: 'none' 
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, gridColumn: 'span 2' }}>
+                          <label style={{ fontSize: 11, color: css.textMuted }}>Razón Social / Nombre Completo</label>
+                          <input 
+                            type="text" 
+                            placeholder="Ej: Inversiones S.A.S"
+                            value={billingData.name} 
+                            onChange={(e) => setBillingData({...billingData, name: e.target.value})}
+                            style={{ 
+                              padding: '8px 12px', borderRadius: 6, border: `1px solid ${css.border}`, 
+                              background: css.bg, color: css.text, fontSize: 13, outline: 'none' 
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, gridColumn: 'span 2' }}>
+                          <label style={{ fontSize: 11, color: css.textMuted }}>Email Receptor Factura</label>
+                          <input 
+                            type="email" 
+                            placeholder="facturacion@ejemplo.com"
+                            value={billingData.email} 
+                            onChange={(e) => setBillingData({...billingData, email: e.target.value})}
+                            style={{ 
+                              padding: '8px 12px', borderRadius: 6, border: `1px solid ${css.border}`, 
+                              background: css.bg, color: css.text, fontSize: 13, outline: 'none' 
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 11, color: css.textFaint, marginTop: 12 }}>
+                        La factura electrónica será enviada al correo registrado una vez que se confirme el pago de tu pedido.
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </motion.div>
 
           </div>

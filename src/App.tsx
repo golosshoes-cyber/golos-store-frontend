@@ -8,6 +8,7 @@ import { storeService } from './services/storeService'
 import MainLayout from './layouts/MainLayout'
 import ProtectedRoute from './components/admin/ProtectedRoute'
 import PageTransition from './components/common/PageTransition'
+import StoreMaintenanceGuard from './components/store/StoreMaintenanceGuard'
 
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
 const PostLoginChoicePage = lazy(() => import('./pages/auth/PostLoginChoicePage'))
@@ -110,25 +111,46 @@ function App() {
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Navigate to="/store" replace />} />
-          <Route path="/store" element={<PageTransition><StorePage /></PageTransition>} />
-          <Route path="/store/cart" element={<PageTransition><CartPage /></PageTransition>} />
-          <Route path="/store/checkout" element={<PageTransition><CheckoutPage /></PageTransition>} />
-          <Route path="/store/terms" element={<PageTransition><TermsPage /></PageTransition>} />
-          <Route path="/store/privacy" element={<PageTransition><PrivacyPage /></PageTransition>} />
-          <Route path="/store/attributions" element={<PageTransition><AttributionsPage /></PageTransition>} />
-          <Route path="/store/order-status" element={<PageTransition><OrderStatusPage /></PageTransition>} />
-          <Route
-            path="/store/login"
-            element={!isAuthenticated ? <PageTransition><StoreLoginPage /></PageTransition> : <Navigate to="/store/account" replace />}
-          />
-          <Route
-            path="/store/register"
-            element={!isAuthenticated ? <PageTransition><StoreRegisterPage /></PageTransition> : <Navigate to="/store/account" replace />}
-          />
-          <Route
-            path="/store/account"
-            element={isAuthenticated ? <PageTransition><StoreAccountPage /></PageTransition> : <Navigate to="/store/login" replace />}
-          />
+          
+          {/* Store Routes with Maintenance Guard */}
+          <Route path="/store/*" element={
+            <StoreMaintenanceGuard>
+              <Routes>
+                <Route path="" element={<PageTransition><StorePage /></PageTransition>} />
+                <Route path="cart" element={<PageTransition><CartPage /></PageTransition>} />
+                <Route path="checkout" element={<PageTransition><CheckoutPage /></PageTransition>} />
+                <Route path="terms" element={<PageTransition><TermsPage /></PageTransition>} />
+                <Route path="privacy" element={<PageTransition><PrivacyPage /></PageTransition>} />
+                <Route path="attributions" element={<PageTransition><AttributionsPage /></PageTransition>} />
+                <Route path="order-status" element={<PageTransition><OrderStatusPage /></PageTransition>} />
+                <Route
+                  path="login"
+                  element={!isAuthenticated ? <PageTransition><StoreLoginPage /></PageTransition> : <Navigate to="/store/account" replace />}
+                />
+                <Route
+                  path="register"
+                  element={!isAuthenticated ? <PageTransition><StoreRegisterPage /></PageTransition> : <Navigate to="/store/account" replace />}
+                />
+                <Route
+                  path="account"
+                  element={isAuthenticated ? <PageTransition><StoreAccountPage /></PageTransition> : <Navigate to="/store/login" replace />}
+                />
+                <Route
+                  path="ops"
+                  element={
+                    <ProtectedRoute
+                      requiredGroups={['Managers']}
+                      fallback={<Navigate to="/dashboard" replace />}
+                    >
+                      <MainLayout>
+                        <StoreOpsPage />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </StoreMaintenanceGuard>
+          } />
 
         <Route
           path="/login"
@@ -169,17 +191,6 @@ function App() {
                       <Route path="profile" element={<ProfilePage />} />
                       <Route path="purchases" element={<PurchasePage />} />
                       <Route path="suppliers" element={<SuppliersPage />} />
-                      <Route
-                        path="store/ops"
-                        element={
-                          <ProtectedRoute
-                            requiredGroups={['Managers']}
-                            fallback={<Navigate to="/dashboard" replace />}
-                          >
-                            <StoreOpsPage />
-                          </ProtectedRoute>
-                        }
-                      />
                       <Route
                         path="reports"
                         element={

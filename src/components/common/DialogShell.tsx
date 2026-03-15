@@ -115,7 +115,7 @@ const DialogShell: React.FC<DialogShellProps> = ({
               {dialogTitle}
             </Typography>
             {subtitle && (
-              <Typography sx={{ color: 'text.secondary', display: 'block', mt: dense ? 0.2 : 0.5, fontSize: dense ? '11px' : '12px', fontWeight: 400, lineHeight: 1.4 }}>
+              <Typography sx={{ color: 'text.secondary', display: 'block', mt: 0.2, fontSize: dense ? '11px' : '11.5px', fontWeight: 400, opacity: 0.8 }}>
                 {subtitle}
               </Typography>
             )}
