@@ -46,6 +46,16 @@ const NEXT_STATUS_BY_CURRENT: Record<string, string | null> = {
   canceled: null,
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  pending: 'Pendiente',
+  paid: 'Pagado',
+  processing: 'Procesando',
+  shipped: 'Enviado',
+  delivered: 'Entregado',
+  completed: 'Completado',
+  canceled: 'Cancelado',
+}
+
 export default function StoreOpsPage() {
   const theme = useTheme()
   const [summary, setSummary] = useState<StoreOpsSummaryResponse['summary'] | null>(null)
@@ -324,7 +334,7 @@ export default function StoreOpsPage() {
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
                   >
                     {STATUS_OPTIONS.map((val) => (
-                      <MenuItem key={val} value={val}>{val || 'Todos los estados'}</MenuItem>
+                      <MenuItem key={val} value={val}>{STATUS_LABELS[val] || val || 'Todos los estados'}</MenuItem>
                     ))}
                   </TextField>
                   <Button variant="contained" onClick={handleApplyFilters} sx={{ borderRadius: 1.5, px: 3 }}>
@@ -354,7 +364,7 @@ export default function StoreOpsPage() {
                                 bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main',
                                 border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`
                               }}>
-                                {order.status_detail.label}
+                                {STATUS_LABELS[order.status] || order.status_detail.label}
                               </Box>
                             </Box>
                             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '13px' }}>
@@ -376,7 +386,7 @@ export default function StoreOpsPage() {
                               )}
                               {next && (
                                 <GradientButton size="small" onClick={() => handleAdvanceStatus(order)} sx={{ fontSize: '11px', borderRadius: 1.5 }}>
-                                  Pasar a {next}
+                                  Pasar a {STATUS_LABELS[next] || next}
                                 </GradientButton>
                               )}
                               <Button size="small" variant="outlined" onClick={() => openManualShipmentDialog(order)} sx={{ fontSize: '11px', borderRadius: 1.5 }}>
@@ -515,8 +525,8 @@ export default function StoreOpsPage() {
         open={promoDialogOpen}
         onClose={() => setPromoDialogOpen(false)}
         maxWidth="sm"
-        dialogTitle="Promociones y Marketing"
-        subtitle="Modifica el mensaje publicitario que aparece en la parte superior"
+        dialogTitle="Anuncio y Branding"
+        subtitle="Configuración de la barra de anuncio y la identidad visual de la tienda"
         actions={
           <>
             <Button variant="text" sx={{ color: 'text.secondary' }} onClick={() => setPromoDialogOpen(false)}>Cancelar</Button>
@@ -606,7 +616,7 @@ export default function StoreOpsPage() {
             <Box>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography variant="overline" sx={{ fontWeight: 700, color: theme.palette.text.secondary, display: 'block', letterSpacing: '0.1em' }}>
-                  Banner Promocional Superior
+                  Barra de Anuncio (Superior)
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Box sx={{
@@ -629,93 +639,23 @@ export default function StoreOpsPage() {
               <Grid container spacing={2.5}>
                 <Grid item xs={12}>
                   <TextField 
-                    label="Título Banner" 
-                    value={branding?.promo_top_title || ''} 
-                    onChange={(e) => setBranding(prev => prev ? { ...prev, promo_top_title: e.target.value } : null)} 
-                    fullWidth 
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField 
-                    label="Texto / Descripción" 
+                    label="Texto del Anuncio" 
                     value={branding?.promo_top_text || ''} 
                     onChange={(e) => setBranding(prev => prev ? { ...prev, promo_top_text: e.target.value } : null)} 
                     fullWidth 
                     multiline
                     rows={2}
                     size="small"
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField 
-                    label="Imagen Desktop (URL)" 
-                    value={branding?.promo_top_image_desktop_url || ''} 
-                    onChange={(e) => setBranding(prev => prev ? { ...prev, promo_top_image_desktop_url: e.target.value } : null)} 
-                    fullWidth 
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField 
-                    label="Imagen Mobile (URL)" 
-                    value={branding?.promo_top_image_mobile_url || ''} 
-                    onChange={(e) => setBranding(prev => prev ? { ...prev, promo_top_image_mobile_url: e.target.value } : null)} 
-                    fullWidth 
-                    size="small"
+                    placeholder="Ej: Envío gratis por compras superiores a $200.000"
+                    helperText="Este mensaje aparecerá en una franja delgada en la parte superior de la tienda."
                   />
                 </Grid>
               </Grid>
             </Box>
 
-            <Divider />
-
-            <Box>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="overline" sx={{ fontWeight: 700, color: theme.palette.text.secondary, display: 'block', letterSpacing: '0.1em' }}>
-                  Landing Promo (Inferior)
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{
-                    px: 1, py: 0.25, borderRadius: 1, fontSize: '10px', fontWeight: 700,
-                    bgcolor: branding?.promo_bottom_enabled ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.text.disabled, 0.1),
-                    color: branding?.promo_bottom_enabled ? 'success.main' : 'text.disabled',
-                  }}>
-                    {branding?.promo_bottom_enabled ? 'ACTIVO' : 'INACTIVO'}
-                  </Box>
-                  <Button 
-                    size="small" 
-                    variant="outlined"
-                    onClick={() => setBranding(prev => prev ? { ...prev, promo_bottom_enabled: !prev.promo_bottom_enabled } : null)}
-                    sx={{ height: 24, fontSize: '10px', px: 1.5, borderColor: theme.palette.divider }}
-                  >
-                    {branding?.promo_bottom_enabled ? 'Apagar' : 'Encender'}
-                  </Button>
-                </Box>
-              </Box>
-              <Grid container spacing={2.5}>
-                <Grid item xs={12}>
-                  <TextField 
-                    label="Título Promo Inferior" 
-                    value={branding?.promo_bottom_title || ''} 
-                    onChange={(e) => setBranding(prev => prev ? { ...prev, promo_bottom_title: e.target.value } : null)} 
-                    fullWidth 
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField 
-                    label="Texto Promo Inferior" 
-                    value={branding?.promo_bottom_text || ''} 
-                    onChange={(e) => setBranding(prev => prev ? { ...prev, promo_bottom_text: e.target.value } : null)} 
-                    fullWidth 
-                    multiline
-                    rows={2}
-                    size="small"
-                  />
-                </Grid>
-              </Grid>
-            </Box>
+            <Alert severity="info" sx={{ py: 0, '& .MuiAlert-message': { fontSize: '12px' } }}>
+              Los banners gráficos han sido desactivados para mantener la estética minimalista de la tienda.
+            </Alert>
           </Stack>
         </Box>
       </DialogShell>

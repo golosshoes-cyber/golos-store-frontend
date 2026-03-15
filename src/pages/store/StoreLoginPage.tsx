@@ -19,6 +19,8 @@ import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-d
 import { useAuth } from '../../contexts/AuthContext'
 import { extractApiErrorMessage } from '../../utils/apiError'
 import type { LoginCredentials } from '../../types'
+import StoreHeader from '../../components/store/StoreHeader'
+import StoreFooter from '../../components/store/StoreFooter'
 
 export default function StoreLoginPage() {
   const navigate = useNavigate()
@@ -47,16 +49,18 @@ export default function StoreLoginPage() {
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        py: { xs: 4, md: 7 },
-        background:
-          theme.palette.mode === 'light'
-            ? 'linear-gradient(150deg, #eef2ff 0%, #f8fafc 45%, #ecfeff 100%)'
-            : 'linear-gradient(150deg, #0b1220 0%, #111827 45%, #0f172a 100%)',
-      }}
-    >
+    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <StoreHeader showCart={false} />
+      <Box
+        sx={{
+          flex: 1,
+          py: { xs: 4, md: 7 },
+          background:
+            theme.palette.mode === 'light'
+              ? 'linear-gradient(150deg, #eef2ff 0%, #f8fafc 45%, #ecfeff 100%)'
+              : 'linear-gradient(150deg, #0b1220 0%, #111827 45%, #0f172a 100%)',
+        }}
+      >
       <Container maxWidth="sm" sx={{ position: 'relative' }}>
         <Box
           sx={{
@@ -158,6 +162,8 @@ export default function StoreLoginPage() {
           </Stack>
         </Paper>
       </Container>
+      </Box>
+      <StoreFooter />
     </Box>
   )
 }

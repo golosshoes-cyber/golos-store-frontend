@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { Alert } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { isAxiosError } from 'axios'
-import { Link as RouterLink, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeModeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { storeService } from '../../services/storeService'
 import StoreFooter from '../../components/store/StoreFooter'
+import StoreHeader from '../../components/store/StoreHeader'
 import type { StoreOrder } from '../../types/store'
 import ShipmentStatus from '../../components/shipping/ShipmentStatus'
 import ShipmentTracker from '../../components/shipping/ShipmentTracker'
@@ -135,18 +136,7 @@ export default function OrderStatusPage() {
     <div style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", background: css.bg, color: css.text, minHeight: '100vh' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');`}</style>
 
-      {/* NAV */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, height: 60, background: css.bg, borderBottom: `1px solid ${css.border}`, display: 'flex', alignItems: 'center', padding: '0 32px', gap: 24 }}>
-        <RouterLink to="/store" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: css.text, display: 'flex', alignItems: 'center', justifyContent: 'center', color: css.bg, fontSize: 12, fontWeight: 700 }}>GS</div>
-          <span style={{ fontSize: 15, fontWeight: 600, color: css.text }}>Golos Store</span>
-        </RouterLink>
-        <div style={{ flex: 1 }} />
-        <RouterLink to="/store" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: css.textMuted, textDecoration: 'none' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 3L5 8l5 5" /></svg>
-          Volver a tienda
-        </RouterLink>
-      </nav>
+      <StoreHeader backLink={{ to: '/store', label: 'Volver a tienda' }} />
 
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '40px 32px' }}>
         {/* Search card */}

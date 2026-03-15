@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Alert, CircularProgress } from '@mui/material'
+import { motion, AnimatePresence } from 'framer-motion'
 import { isAxiosError } from 'axios'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeModeContext'
@@ -8,6 +9,7 @@ import { storeService } from '../../services/storeService'
 import type { StoreCartValidationItem, StoreShippingAddress } from '../../types/store'
 import { getStoreCartItems, clearStoreCart } from '../../utils/storeCart'
 import StoreFooter from '../../components/store/StoreFooter'
+import StoreHeader from '../../components/store/StoreHeader'
 import ShippingAddressForm from '../../components/shipping/ShippingAddressForm'
 import ShippingQuoteCalculator from '../../components/shipping/ShippingQuoteCalculator'
 import type { ShippingQuoteService } from '../../hooks/useShipping'
@@ -128,23 +130,16 @@ export default function CheckoutPage() {
     <div style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", background: css.bg, color: css.text, minHeight: '100vh' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');`}</style>
 
-      {/* NAV */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, height: 60, background: css.bg, borderBottom: `1px solid ${css.border}`, display: 'flex', alignItems: 'center', padding: '0 32px', gap: 24 }}>
-        <RouterLink to="/store" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: css.text, display: 'flex', alignItems: 'center', justifyContent: 'center', color: css.bg, fontSize: 12, fontWeight: 700 }}>GS</div>
-          <span style={{ fontSize: 15, fontWeight: 600, color: css.text }}>Golos Store</span>
-        </RouterLink>
-        <div style={{ flex: 1 }} />
-        <RouterLink to="/store/cart" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: css.textMuted, textDecoration: 'none' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 3L5 8l5 5" /></svg>
-          Volver al carrito
-        </RouterLink>
-      </nav>
+      <StoreHeader backLink={{ to: '/store/cart', label: 'Volver al carrito' }} />
 
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 32px' }}>
 
         {/* Stepper */}
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 36, padding: '20px 24px', background: css.bgSubtle, border: `1px solid ${css.border}`, borderRadius: 16 }}>
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ display: 'flex', alignItems: 'center', marginBottom: 36, padding: '20px 24px', background: css.bgSubtle, border: `1px solid ${css.border}`, borderRadius: 16 }}
+        >
           {[
             { label: 'Carrito', done: true, active: false, num: '✓' },
             { label: 'Datos de envío', done: false, active: true, num: '2' },
@@ -154,17 +149,22 @@ export default function CheckoutPage() {
               {i < arr.length - 1 && (
                 <div style={{ position: 'absolute', top: 14, left: 'calc(50% + 16px)', width: 'calc(100% - 32px)', height: 1, background: step.done ? css.text : css.border }} />
               )}
-              <div style={{
-                width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 700, position: 'relative', zIndex: 1,
-                background: step.done ? css.text : css.bg,
-                border: `2px solid ${step.done || step.active ? css.text : css.border}`,
-                color: step.done ? css.accentFg : step.active ? css.text : css.textFaint,
-              }}>{step.num}</div>
+              <motion.div 
+                animate={step.active ? { scale: [1, 1.1, 1], transition: { repeat: Infinity, duration: 2 } } : {}}
+                style={{
+                  width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 700, position: 'relative', zIndex: 1,
+                  background: step.done ? css.text : css.bg,
+                  border: `2px solid ${step.done || step.active ? css.text : css.border}`,
+                  color: step.done ? css.accentFg : step.active ? css.text : css.textFaint,
+                }}
+              >
+                {step.num}
+              </motion.div>
               <div style={{ fontSize: 11, fontWeight: step.active ? 600 : 500, color: step.active ? css.text : step.done ? css.textMuted : css.textFaint }}>{step.label}</div>
             </div>
           ))}
-        </div>
+        </motion.div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: css.text, letterSpacing: '-0.5px', margin: 0 }}>Finalizar compra</h1>
@@ -187,13 +187,22 @@ export default function CheckoutPage() {
             </div>
 
             {/* Shipping address form */}
-            <div style={{ marginBottom: 24 }}>
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              style={{ marginBottom: 24 }}
+            >
               <div style={{ fontSize: 13, fontWeight: 600, color: css.text, marginBottom: 14, paddingBottom: 10, borderBottom: `1px solid ${css.border}` }}>Dirección de envío</div>
               <ShippingAddressForm initialAddress={shippingAddress} onChange={handleAddressChange} />
-            </div>
+            </motion.div>
 
             {/* Shipping options */}
-            <div style={{ marginBottom: 24 }}>
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              style={{ marginBottom: 24 }}
+            >
               <div style={{ fontSize: 13, fontWeight: 600, color: css.text, marginBottom: 14, paddingBottom: 10, borderBottom: `1px solid ${css.border}` }}>Opciones de envío</div>
               <ShippingQuoteCalculator
                 destinationCity={shippingAddress.city}
@@ -220,32 +229,43 @@ export default function CheckoutPage() {
                   }
                 }}
               />
-            </div>
+            </motion.div>
 
           </div>
 
           {/* RIGHT SIDEBAR - Order Summary */}
-          <div style={{ background: css.bgSubtle, border: `1px solid ${css.border}`, borderRadius: 16, padding: 20, position: 'sticky', top: 80 }}>
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            style={{ background: css.bgSubtle, border: `1px solid ${css.border}`, borderRadius: 16, padding: 20, position: 'sticky', top: 80 }}
+          >
             <div style={{ fontSize: 13, fontWeight: 600, color: css.text, marginBottom: 16 }}>Resumen del pedido</div>
 
-            {loading ? (
+            {loading && items.length === 0 ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: 20 }}><CircularProgress size={20} /></div>
             ) : (
               <>
-                {items.map((item) => (
-                  <div key={item.variant_id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 8, background: css.bg, border: `1px solid ${css.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                      {item.image_url
-                        ? <img src={item.image_url} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE }} />
-                        : <img src={FALLBACK_IMAGE} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: css.text }}>{item.product_name}</div>
-                      <div style={{ fontSize: 11, color: css.textFaint }}>{item.variant_info} · ×{item.quantity}</div>
-                    </div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: css.text, flexShrink: 0 }}>{money(item.subtotal)}</div>
-                  </div>
-                ))}
+                <AnimatePresence>
+                  {items.map((item) => (
+                    <motion.div 
+                      key={item.variant_id} 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}
+                    >
+                      <div style={{ width: 48, height: 48, borderRadius: 8, background: css.bg, border: `1px solid ${css.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                        {item.image_url
+                          ? <img src={item.image_url} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE }} />
+                          : <img src={FALLBACK_IMAGE} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: css.text }}>{item.product_name}</div>
+                        <div style={{ fontSize: 11, color: css.textFaint }}>{item.variant_info} · ×{item.quantity}</div>
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: css.text, flexShrink: 0 }}>{money(item.subtotal)}</div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
 
                 <div style={{ height: 1, background: css.border, margin: '14px 0' }} />
 
@@ -254,17 +274,28 @@ export default function CheckoutPage() {
                   <span style={{ fontSize: 12, fontWeight: 500, color: css.text }}>{money(total)}</span>
                 </div>
                 {selectedShippingService && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, overflow: 'hidden' }}
+                  >
                     <span style={{ fontSize: 12, color: css.textMuted }}>Envío ({selectedShippingService.name})</span>
                     <span style={{ fontSize: 12, fontWeight: 500, color: css.text }}>{money(selectedShippingService.cost)}</span>
-                  </div>
+                  </motion.div>
                 )}
 
                 <div style={{ height: 1, background: css.border, margin: '14px 0' }} />
 
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 14, fontWeight: 700, color: css.text }}>Total general</span>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: css.text }}>{money(displayTotal)}</span>
+                  <motion.span 
+                    key={displayTotal}
+                    initial={{ scale: 1.1, color: css.accent }}
+                    animate={{ scale: 1, color: css.text }}
+                    style={{ fontSize: 16, fontWeight: 700 }}
+                  >
+                    {money(displayTotal)}
+                  </motion.span>
                 </div>
               </>
             )}
@@ -282,7 +313,9 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <button
+            <motion.button
+              whileHover={(acceptTerms && !loading && items.length > 0) ? { scale: 1.02 } : {}}
+              whileTap={(acceptTerms && !loading && items.length > 0) ? { scale: 0.98 } : {}}
               onClick={() => { if (acceptTerms && !loading && items.length > 0) void handleCheckout() }}
               disabled={loading || items.length === 0 || !acceptTerms}
               style={{
@@ -295,8 +328,8 @@ export default function CheckoutPage() {
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 8l4 4 6-6" /></svg>
               {loading ? 'Procesando...' : 'Confirmar y crear pedido'}
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
       </div>
       <StoreFooter />

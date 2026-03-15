@@ -28,6 +28,7 @@ interface DialogShellProps extends Omit<DialogProps, 'children'> {
   titleSx?: SxProps<Theme>
   actionsSx?: SxProps<Theme>
   onClose?: () => void
+  dense?: boolean
 }
 
 const DialogShell: React.FC<DialogShellProps> = ({
@@ -41,6 +42,7 @@ const DialogShell: React.FC<DialogShellProps> = ({
   titleSx,
   actionsSx,
   onClose,
+  dense = false,
   ...dialogProps
 }) => {
   const theme = useTheme()
@@ -109,11 +111,11 @@ const DialogShell: React.FC<DialogShellProps> = ({
           headerInTitle ? header : null
         ) : (
           <>
-            <Typography sx={{ fontWeight: 600, fontSize: '15px', lineHeight: 1.3, letterSpacing: '-0.3px' }}>
+            <Typography sx={{ fontWeight: 600, fontSize: dense ? '14px' : '15px', lineHeight: 1.3, letterSpacing: '-0.3px' }}>
               {dialogTitle}
             </Typography>
             {subtitle && (
-              <Typography sx={{ color: 'text.secondary', display: 'block', mt: 0.5, fontSize: '12px', fontWeight: 400, lineHeight: 1.4 }}>
+              <Typography sx={{ color: 'text.secondary', display: 'block', mt: dense ? 0.2 : 0.5, fontSize: dense ? '11px' : '12px', fontWeight: 400, lineHeight: 1.4 }}>
                 {subtitle}
               </Typography>
             )}
@@ -122,15 +124,15 @@ const DialogShell: React.FC<DialogShellProps> = ({
       </DialogTitle>
       {!headerInTitle && header}
 
-      <DialogContent sx={{ p: 2.5, pt: '24px !important', ...contentSx }}>
+      <DialogContent sx={{ p: dense ? 2 : 2.5, pt: dense ? '16px !important' : '24px !important', ...contentSx }}>
         {children}
       </DialogContent>
 
       {actions && (
         <DialogActions 
           sx={{ 
-            p: 1.5, 
-            px: 2.5, 
+            p: dense ? 1 : 1.5, 
+            px: dense ? 2 : 2.5, 
             bgcolor: alpha(theme.palette.text.primary, 0.02),
             borderTop: `1px solid ${theme.palette.divider}`,
             ...actionsSx 

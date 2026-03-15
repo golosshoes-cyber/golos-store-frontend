@@ -42,6 +42,7 @@ import {
   NotificationsNone as NotificacionesIcon,
   Search as SearchIcon,
   NavigateNext as NavigateNextIcon,
+  Payments as FinanzasIcon,
 } from '@mui/icons-material'
 import {
   TextField,
@@ -62,24 +63,25 @@ const menuSections = [
   {
     label: '',
     items: [
-      { text: 'Dashboard', icon: <GridViewIcon />, path: 'dashboard' },
-      { text: 'Productos', icon: <AddBoxIcon />, path: 'products' },
-      { text: 'Ventas', icon: <ShoppingCartIcon />, path: 'sales' },
-      { text: 'Compras', icon: <ComprasIcon />, path: 'purchases' },
-      { text: 'Inventario', icon: <InventarioIcon />, path: 'inventory' },
+      { text: 'Dashboard', icon: <GridViewIcon />, path: '/dashboard' },
+      { text: 'Productos', icon: <AddBoxIcon />, path: '/products' },
+      { text: 'Ventas', icon: <ShoppingCartIcon />, path: '/sales' },
+      { text: 'Compras', icon: <ComprasIcon />, path: '/purchases' },
+      { text: 'Inventario', icon: <InventarioIcon />, path: '/inventory' },
     ]
   },
   {
     label: 'Análisis',
     items: [
-      { text: 'Reportes', icon: <ReportesIcon />, path: 'reports' },
+      { text: 'Reportes', icon: <ReportesIcon />, path: '/reports' },
+      { text: 'Finanzas', icon: <FinanzasIcon />, path: '/admin/finance' },
     ]
   },
   {
     label: 'Config',
     items: [
-      { text: 'Proveedores', icon: <ProveedoresIcon />, path: 'suppliers' },
-      { text: 'Gestionar tienda', icon: <InventarioIcon />, path: 'store/ops' },
+      { text: 'Proveedores', icon: <ProveedoresIcon />, path: '/suppliers' },
+      { text: 'Gestionar tienda', icon: <InventarioIcon />, path: '/store/ops' },
     ]
   }
 ]
@@ -172,6 +174,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     users: 'Usuarios',
     groups: 'Grupos',
     ops: 'Operaciones',
+    finance: 'Finanzas',
   }
 
   const pathSegments = location.pathname.split('/').filter(Boolean)
@@ -312,9 +315,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <List sx={{ px: 0, py: 0 }}>
               <ListItem disablePadding sx={{ mb: 0.2 }}>
                 <ListItemButton
-                  selected={location.pathname.includes('admin/users')}
-                  onClick={() => navigate('admin/users')}
-                  sx={navItemSx(location.pathname.includes('admin/users'))}
+                  selected={location.pathname.includes('/admin/users')}
+                  onClick={() => navigate('/admin/users')}
+                  sx={navItemSx(location.pathname.includes('/admin/users'))}
                 >
                   <ListItemIcon>
                     <AdminPanelSettingsIcon sx={{ fontSize: 16 }} />
@@ -324,9 +327,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </ListItem>
               <ListItem disablePadding sx={{ mb: 0.2 }}>
                 <ListItemButton
-                  selected={location.pathname.includes('admin/groups')}
-                  onClick={() => navigate('admin/groups')}
-                  sx={navItemSx(location.pathname.includes('admin/groups'))}
+                  selected={location.pathname.includes('/admin/groups')}
+                  onClick={() => navigate('/admin/groups')}
+                  sx={navItemSx(location.pathname.includes('/admin/groups'))}
                 >
                   <ListItemIcon>
                     <GroupWorkIcon sx={{ fontSize: 16 }} />
@@ -454,7 +457,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <MenuIcon sx={{ fontSize: 20 }} />
             </IconButton>
 
-            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ 
+              flexGrow: 1, 
+              display: 'flex', 
+              alignItems: 'center',
+              minWidth: 0, // Critical for text-overflow to work in flex
+              mr: { sm: 20 }, // Reserve space for absolute actions on desktop
+              overflow: 'hidden'
+            }}>
               <Breadcrumbs 
                 separator={<NavigateNextIcon sx={{ fontSize: 14, opacity: 0.5 }} />}
                 aria-label="breadcrumb"

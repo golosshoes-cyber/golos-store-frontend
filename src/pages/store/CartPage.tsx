@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Alert } from '@mui/material'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useThemeMode } from '../../contexts/ThemeModeContext'
 import { storeService } from '../../services/storeService'
 import type { StoreCartValidationItem } from '../../types/store'
 import { getStoreCartItems, removeStoreCartItem, updateStoreCartItemQuantity, type StoreCartItem } from '../../utils/storeCart'
 import StoreFooter from '../../components/store/StoreFooter'
+import StoreHeader from '../../components/store/StoreHeader'
 
 const currencyFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 const money = (value: string) => currencyFormatter.format(Number(value))
@@ -66,17 +68,7 @@ export default function CartPage() {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');`}</style>
 
       {/* NAV */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, height: 60, background: css.bg, borderBottom: `1px solid ${css.border}`, display: 'flex', alignItems: 'center', padding: '0 32px', gap: 24 }}>
-        <RouterLink to="/store" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: css.text, display: 'flex', alignItems: 'center', justifyContent: 'center', color: css.bg, fontSize: 12, fontWeight: 700 }}>GS</div>
-          <span style={{ fontSize: 15, fontWeight: 600, color: css.text }}>Golos Store</span>
-        </RouterLink>
-        <div style={{ flex: 1 }} />
-        <RouterLink to="/store" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: css.textMuted, textDecoration: 'none' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 3L5 8l5 5" /></svg>
-          Seguir comprando
-        </RouterLink>
-      </nav>
+      <StoreHeader backLink={{ to: '/store', label: 'Seguir comprando' }} />
 
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 32px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
@@ -93,42 +85,71 @@ export default function CartPage() {
         ) : (
           <>
             {/* Items card */}
-            <div style={{ background: css.bgCard, border: `1px solid ${css.border}`, borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{ background: css.bgCard, border: `1px solid ${css.border}`, borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}
+            >
               <div style={{ padding: '14px 20px', borderBottom: `1px solid ${css.border}`, background: css.bgSubtle, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: css.text }}>Ítems ({items.length})</span>
-                <button onClick={() => void loadAndValidate()} disabled={loading} style={{ fontSize: 12, color: css.textMuted, cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit' }}>Revalidar</button>
+                <motion.button 
+                  whileHover={{ color: css.text }}
+                  onClick={() => void loadAndValidate()} 
+                  disabled={loading} 
+                  style={{ fontSize: 12, color: css.textMuted, cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit' }}
+                >
+                  Revalidar
+                </motion.button>
               </div>
-              {items.map((item) => {
-                const detail = validatedItems.find((l) => l.variant_id === item.variant_id)
-                return (
-                  <div key={item.variant_id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderBottom: `1px solid ${css.border}` }}>
-                    <div style={{ width: 64, height: 64, borderRadius: 8, background: css.bgSubtle, border: `1px solid ${css.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                      <img src={detail?.image_url || FALLBACK_IMAGE} alt={detail?.product_name || `Variante ${item.variant_id}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e) => { if ((e.target as HTMLImageElement).src !== FALLBACK_IMAGE) (e.target as HTMLImageElement).src = FALLBACK_IMAGE }} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: css.text, marginBottom: 3 }}>{detail?.product_name || `Variante #${item.variant_id}`}</div>
-                      <div style={{ fontSize: 12, color: css.textMuted }}>{detail?.variant_info || 'Pendiente de validación'}</div>
-                      {detail && <div style={{ fontSize: 13, color: css.textFaint, marginTop: 3 }}>Precio unitario: {money(detail.unit_price)}</div>}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${css.border}`, borderRadius: 6, overflow: 'hidden' }}>
-                        <button onClick={() => handleQuantityChange(item.variant_id, Math.max(1, item.quantity - 1))} style={{ width: 30, height: 32, border: 'none', background: css.bgSubtle, color: css.textMuted, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}>−</button>
-                        <div style={{ width: 32, textAlign: 'center', fontSize: 13, fontWeight: 500, color: css.text, background: css.bg, borderLeft: `1px solid ${css.border}`, borderRight: `1px solid ${css.border}`, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.quantity}</div>
-                        <button onClick={() => handleQuantityChange(item.variant_id, item.quantity + 1)} style={{ width: 30, height: 32, border: 'none', background: css.bgSubtle, color: css.textMuted, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}>+</button>
+              <AnimatePresence initial={false}>
+                {items.map((item) => {
+                  const detail = validatedItems.find((l) => l.variant_id === item.variant_id)
+                  return (
+                    <motion.div 
+                      key={item.variant_id} 
+                      layout
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderBottom: `1px solid ${css.border}`, overflow: 'hidden' }}
+                    >
+                      <div style={{ width: 64, height: 64, borderRadius: 8, background: css.bgSubtle, border: `1px solid ${css.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                        <img src={detail?.image_url || FALLBACK_IMAGE} alt={detail?.product_name || `Variante ${item.variant_id}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => { if ((e.target as HTMLImageElement).src !== FALLBACK_IMAGE) (e.target as HTMLImageElement).src = FALLBACK_IMAGE }} />
                       </div>
-                      <button onClick={() => void handleRemove(item.variant_id)} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#b91c1c', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', padding: 4, borderRadius: 4 }}>
-                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 10h8l1-10" /></svg>
-                        Eliminar
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: css.text, marginBottom: 3 }}>{detail?.product_name || `Variante #${item.variant_id}`}</div>
+                        <div style={{ fontSize: 12, color: css.textMuted }}>{detail?.variant_info || 'Pendiente de validación'}</div>
+                        {detail && <div style={{ fontSize: 13, color: css.textFaint, marginTop: 3 }}>Precio unitario: {money(detail.unit_price)}</div>}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${css.border}`, borderRadius: 6, overflow: 'hidden' }}>
+                          <motion.button whileTap={{ scale: 0.9 }} onClick={() => handleQuantityChange(item.variant_id, Math.max(1, item.quantity - 1))} style={{ width: 30, height: 32, border: 'none', background: css.bgSubtle, color: css.textMuted, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}>−</motion.button>
+                          <div style={{ width: 32, textAlign: 'center', fontSize: 13, fontWeight: 500, color: css.text, background: css.bg, borderLeft: `1px solid ${css.border}`, borderRight: `1px solid ${css.border}`, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.quantity}</div>
+                          <motion.button whileTap={{ scale: 0.9 }} onClick={() => handleQuantityChange(item.variant_id, item.quantity + 1)} style={{ width: 30, height: 32, border: 'none', background: css.bgSubtle, color: css.textMuted, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}>+</motion.button>
+                        </div>
+                        <motion.button 
+                          whileHover={{ scale: 1.05, color: '#dc2626' }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => void handleRemove(item.variant_id)} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#b91c1c', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', padding: 4, borderRadius: 4 }}>
+                          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 10h8l1-10" /></svg>
+                          Eliminar
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  )
+                })}
+              </AnimatePresence>
+            </motion.div>
 
             {/* Totals card */}
-            <div style={{ background: css.bgCard, border: `1px solid ${css.border}`, borderRadius: 16, overflow: 'hidden' }}>
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              style={{ background: css.bgCard, border: `1px solid ${css.border}`, borderRadius: 16, overflow: 'hidden' }}
+            >
               <div style={{ padding: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0' }}>
                   <span style={{ fontSize: 13, color: css.textMuted }}>Subtotal</span>
@@ -143,7 +164,9 @@ export default function CartPage() {
                   <span style={{ fontSize: 15, fontWeight: 700, color: css.text }}>Total estimado</span>
                   <span style={{ fontSize: 18, fontWeight: 700, color: css.text, letterSpacing: '-0.3px' }}>{money(total)}</span>
                 </div>
-                <button
+                <motion.button
+                  whileHover={!(loading || validatedItems.length === 0) ? { scale: 1.02 } : {}}
+                  whileTap={!(loading || validatedItems.length === 0) ? { scale: 0.98 } : {}}
                   onClick={() => { if (!loading && validatedItems.length > 0) navigate('/store/checkout') }}
                   disabled={loading || validatedItems.length === 0}
                   style={{
@@ -156,7 +179,7 @@ export default function CartPage() {
                     <path d="M2 2h2l2 7h6l2-5H5" /><circle cx="7" cy="13" r="1" /><circle cx="11" cy="13" r="1" />
                   </svg>
                   {loading ? 'Validando...' : 'Ir a finalizar compra'}
-                </button>
+                </motion.button>
 
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 20, marginTop: 16, flexWrap: 'wrap' }}>
                   {[
@@ -168,7 +191,7 @@ export default function CartPage() {
                   ))}
                 </div>
               </div>
-            </div>
+            </motion.div>
           </>
         )}
       </div>

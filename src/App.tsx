@@ -1,11 +1,13 @@
 import { Suspense, lazy, useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
 import { Box } from '@mui/material'
 import { useAuth } from './contexts/AuthContext'
 import type { User } from './types'
 import { storeService } from './services/storeService'
 import MainLayout from './layouts/MainLayout'
 import ProtectedRoute from './components/admin/ProtectedRoute'
+import PageTransition from './components/common/PageTransition'
 
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
 const PostLoginChoicePage = lazy(() => import('./pages/auth/PostLoginChoicePage'))
@@ -18,6 +20,7 @@ const SuppliersPage = lazy(() => import('./pages/suppliers/SuppliersPage'))
 const ReportsPage = lazy(() => import('./pages/reports/ReportsPage'))
 const UsersManagement = lazy(() => import('./pages/admin/UsersManagement'))
 const GroupsManagement = lazy(() => import('./pages/admin/GroupsManagement'))
+const FinancePage = lazy(() => import('./pages/admin/FinancePage'))
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'))
 const StorePage = lazy(() => import('./pages/store/StorePage'))
 const StoreLoginPage = lazy(() => import('./pages/store/StoreLoginPage'))
@@ -54,6 +57,7 @@ const canAccessManagement = (user: User | null): boolean => {
 function App() {
   const { isAuthenticated, isLoading, user } = useAuth()
   const managementAccess = canAccessManagement(user)
+  const location = useLocation()
 
   useEffect(() => {
     let mounted = true
@@ -103,123 +107,137 @@ function App() {
         </Box>
       }
     >
-      <Routes>
-      <Route path="/" element={<Navigate to="/store" replace />} />
-      <Route path="/store" element={<StorePage />} />
-      <Route path="/store/cart" element={<CartPage />} />
-      <Route path="/store/checkout" element={<CheckoutPage />} />
-      <Route path="/store/terms" element={<TermsPage />} />
-      <Route path="/store/privacy" element={<PrivacyPage />} />
-      <Route path="/store/attributions" element={<AttributionsPage />} />
-      <Route path="/store/order-status" element={<OrderStatusPage />} />
-      <Route
-        path="/store/login"
-        element={!isAuthenticated ? <StoreLoginPage /> : <Navigate to="/store/account" replace />}
-      />
-      <Route
-        path="/store/register"
-        element={!isAuthenticated ? <StoreRegisterPage /> : <Navigate to="/store/account" replace />}
-      />
-      <Route
-        path="/store/account"
-        element={isAuthenticated ? <StoreAccountPage /> : <Navigate to="/store/login" replace />}
-      />
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Navigate to="/store" replace />} />
+          <Route path="/store" element={<PageTransition><StorePage /></PageTransition>} />
+          <Route path="/store/cart" element={<PageTransition><CartPage /></PageTransition>} />
+          <Route path="/store/checkout" element={<PageTransition><CheckoutPage /></PageTransition>} />
+          <Route path="/store/terms" element={<PageTransition><TermsPage /></PageTransition>} />
+          <Route path="/store/privacy" element={<PageTransition><PrivacyPage /></PageTransition>} />
+          <Route path="/store/attributions" element={<PageTransition><AttributionsPage /></PageTransition>} />
+          <Route path="/store/order-status" element={<PageTransition><OrderStatusPage /></PageTransition>} />
+          <Route
+            path="/store/login"
+            element={!isAuthenticated ? <PageTransition><StoreLoginPage /></PageTransition> : <Navigate to="/store/account" replace />}
+          />
+          <Route
+            path="/store/register"
+            element={!isAuthenticated ? <PageTransition><StoreRegisterPage /></PageTransition> : <Navigate to="/store/account" replace />}
+          />
+          <Route
+            path="/store/account"
+            element={isAuthenticated ? <PageTransition><StoreAccountPage /></PageTransition> : <Navigate to="/store/login" replace />}
+          />
 
-      <Route
-        path="/login"
-        element={
-          !isAuthenticated ? (
-            <LoginPage />
-          ) : managementAccess ? (
-            <Navigate to="/post-login-choice" replace />
-          ) : (
-            <Navigate to="/store" replace />
-          )
-        }
-      />
-
-      <Route
-        path="/post-login-choice"
-        element={
-          isAuthenticated && managementAccess ? (
-            <PostLoginChoicePage />
-          ) : (
-            <Navigate to="/store" replace />
-          )
-        }
-      />
-
-      <Route
-        path="/*"
-        element={
-          isAuthenticated ? (
-            managementAccess ? (
-              <MainLayout>
-                <Routes>
-                  <Route path="dashboard" element={<DashboardPage />} />
-                  <Route path="products" element={<ProductsPage />} />
-                  <Route path="sales" element={<SalesPage />} />
-                  <Route path="inventory" element={<InventoryPage />} />
-                  <Route path="profile" element={<ProfilePage />} />
-                  <Route path="purchases" element={<PurchasePage />} />
-                  <Route path="suppliers" element={<SuppliersPage />} />
-                  <Route
-                    path="store/ops"
-                    element={
-                      <ProtectedRoute
-                        requiredGroups={['Managers']}
-                        fallback={<Navigate to="/dashboard" replace />}
-                      >
-                        <StoreOpsPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="reports"
-                    element={
-                      <ProtectedRoute
-                        requiredGroups={['Managers']}
-                        fallback={<Navigate to="/dashboard" replace />}
-                      >
-                        <ReportsPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="admin/users"
-                    element={
-                      <ProtectedRoute
-                        requiredGroups={['Managers']}
-                        fallback={<Navigate to="/dashboard" replace />}
-                      >
-                        <UsersManagement />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="admin/groups"
-                    element={
-                      <ProtectedRoute
-                        requiredGroups={['Managers']}
-                        fallback={<Navigate to="/dashboard" replace />}
-                      >
-                        <GroupsManagement />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="" element={<Navigate to="dashboard" />} />
-                  <Route path="*" element={<Navigate to="dashboard" />} />
-                </Routes>
-              </MainLayout>
+        <Route
+          path="/login"
+          element={
+            !isAuthenticated ? (
+              <LoginPage />
+            ) : managementAccess ? (
+              <Navigate to="/post-login-choice" replace />
             ) : (
               <Navigate to="/store" replace />
             )
-          ) : (
-            <Navigate to="/store" replace />
-          )
-        }
-      />
-      </Routes>
+          }
+        />
+
+        <Route
+          path="/post-login-choice"
+          element={
+            isAuthenticated && managementAccess ? (
+              <PostLoginChoicePage />
+            ) : (
+              <Navigate to="/store" replace />
+            )
+          }
+        />
+
+          <Route
+            path="/*"
+            element={
+              isAuthenticated ? (
+                managementAccess ? (
+                  <MainLayout>
+                    <Routes>
+                      {/* Sub-routes don't need PageTransition as they are inside MainLayout */}
+                      <Route path="dashboard" element={<DashboardPage />} />
+                      <Route path="products" element={<ProductsPage />} />
+                      <Route path="sales" element={<SalesPage />} />
+                      <Route path="inventory" element={<InventoryPage />} />
+                      <Route path="profile" element={<ProfilePage />} />
+                      <Route path="purchases" element={<PurchasePage />} />
+                      <Route path="suppliers" element={<SuppliersPage />} />
+                      <Route
+                        path="store/ops"
+                        element={
+                          <ProtectedRoute
+                            requiredGroups={['Managers']}
+                            fallback={<Navigate to="/dashboard" replace />}
+                          >
+                            <StoreOpsPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="reports"
+                        element={
+                          <ProtectedRoute
+                            requiredGroups={['Managers']}
+                            fallback={<Navigate to="/dashboard" replace />}
+                          >
+                            <ReportsPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="admin/users"
+                        element={
+                          <ProtectedRoute
+                            requiredGroups={['Managers']}
+                            fallback={<Navigate to="/dashboard" replace />}
+                          >
+                            <UsersManagement />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="admin/groups"
+                        element={
+                          <ProtectedRoute
+                            requiredGroups={['Managers']}
+                            fallback={<Navigate to="/dashboard" replace />}
+                          >
+                            <GroupsManagement />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="admin/finance"
+                        element={
+                          <ProtectedRoute
+                            requiredGroups={['Managers']}
+                            fallback={<Navigate to="/dashboard" replace />}
+                          >
+                            <FinancePage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route path="" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
+                  </MainLayout>
+                ) : (
+                  <Navigate to="/store" replace />
+                )
+              ) : (
+                <Navigate to="/store" replace />
+              )
+            }
+          />
+        </Routes>
+      </AnimatePresence>
     </Suspense>
   )
 }

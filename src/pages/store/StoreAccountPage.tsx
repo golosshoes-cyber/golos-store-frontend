@@ -5,6 +5,7 @@ import { useThemeMode } from '../../contexts/ThemeModeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { storeService } from '../../services/storeService'
 import StoreFooter from '../../components/store/StoreFooter'
+import StoreHeader from '../../components/store/StoreHeader'
 import type { StoreOrder } from '../../types/store'
 
 const currencyFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
@@ -28,7 +29,7 @@ const statusBg = (status: string): string => {
 export default function StoreAccountPage() {
   const navigate = useNavigate()
   const { mode } = useThemeMode()
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const [orders, setOrders] = useState<StoreOrder[]>([])
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -57,27 +58,14 @@ export default function StoreAccountPage() {
     void load()
   }, [isAuthenticated, navigate])
 
-  const handleLogout = () => { logout(); navigate('/store', { replace: true }) }
+
 
   return (
     <div style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", background: css.bg, color: css.text, minHeight: '100vh' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');`}</style>
 
       {/* NAV */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, height: 60, background: css.bg, borderBottom: `1px solid ${css.border}`, display: 'flex', alignItems: 'center', padding: '0 32px', gap: 24 }}>
-        <RouterLink to="/store" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: css.text, display: 'flex', alignItems: 'center', justifyContent: 'center', color: css.bg, fontSize: 12, fontWeight: 700 }}>GS</div>
-          <span style={{ fontSize: 15, fontWeight: 600, color: css.text }}>Golos Store</span>
-        </RouterLink>
-        <div style={{ flex: 1 }} />
-        <RouterLink to="/store" style={{ padding: '7px 14px', borderRadius: 6, border: `1px solid ${css.border}`, background: css.bg, color: css.textMuted, textDecoration: 'none', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 2h2l2 7h6l2-5H5" /></svg>
-          Tienda
-        </RouterLink>
-        <button onClick={handleLogout} style={{ padding: '7px 14px', borderRadius: 6, border: `1px solid ${css.border}`, background: css.bg, color: css.textMuted, fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
-          Salir
-        </button>
-      </nav>
+      <StoreHeader />
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 32px' }}>
         {/* Account header */}

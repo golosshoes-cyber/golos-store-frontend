@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, Badge, Dialog, Fab, Skeleton, Snackbar, Zoom } from '@mui/material'
+import { motion } from 'framer-motion'
 import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded'
 import LocalMallRoundedIcon from '@mui/icons-material/LocalMallRounded'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import { Link as RouterLink } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeModeContext'
-import { useAuth } from '../../contexts/AuthContext'
 import { storeService } from '../../services/storeService'
 import type { StoreBranding, StoreProduct, StoreVariant } from '../../types/store'
 import StoreFooter from '../../components/store/StoreFooter'
+import StoreHeader from '../../components/store/StoreHeader'
 import { addItemToStoreCart, getStoreCartItems, getStoreCartItemsCount } from '../../utils/storeCart'
 
 type OrderingValue = 'name' | '-name' | 'brand' | '-brand' | 'newest' | 'oldest'
@@ -48,7 +49,7 @@ const DEFAULT_BRANDING: StoreBranding = {
   legal_contact_department: '',
   promo_top_enabled: false,
   promo_top_title: '',
-  promo_top_text: '',
+  promo_top_text: 'Envío gratis en Colombia por compras superiores a $200.000',
   promo_top_image_desktop_url: '',
   promo_top_image_mobile_url: '',
   promo_bottom_enabled: false,
@@ -85,8 +86,7 @@ const formatVariantLabel = (variant: StoreVariant): string => {
 }
 
 export default function StorePage() {
-  const { mode, toggleColorMode } = useThemeMode()
-  const { user, isAuthenticated, logout } = useAuth()
+  const { mode } = useThemeMode()
 
   const [branding, setBranding] = useState<StoreBranding>(DEFAULT_BRANDING)
   const [products, setProducts] = useState<StoreProduct[]>([])
@@ -100,7 +100,7 @@ export default function StorePage() {
 
   const [loadingCatalog, setLoadingCatalog] = useState(false)
   const [loadingFeatured, setLoadingFeatured] = useState(false)
-  const [loadingBranding, setLoadingBranding] = useState(false)
+
 
   const [catalogError, setCatalogError] = useState<string | null>(null)
   const [cartCount, setCartCount] = useState(0)
@@ -109,24 +109,13 @@ export default function StorePage() {
   const [selectedQuantities, setSelectedQuantities] = useState<Record<number, number>>({})
 
   const [showBackToTop, setShowBackToTop] = useState(false)
-  const [flyToCart, setFlyToCart] = useState<{
-    id: number; startX: number; startY: number; deltaX: number; deltaY: number; active: boolean
-  } | null>(null)
   const [toast, setToast] = useState<ToastState>({ open: false, message: '', severity: 'info' })
   const [imageViewer, setImageViewer] = useState<{ open: boolean; url: string; name: string }>({ open: false, url: '', name: '' })
 
   const cartFabRef = useRef<HTMLAnchorElement | null>(null)
-  const headerCartRef = useRef<HTMLAnchorElement | null>(null)
   const totalPages = useMemo(() => Math.max(1, Math.ceil(totalCount / PAGE_SIZE)), [totalCount])
 
-  const groupNames = (Array.isArray((user as any)?.groups) ? (user as any).groups : [])
-    .map((group: any) => (typeof group === 'string' ? group : group?.name || ''))
-    .filter(Boolean)
 
-  const canAccessManagement = Boolean(
-    user && (user.is_staff || user.is_superuser ||
-      groupNames.some((name: string) => ['Managers', 'Sales', 'Inventory'].includes(name))),
-  )
 
   const showToast = (message: string, severity: ToastState['severity'] = 'info') => {
     setToast({ open: true, message, severity })
@@ -178,11 +167,9 @@ export default function StorePage() {
 
   const loadBranding = async () => {
     try {
-      setLoadingBranding(true)
       const response = await storeService.getBranding()
       setBranding({ ...DEFAULT_BRANDING, ...response.branding })
     } catch { setBranding(DEFAULT_BRANDING) }
-    finally { setLoadingBranding(false) }
   }
 
   const loadFeatured = async () => {
@@ -249,31 +236,16 @@ export default function StorePage() {
     setSelectedQuantities((prev) => ({ ...prev, [product.id]: sanitized }))
   }
 
-  const triggerFlyToCart = (sourceElement?: HTMLElement | null) => {
-    if (!sourceElement) return
-    const targetElement = (cartFabRef.current || headerCartRef.current) as HTMLElement | null
-    if (!targetElement) return
-    const sourceRect = sourceElement.getBoundingClientRect()
-    const targetRect = targetElement.getBoundingClientRect()
-    const startX = sourceRect.left + sourceRect.width / 2 - 18
-    const startY = sourceRect.top + sourceRect.height / 2 - 18
-    const id = Date.now()
-    setFlyToCart({ id, startX, startY, deltaX: targetRect.left + targetRect.width / 2 - 18 - startX, deltaY: targetRect.top + targetRect.height / 2 - 18 - startY, active: false })
-    requestAnimationFrame(() => setFlyToCart((prev) => prev && prev.id === id ? { ...prev, active: true } : prev))
-    window.setTimeout(() => setFlyToCart((prev) => prev && prev.id === id ? null : prev), 650)
-  }
-
-  const handleAddToCart = async (product: StoreProduct, sourceElement?: HTMLElement | null) => {
+  const handleAddToCart = async (product: StoreProduct) => {
     const variant = getSelectedVariant(product)
     const quantity = getSelectedQuantity(product.id)
     if (!variant || variant.stock <= 0) { showToast('La variante seleccionada no tiene stock disponible.', 'error'); return }
-    triggerFlyToCart(sourceElement)
     addItemToStoreCart(variant.id, quantity)
     await refreshCartPreview()
     showToast(`${product.name} (${variant.size}/${variant.color}) x${quantity} agregado al carrito.`, 'success')
   }
 
-  const logoLetter = (branding.store_name || 'S').trim().charAt(0).toUpperCase()
+
 
   // ─── CSS Variables ────────────────────────────────────────────────────────────
   const isDark = mode === 'dark'
@@ -292,159 +264,100 @@ export default function StorePage() {
       {/* Google Font */}
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');`}</style>
 
-      {/* ── NAV ─────────────────────────────────────────────────────────────────── */}
-      <nav style={{
-        position: 'sticky', top: 0, zIndex: 50, height: 60,
-        background: css.bg, borderBottom: `1px solid ${css.border}`,
-        display: 'flex', alignItems: 'center', padding: '0 32px', gap: 32,
-      }}>
-        <RouterLink to="/store" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 8, background: css.text,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: css.bg, fontSize: 12, fontWeight: 700, flexShrink: 0,
-          }}>
-            {branding.logo_url
-              ? <img src={branding.logo_url} alt="logo" style={{ width: '100%', height: '100%', borderRadius: 8, objectFit: 'cover' }} />
-              : logoLetter}
-          </div>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: css.text, letterSpacing: '-0.3px' }}>
-              {loadingBranding ? 'Golos Store' : branding.store_name}
-            </div>
-            <div style={{ fontSize: 11, color: css.textFaint, marginTop: -1 }}>{branding.tagline || DEFAULT_BRANDING.tagline}</div>
-          </div>
-        </RouterLink>
-
-        <div style={{ display: 'flex', gap: 4 }}>
-          {[
-            { label: 'Destacados', onClick: () => document.getElementById('store-featured')?.scrollIntoView({ behavior: 'smooth' }) },
-            { label: 'Catálogo', onClick: () => document.getElementById('store-catalog')?.scrollIntoView({ behavior: 'smooth' }) },
-          ].map((link) => (
-            <button key={link.label} onClick={link.onClick} style={{
-              padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 500,
-              color: css.textMuted, cursor: 'pointer', background: 'none', border: 'none',
-              fontFamily: 'inherit', transition: 'all 0.1s',
-            }}
-              onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.background = css.bgSubtle; (e.target as HTMLButtonElement).style.color = css.text }}
-              onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.background = 'none'; (e.target as HTMLButtonElement).style.color = css.textMuted }}
-            >{link.label}</button>
-          ))}
-          <RouterLink to="/store/order-status" style={{
-            padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 500,
-            color: css.textMuted, cursor: 'pointer', textDecoration: 'none',
-          }}>Estado pedido</RouterLink>
-        </div>
-
-        <div style={{ flex: 1 }} />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {isAuthenticated && (
-            <RouterLink to="/store/account" style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 6,
-              fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-              border: `1px solid ${css.border}`, background: css.bg, color: css.textMuted, textDecoration: 'none',
-            }}>Mi cuenta</RouterLink>
-          )}
-          {!isAuthenticated && (
-            <RouterLink to="/store/login" style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 6,
-              fontSize: 13, fontWeight: 500, border: `1px solid ${css.border}`, background: css.bg,
-              color: css.textMuted, textDecoration: 'none',
-            }}>Ingresar</RouterLink>
-          )}
-          {isAuthenticated && (
-            <button onClick={logout} style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 6,
-              fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-              border: `1px solid ${css.border}`, background: css.bg, color: css.textMuted,
-            }}>Salir</button>
-          )}
-          {canAccessManagement && (
-            <RouterLink to="/dashboard" style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 6,
-              fontSize: 13, fontWeight: 500, border: `1px solid ${css.border}`, background: css.bg,
-              color: css.textMuted, textDecoration: 'none',
-            }}>Gestión</RouterLink>
-          )}
-          <RouterLink
-            to="/store/cart"
-            ref={headerCartRef as any}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 7, padding: '7px 16px', borderRadius: 6,
-              fontSize: 13, fontWeight: 600, cursor: 'pointer', background: css.accent,
-              color: css.accentFg, border: 'none', textDecoration: 'none',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M2 2h2l2 7h6l2-5H5" /><circle cx="7" cy="13" r="1" /><circle cx="11" cy="13" r="1" />
-            </svg>
-            Carrito
-            {cartCount > 0 && (
-              <div style={{
-                background: css.accentFg, color: css.accent, width: 18, height: 18, borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700,
-              }}>{cartCount}</div>
-            )}
-          </RouterLink>
-          <button onClick={toggleColorMode} style={{
-            width: 36, height: 36, borderRadius: 6, border: `1px solid ${css.border}`, background: css.bg,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-            fontSize: 15, color: css.textMuted,
-          }}>{isDark ? '☽' : '☀'}</button>
-        </div>
-      </nav>
+      <StoreHeader branding={branding} />
 
       {/* ── MAIN CONTENT ────────────────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 32px' }}>
+      <div className="store-container" style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 32px' }}>
 
         {/* ── HERO ──────────────────────────────────────────────────────────────── */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center',
-          marginBottom: 56, padding: '40px 48px',
+        <div className="hero-container" style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, alignItems: 'center',
+          marginBottom: 40, padding: '32px 40px',
           background: css.bgSubtle, borderRadius: 16, border: `1px solid ${css.border}`,
           overflow: 'hidden', position: 'relative',
         }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.2px', textTransform: 'uppercase', color: css.textFaint, marginBottom: 12 }}>
+          <div className="hero-content">
+            <motion.div 
+              className="hero-eyebrow" 
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.2px', textTransform: 'uppercase', color: css.textFaint, marginBottom: 12 }}>
               Nueva colección · 2026
-            </div>
-            <h1 style={{ fontSize: 40, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-1.5px', color: css.text, marginBottom: 16, margin: '0 0 16px' }}>
+            </motion.div>
+            <motion.h1 
+              className="hero-title" 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              style={{ fontSize: 40, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-1.5px', color: css.text, marginBottom: 16, margin: '0 0 16px' }}>
               {branding.hero_title || DEFAULT_BRANDING.hero_title}
-            </h1>
-            <p style={{ fontSize: 15, color: css.textMuted, lineHeight: 1.6, marginBottom: 28, maxWidth: 380, margin: '0 0 28px' }}>
+            </motion.h1>
+            <motion.p 
+              className="hero-subtitle" 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              style={{ fontSize: 15, color: css.textMuted, lineHeight: 1.6, marginBottom: 28, maxWidth: 380, margin: '0 0 28px' }}>
               {branding.hero_subtitle || DEFAULT_BRANDING.hero_subtitle}
-            </p>
-            <div style={{ display: 'flex', gap: 28, marginBottom: 28 }}>
+            </motion.p>
+            <motion.div 
+              className="hero-stats" 
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              style={{ display: 'flex', gap: 28, marginBottom: 28 }}>
               {[
                 { val: totalCount > 0 ? `${totalCount}+` : '–', label: 'Productos' },
                 { val: '48h', label: 'Envío estándar' },
                 { val: '100%', label: 'Pago seguro' },
               ].map((stat) => (
-                <div key={stat.label}>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: css.text, letterSpacing: '-0.5px' }}>{stat.val}</div>
-                  <div style={{ fontSize: 11, color: css.textFaint, marginTop: 2 }}>{stat.label}</div>
+                <div key={stat.label} className="stat-item">
+                  <div className="stat-val" style={{ fontSize: 20, fontWeight: 700, color: css.text, letterSpacing: '-0.5px' }}>{stat.val}</div>
+                  <div className="stat-label" style={{ fontSize: 11, color: css.textFaint, marginTop: 2 }}>{stat.label}</div>
                 </div>
               ))}
-            </div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => document.getElementById('store-catalog')?.scrollIntoView({ behavior: 'smooth' })} style={{
+            </motion.div>
+            <motion.div 
+              className="hero-actions" 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              style={{ display: 'flex', gap: 10 }}>
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => document.getElementById('store-catalog')?.scrollIntoView({ behavior: 'smooth' })} style={{
                 padding: '12px 24px', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                background: css.accent, color: css.accentFg, border: 'none', fontFamily: 'inherit',
-              }}>Ver catálogo</button>
-              <button onClick={() => document.getElementById('store-featured')?.scrollIntoView({ behavior: 'smooth' })} style={{
+                background: css.accent, color: css.accentFg, border: 'none', fontFamily: 'inherit', flex: 1,
+              }}>Ver catálogo</motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.02, backgroundColor: css.bgHover }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => document.getElementById('store-featured')?.scrollIntoView({ behavior: 'smooth' })} style={{
                 padding: '12px 24px', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                background: 'transparent', color: css.text, border: `1px solid ${css.borderStrong}`, fontFamily: 'inherit',
-              }}>Ver destacados</button>
-            </div>
+                background: 'transparent', color: css.text, border: `1px solid ${css.borderStrong}`, fontFamily: 'inherit', flex: 1,
+              }}>Ver destacados</motion.button>
+            </motion.div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 260 }}>
+          <motion.div 
+            className="hero-image-wrapper" 
+            initial={{ opacity: 0, scale: 0.9, x: 20 }}
+            whileInView={{ opacity: 1, scale: 1, x: 0 }}
+            viewport={{ once: false, amount: 0.3 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220 }}>
             {branding.hero_image_url ? (
               <img
                 src={branding.hero_image_url}
                 alt="Hero visual"
                 style={{
-                  width: '100%', height: 260,
+                  width: '100%', height: 220,
                   objectFit: 'cover',
                   borderRadius: 16,
                   boxShadow: '0 20px 60px rgba(0,0,0,0.08)',
@@ -463,16 +376,28 @@ export default function StorePage() {
                 </svg>
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
 
-        {/* ── PROMO TOP ─────────────────────────────────────────────────────────── */}
-        {branding.promo_top_enabled && (
-          <div style={{ marginBottom: 24, padding: 16, background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#92400e' }}>{branding.promo_top_title || 'Promoción especial'}</div>
-            <div style={{ fontSize: 12, color: '#b45309', marginTop: 4 }}>{branding.promo_top_text}</div>
-          </div>
-        )}
+        <style>{`
+          @media (max-width: 768px) {
+            .store-container { padding: 24px 16px !important; }
+            .hero-container { 
+              grid-template-columns: 1fr !important; 
+              padding: 32px 24px !important;
+              gap: 32px !important;
+              text-align: center;
+            }
+            .hero-title { font-size: 32px !important; }
+            .hero-subtitle { max-width: 100% !important; margin: 0 auto 24px !important; }
+            .hero-stats { justify-content: center; gap: 20px !important; }
+            .hero-actions { flex-direction: column; }
+            .hero-image-wrapper { height: 200px !important; order: -1; }
+            .hero-image-wrapper img { height: 200px !important; }
+          }
+        `}</style>
+
+        {/* PROMO TOP REMOVED FOR CLEANER LOOK */}
 
         {/* ── FEATURED CHIPS ────────────────────────────────────────────────────── */}
         <div id="store-featured" style={{ marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -481,9 +406,15 @@ export default function StorePage() {
         <div style={{ display: 'flex', gap: 8, marginBottom: 32, flexWrap: 'wrap' }}>
           {loadingFeatured
             ? [1, 2, 3].map((i) => <Skeleton key={i} variant="rounded" width={120} height={32} />)
-            : featuredProducts.map((product) => (
-              <button
+            : featuredProducts.map((product, idx) => (
+              <motion.button
                 key={product.id}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: false }}
+                transition={{ duration: 0.3, delay: idx * 0.05 }}
+                whileHover={{ scale: 1.05, backgroundColor: css.bgHover }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   setSearch(product.name); setBrand(product.brand); setPage(1)
                   void loadProducts({ page: 1, q: product.name, brand: product.brand, ordering })
@@ -499,7 +430,7 @@ export default function StorePage() {
                   <path d="M2 2h2l2 7h6l2-5H5" /><circle cx="7" cy="13" r="1" /><circle cx="11" cy="13" r="1" />
                 </svg>
                 {product.name}
-              </button>
+              </motion.button>
             ))}
         </div>
 
@@ -560,7 +491,7 @@ export default function StorePage() {
                   </div>
                 </div>
               ))
-              : products.map((product) => {
+              : products.map((product, index) => {
                 const selectedVariant = getSelectedVariant(product)
                 const canAdd = canAddSelectedVariant(product)
                 const quantity = getSelectedQuantity(product.id)
@@ -568,40 +499,52 @@ export default function StorePage() {
                 const imgUrl = getDisplayImageForProduct(product, selectedVariant?.id)
 
                 return (
-                  <div key={product.id} style={{
-                    background: css.bgCard, border: `1px solid ${css.border}`, borderRadius: 16,
-                    overflow: 'hidden', cursor: 'pointer', display: 'flex', flexDirection: 'column',
-                    transition: 'box-shadow 0.2s, transform 0.2s, border-color 0.2s',
-                  }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.1)'
-                        ; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'
-                        ; (e.currentTarget as HTMLDivElement).style.borderColor = css.borderStrong
+                  <motion.div 
+                    key={product.id} 
+                    layout
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: false, amount: 0.1 }}
+                    transition={{ 
+                      duration: 0.5, 
+                      delay: (index % 4) * 0.1, // Small stagger based on row position
+                      ease: [0.21, 0.47, 0.32, 0.98] 
                     }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
-                        ; (e.currentTarget as HTMLDivElement).style.transform = 'none'
-                        ; (e.currentTarget as HTMLDivElement).style.borderColor = css.border
+                    style={{
+                      background: css.bgCard, border: `1px solid ${css.border}`, borderRadius: 16,
+                      overflow: 'hidden', cursor: 'pointer', display: 'flex', flexDirection: 'column',
+                      transition: 'box-shadow 0.2s, transform 0.2s, border-color 0.2s',
+                    }}
+                    whileHover={{ 
+                      y: -2,
+                      borderColor: css.borderStrong
                     }}
                   >
                     {/* Image */}
                     <div style={{ aspectRatio: '1', background: css.bgSubtle, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}
                       onClick={() => setImageViewer({ open: true, url: imgUrl, name: product.name })}>
-                      <img
+                      <motion.img
                         src={imgUrl} alt={product.name} loading="lazy"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.4 }}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         onError={(e) => { if ((e.target as HTMLImageElement).src !== FALLBACK_IMAGE) (e.target as HTMLImageElement).src = FALLBACK_IMAGE }}
                       />
                       {isLowStock && (
-                        <div style={{
-                          position: 'absolute', top: 10, left: 10, padding: '3px 8px', borderRadius: 4,
-                          fontSize: 10, fontWeight: 600, background: '#fffbeb', color: '#b45309',
-                        }}>⚡ Últimas unidades</div>
+                        <motion.div 
+                          initial={{ x: -20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          style={{
+                            position: 'absolute', top: 10, left: 10, padding: '3px 8px', borderRadius: 4,
+                            fontSize: 10, fontWeight: 600, background: '#fffbeb', color: '#b45309',
+                            zIndex: 1
+                          }}>⚡ Últimas unidades</motion.div>
                       )}
                       {selectedVariant && selectedVariant.stock <= 0 && (
                         <div style={{
                           position: 'absolute', top: 10, left: 10, padding: '3px 8px', borderRadius: 4,
                           fontSize: 10, fontWeight: 600, background: '#fef2f2', color: '#b91c1c',
+                          zIndex: 1
                         }}>Agotado</div>
                       )}
                     </div>
@@ -618,13 +561,17 @@ export default function StorePage() {
                       {product.variants.length > 0 && (
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
                           {product.variants.map((v) => (
-                            <button key={v.id} onClick={() => handleVariantChange(product.id, v.id)} style={{
+                            <motion.button 
+                              key={v.id} 
+                              whileHover={v.stock > 0 ? { scale: 1.05 } : {}}
+                              whileTap={v.stock > 0 ? { scale: 0.95 } : {}}
+                              onClick={() => handleVariantChange(product.id, v.id)} style={{
                               padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
                               background: selectedVariant?.id === v.id ? css.accent : css.bgSubtle,
                               color: selectedVariant?.id === v.id ? css.accentFg : css.textMuted,
                               border: `1px solid ${selectedVariant?.id === v.id ? css.accent : css.border}`,
                               opacity: v.stock <= 0 ? 0.45 : 1,
-                            }}>{formatVariantLabel(v)}</button>
+                            }}>{formatVariantLabel(v)}</motion.button>
                           ))}
                         </div>
                       )}
@@ -638,19 +585,21 @@ export default function StorePage() {
                       {/* Qty + Add */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 'auto' }}>
                         <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${css.border}`, borderRadius: 6, overflow: 'hidden' }}>
-                          <button onClick={() => handleQuantityChange(product, quantity - 1)} disabled={!canAdd || quantity <= 1} style={{
+                          <motion.button whileTap={{ scale: 0.9 }} onClick={() => handleQuantityChange(product, quantity - 1)} disabled={!canAdd || quantity <= 1} style={{
                             width: 30, height: 32, border: 'none', background: css.bgSubtle, color: css.textMuted,
                             fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
-                          }}>−</button>
+                          }}>−</motion.button>
                           <div style={{ width: 32, textAlign: 'center', fontSize: 13, fontWeight: 500, color: css.text, background: css.bg, borderLeft: `1px solid ${css.border}`, borderRight: `1px solid ${css.border}`, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{quantity}</div>
-                          <button onClick={() => handleQuantityChange(product, quantity + 1)} disabled={!canAdd || quantity >= (selectedVariant?.stock || 1)} style={{
+                          <motion.button whileTap={{ scale: 0.9 }} onClick={() => handleQuantityChange(product, quantity + 1)} disabled={!canAdd || quantity >= (selectedVariant?.stock || 1)} style={{
                             width: 30, height: 32, border: 'none', background: css.bgSubtle, color: css.textMuted,
                             fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
-                          }}>+</button>
+                          }}>+</motion.button>
                         </div>
-                        <button
+                        <motion.button
                           disabled={!canAdd}
-                          onClick={(e) => { void handleAddToCart(product, e.currentTarget) }}
+                          whileHover={canAdd ? { scale: 1.02, backgroundColor: css.textMuted } : {}}
+                          whileTap={canAdd ? { scale: 0.98 } : {}}
+                          onClick={() => { void handleAddToCart(product) }}
                           style={{
                             flex: 1, padding: '0 14px', height: 32, background: canAdd ? css.accent : css.textFaint,
                             color: css.accentFg, border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600,
@@ -662,13 +611,13 @@ export default function StorePage() {
                             <path d="M2 2h2l2 7h6l2-5H5" /><circle cx="7" cy="13" r="1" /><circle cx="11" cy="13" r="1" />
                           </svg>
                           {canAdd ? 'Agregar' : 'Agotado'}
-                        </button>
+                        </motion.button>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 )
               })}
-          </div>
+            </div>
 
           {/* ── PAGINATION ──────────────────────────────────────────────────────── */}
           {totalPages > 1 && (
@@ -685,6 +634,8 @@ export default function StorePage() {
             </div>
           )}
         </div>
+
+        {/* PROMO BOTTOM REMOVED */}
       </div>
 
       <StoreFooter branding={branding} />
@@ -720,20 +671,7 @@ export default function StorePage() {
         </Fab>
       </Zoom>
 
-      {flyToCart && (
-        <div style={{
-          position: 'fixed', left: flyToCart.startX, top: flyToCart.startY, width: 36, height: 36,
-          borderRadius: 8, background: '#111', color: '#fff', display: 'grid', placeItems: 'center',
-          zIndex: 1300, pointerEvents: 'none',
-          transform: flyToCart.active ? `translate(${flyToCart.deltaX}px, ${flyToCart.deltaY}px) scale(0.5) rotate(14deg)` : 'translate(0,0) scale(1) rotate(0)',
-          opacity: flyToCart.active ? 0.05 : 1,
-          transition: 'transform 620ms cubic-bezier(0.22, 1, 0.36, 1), opacity 620ms ease',
-        }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M2 2h2l2 7h6l2-5H5" /><circle cx="7" cy="13" r="1" /><circle cx="11" cy="13" r="1" />
-          </svg>
-        </div>
-      )}
+      {/* FLY TO CART REMOVED */}
 
       <Snackbar open={toast.open} autoHideDuration={2600}
         onClose={() => setToast((prev) => ({ ...prev, open: false }))}
