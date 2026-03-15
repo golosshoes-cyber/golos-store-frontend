@@ -59,13 +59,28 @@ const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({ sale, open, onClo
 
     const content = ticketRef.current.innerHTML;
     const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
-      .map(node => node.outerHTML)
+      .map(node => {
+        if (node.tagName === 'LINK') {
+          const href = node.getAttribute('href');
+          if (href && !href.startsWith('http')) {
+            // Convertir rutas relativas a absolutas
+            const absoluteLink = node.cloneNode() as HTMLLinkElement;
+            absoluteLink.href = new URL(href, window.location.origin).href;
+            return absoluteLink.outerHTML;
+          }
+        }
+        return node.outerHTML;
+      })
       .join('\n');
     
     printWindow.document.write(`
       <html>
         <head>
           <title>Imprimir Tiquete - Golos Store</title>
+          <base href="${window.location.origin}/">
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
           ${styles}
           <style>
             @page { size: auto; margin: 0mm; }
@@ -74,13 +89,15 @@ const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({ sale, open, onClo
               padding: 0; 
               width: 80mm;
               background-color: white !important;
+              color: black !important;
               -webkit-print-color-adjust: exact;
+              font-family: 'Inter', system-ui, sans-serif;
             }
-            #print-container { width: 80mm; }
-            * { box-sizing: border-box; }
+            #print-container { width: 80mm; overflow: hidden; }
+            * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           </style>
         </head>
-        <body onload="setTimeout(() => { window.print(); window.close(); }, 500)">
+        <body onload="setTimeout(() => { window.print(); window.close(); }, 800)">
           <div id="print-container">${content}</div>
         </body>
       </html>
