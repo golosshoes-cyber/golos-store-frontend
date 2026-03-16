@@ -92,72 +92,105 @@ const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({ sale, open, onClo
               print-color-adjust: exact; 
             }
             
-            /* Thermal Optimization Classes */
+            /* Thermal Optimization Classes - Bulletproof BOLD */
             .pos-ticket {
               width: 80mm;
-              padding: 4mm;
+              padding: 2mm 6mm;
               background: white;
             }
             .pos-header {
               text-align: center;
-              margin-bottom: 8px;
+              margin-bottom: 12px;
             }
             .pos-store-name {
-              font-size: 16px;
-              font-weight: 800;
+              font-size: 18px;
+              font-weight: 900;
               text-transform: uppercase;
-              margin: 0 0 2px 0;
+              margin: 0 0 4px 0;
+              line-height: 1;
             }
             .pos-nit-badge {
-              border: 1px solid black;
+              border: 1.5px solid black;
               display: inline-block;
-              padding: 1px 8px;
-              margin-bottom: 4px;
+              padding: 2px 10px;
+              margin-bottom: 8px;
             }
             .pos-divider {
               border: none;
-              border-top: 1px solid black;
-              margin: 8px 0;
+              border-top: 2px solid black;
+              margin: 12px 0;
             }
             .pos-divider-dashed {
               border: none;
-              border-top: 1px dashed black;
-              margin: 8px 0;
+              border-top: 1.5px dashed black;
+              margin: 12px 0;
+            }
+            .pos-invoice-type {
+              font-size: 11px;
+              font-weight: 900;
+              background-color: black;
+              color: white;
+              padding: 4px 12px;
+              margin-bottom: 12px;
             }
             .pos-info-row {
               display: flex;
               justify-content: space-between;
-              margin-bottom: 2px;
+              margin-bottom: 5px;
             }
             .pos-table-header {
               display: flex;
-              border-bottom: 1px solid black;
-              padding-bottom: 4px;
-              margin-bottom: 4px;
+              border-bottom: 2px solid black;
+              padding-bottom: 6px;
+              margin-bottom: 8px;
             }
             .pos-item-row {
-              margin-bottom: 6px;
+              margin-bottom: 10px;
+            }
+            .pos-item-name {
+              font-size: 11px;
+              font-weight: 800;
+              line-height: 1.1;
+            }
+            .pos-item-meta {
+              font-size: 10px;
+              font-weight: 700;
+              color: black;
+              margin-top: 4px;
             }
             .pos-mono {
               font-family: 'JetBrains Mono', monospace;
+              font-size: 11px;
+              font-weight: 700;
             }
             .pos-grand-total {
-              padding-top: 4px;
-              border-top: 1px solid #eee;
+              padding-top: 10px;
+              margin-top: 6px;
+              border-top: 2.5px solid black;
+            }
+            .pos-thanks {
+              font-size: 12px;
+              font-weight: 900;
+            }
+            .pos-legal-disclaimer {
+              font-size: 10px;
+              font-weight: 800;
+              line-height: 1.2;
             }
             .pos-qr-sim {
               background: black;
-              width: 24mm;
-              height: 24mm;
+              width: 34mm;
+              height: 34mm;
             }
             
             p, span, div { 
               margin: 0; 
               padding: 0; 
+              font-style: normal !important; /* Force no italics */
             }
           </style>
         </head>
-        <body onload="setTimeout(() => { window.print(); window.close(); }, 1200)">
+        <body onload="setTimeout(() => { window.print(); window.close(); }, 1800)">
           <div id="print-container">${content}</div>
         </body>
       </html>
