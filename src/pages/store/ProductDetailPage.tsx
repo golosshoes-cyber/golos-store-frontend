@@ -107,7 +107,10 @@ export default function ProductDetailPage() {
   if (loading) return <Box sx={{ p: 8 }}><Skeleton variant="rectangular" height={600} sx={{ borderRadius: 4 }} /></Box>
   if (error || !product) return <Box sx={{ p: 8, textAlign: 'center' }}><Typography>{error || 'Producto no encontrado'}</Typography></Box>
 
-  const inWishlist = isInWishlist(product.id)
+  const inWishlist = useMemo(() => 
+    product ? isInWishlist(product.id) : false, 
+    [product?.id, wishlistVersion]
+  )
 
   return (
     <Box sx={{ bgcolor: css.bg, color: css.text, minHeight: '100vh' }}>
