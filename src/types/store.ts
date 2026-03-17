@@ -14,6 +14,7 @@ export interface StoreVariant {
   price: string
   stock: number
   stock_minimum: number
+  image_url?: string | null
 }
 
 export interface StoreProduct {

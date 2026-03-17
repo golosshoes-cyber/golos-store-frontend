@@ -24,6 +24,8 @@ const GroupsManagement = lazy(() => import('./pages/admin/GroupsManagement'))
 const FinancePage = lazy(() => import('./pages/admin/FinancePage'))
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'))
 const StorePage = lazy(() => import('./pages/store/StorePage'))
+const WishlistPage = lazy(() => import('./pages/store/WishlistPage'))
+const ProductDetailPage = lazy(() => import('./pages/store/ProductDetailPage'))
 const StoreLoginPage = lazy(() => import('./pages/store/StoreLoginPage'))
 const StoreRegisterPage = lazy(() => import('./pages/store/StoreRegisterPage'))
 const StoreAccountPage = lazy(() => import('./pages/store/StoreAccountPage'))
@@ -117,6 +119,8 @@ function App() {
             <StoreMaintenanceGuard>
               <Routes>
                 <Route path="" element={<PageTransition><StorePage /></PageTransition>} />
+                <Route path="wishlist" element={<PageTransition><WishlistPage /></PageTransition>} />
+                <Route path="product/:id" element={<PageTransition><ProductDetailPage /></PageTransition>} />
                 <Route path="cart" element={<PageTransition><CartPage /></PageTransition>} />
                 <Route path="checkout" element={<PageTransition><CheckoutPage /></PageTransition>} />
                 <Route path="terms" element={<PageTransition><TermsPage /></PageTransition>} />

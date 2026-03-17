@@ -251,8 +251,12 @@ export default function StoreOpsPage() {
                   justifyContent: 'space-between'
                 }}>
                   <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Identidad Corporativa</Typography>
-                    <Typography variant="caption" color="text.secondary">Configuración legal y promocional</Typography>
+                    <Typography variant="subtitle2" gutterBottom sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  Carrusel y Promociones (Hero)
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 400 }}>
+                    - Las imágenes habilitadas rotarán en el inicio de la tienda
+                  </Typography>
+                </Typography>
                   </Box>
                   <Stack direction="row" spacing={1}>
                     <Button

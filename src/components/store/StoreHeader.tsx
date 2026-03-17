@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { storeService } from '../../services/storeService'
 import type { StoreBranding } from '../../types/store'
 import { getStoreCartItemsCount } from '../../utils/storeCart'
+import { getWishlistCount } from '../../utils/wishlistUtils'
 
 interface StoreHeaderProps {
   branding?: StoreBranding
@@ -19,6 +20,7 @@ export default function StoreHeader({ branding: initialBranding, showCart = true
   const location = useLocation()
   const [branding, setBranding] = useState<StoreBranding | null>(initialBranding || null)
   const [cartCount, setCartCount] = useState(0)
+  const [wishlistCount, setWishlistCount] = useState(0)
   const [loadingBranding, setLoadingBranding] = useState(!initialBranding)
 
   useEffect(() => {
@@ -37,13 +39,25 @@ export default function StoreHeader({ branding: initialBranding, showCart = true
   }, [initialBranding])
 
   useEffect(() => {
-    setCartCount(getStoreCartItemsCount())
-    
-    // Simple interval to keep cart count updated if changed from other parts of the UI
-    const interval = setInterval(() => {
+    const updateCounts = () => {
       setCartCount(getStoreCartItemsCount())
-    }, 1000)
-    return () => clearInterval(interval)
+      setWishlistCount(getWishlistCount())
+    }
+
+    updateCounts()
+    
+    // Listen for custom events
+    window.addEventListener('wishlist-updated', updateCounts)
+    window.addEventListener('storage', updateCounts) // For cross-tab sync
+    
+    // Simple interval as fallback
+    const interval = setInterval(updateCounts, 2000)
+    
+    return () => {
+      window.removeEventListener('wishlist-updated', updateCounts)
+      window.removeEventListener('storage', updateCounts)
+      clearInterval(interval)
+    }
   }, [])
 
   const isDark = mode === 'dark'
@@ -179,7 +193,43 @@ export default function StoreHeader({ branding: initialBranding, showCart = true
 
       <div style={{ flex: 1 }} />
 
-      <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <RouterLink
+            to="/store/wishlist"
+            title="Mi Wishlist"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 36, height: 36, borderRadius: 6,
+              background: 'transparent',
+              color: css.textMuted, border: `1px solid ${css.border}`,
+              textDecoration: 'none', position: 'relative'
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={wishlistCount > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" style={{ color: wishlistCount > 0 ? '#ef4444' : 'inherit' }}>
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <AnimatePresence>
+              {wishlistCount > 0 && (
+                <motion.div
+                  key="wishlist-badge"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  style={{
+                    position: 'absolute', top: -5, right: -5,
+                    background: '#ef4444', color: '#fff', width: 16, height: 16, borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700,
+                    border: `1.5px solid ${css.bg}`
+                  }}
+                >
+                  {wishlistCount}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </RouterLink>
+        </motion.div>
+
         {showCart && (
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <RouterLink

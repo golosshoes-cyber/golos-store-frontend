@@ -4,13 +4,18 @@ import { motion } from 'framer-motion'
 import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded'
 import LocalMallRoundedIcon from '@mui/icons-material/LocalMallRounded'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeModeContext'
 import { storeService } from '../../services/storeService'
 import type { StoreBranding, StoreProduct, StoreVariant } from '../../types/store'
 import StoreFooter from '../../components/store/StoreFooter'
 import StoreHeader from '../../components/store/StoreHeader'
 import { addItemToStoreCart, getStoreCartItems, getStoreCartItemsCount } from '../../utils/storeCart'
+import { toggleWishlistItem, isInWishlist } from '../../utils/wishlistUtils'
+import QuickViewModal from '../../components/store/QuickViewModal'
+import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded'
+import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded'
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded'
 
 type OrderingValue = 'name' | '-name' | 'brand' | '-brand' | 'newest' | 'oldest'
 
@@ -89,6 +94,7 @@ const formatVariantLabel = (variant: StoreVariant): string => {
 
 export default function StorePage() {
   const { mode } = useThemeMode()
+  const navigate = useNavigate()
 
   const [branding, setBranding] = useState<StoreBranding>(DEFAULT_BRANDING)
   const [products, setProducts] = useState<StoreProduct[]>([])
@@ -113,6 +119,9 @@ export default function StorePage() {
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [toast, setToast] = useState<ToastState>({ open: false, message: '', severity: 'info' })
   const [imageViewer, setImageViewer] = useState<{ open: boolean; url: string; name: string }>({ open: false, url: '', name: '' })
+  
+  const [quickView, setQuickView] = useState<{ open: boolean; product: StoreProduct | null }>({ open: false, product: null })
+  const [wishlistVersion, setWishlistVersion] = useState(0)
 
   const cartFabRef = useRef<HTMLAnchorElement | null>(null)
   const totalPages = useMemo(() => Math.max(1, Math.ceil(totalCount / PAGE_SIZE)), [totalCount])
@@ -210,10 +219,15 @@ export default function StorePage() {
   useEffect(() => { void refreshCartPreview(); void loadBranding(); void loadFeatured() }, [])
   useEffect(() => { void loadProducts() }, [page, ordering])
   useEffect(() => {
+    const onUpdate = () => setWishlistVersion(v => v + 1)
+    window.addEventListener('wishlist-updated', onUpdate)
     const onScroll = () => setShowBackToTop(window.scrollY > 280)
     onScroll()
     window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
+    return () => {
+      window.removeEventListener('wishlist-updated', onUpdate)
+      window.removeEventListener('scroll', onScroll)
+    }
   }, [])
 
   const handleApplyFilters = () => {
@@ -247,6 +261,17 @@ export default function StorePage() {
     showToast(`${product.name} (${variant.size}/${variant.color}) x${quantity} agregado al carrito.`, 'success')
   }
 
+  const handleToggleWishlist = (e: React.MouseEvent, productId: number) => {
+    e.stopPropagation()
+    toggleWishlistItem(productId)
+    setWishlistVersion(v => v + 1)
+  }
+
+  const handleQuickView = (e: React.MouseEvent, product: StoreProduct) => {
+    e.stopPropagation()
+    setQuickView({ open: true, product })
+  }
+
 
 
   // ─── CSS Variables ────────────────────────────────────────────────────────────
@@ -262,7 +287,7 @@ export default function StorePage() {
   }
 
   return (
-    <div style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", background: css.bg, color: css.text, fontSize: 14, lineHeight: 1.5, minHeight: '100vh' }}>
+    <div key={wishlistVersion} style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", background: css.bg, color: css.text, fontSize: 14, lineHeight: 1.5, minHeight: '100vh' }}>
       {/* Google Font */}
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');`}</style>
 
@@ -521,10 +546,10 @@ export default function StorePage() {
                       y: -2,
                       borderColor: css.borderStrong
                     }}
+                    onClick={() => navigate(`/store/product/${product.id}`)}
                   >
                     {/* Image */}
-                    <div style={{ aspectRatio: '1', background: css.bgSubtle, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}
-                      onClick={() => setImageViewer({ open: true, url: imgUrl, name: product.name })}>
+                    <div style={{ aspectRatio: '1', background: css.bgSubtle, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
                       <motion.img
                         src={imgUrl} alt={product.name} loading="lazy"
                         whileHover={{ scale: 1.05 }}
@@ -532,6 +557,38 @@ export default function StorePage() {
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         onError={(e) => { if ((e.target as HTMLImageElement).src !== FALLBACK_IMAGE) (e.target as HTMLImageElement).src = FALLBACK_IMAGE }}
                       />
+                      
+                      <div className="card-actions" style={{
+                        position: 'absolute', top: 10, right: 10, display: 'flex', flexDirection: 'column', gap: 8, zIndex: 2
+                      }}>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => handleToggleWishlist(e, product.id)}
+                          style={{
+                            width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.9)',
+                            border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            color: isInWishlist(product.id) ? '#ef4444' : css.textMuted
+                          }}
+                        >
+                          {isInWishlist(product.id) ? <FavoriteRoundedIcon sx={{ fontSize: 18 }} /> : <FavoriteBorderRoundedIcon sx={{ fontSize: 18 }} />}
+                        </motion.button>
+                        
+                        <motion.button
+                          className="quick-view-btn"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => handleQuickView(e, product)}
+                          style={{
+                            width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.9)',
+                            border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: css.textMuted
+                          }}
+                        >
+                          <VisibilityRoundedIcon sx={{ fontSize: 18 }} />
+                        </motion.button>
+                      </div>
                       {isLowStock && (
                         <motion.div 
                           initial={{ x: -20, opacity: 0 }}
@@ -641,6 +698,12 @@ export default function StorePage() {
       </div>
 
       <StoreFooter branding={branding} />
+
+      <QuickViewModal 
+        open={quickView.open} 
+        product={quickView.product} 
+        onClose={() => setQuickView({ open: false, product: null })} 
+      />
 
       {/* ── FLOATING ELEMENTS (preserved from original) ───────────────────────── */}
       <Zoom in={showBackToTop}>
