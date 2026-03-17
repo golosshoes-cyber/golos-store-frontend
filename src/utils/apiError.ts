@@ -3,6 +3,16 @@ export const extractApiErrorMessage = (error: any, fallback: string): string => 
     const trimmed = String(message || '').trim()
     if (!trimmed) return fallback
 
+    // Detect HTML Server Errors
+    if (trimmed.toLowerCase().includes('<!doctype html') || trimmed.toLowerCase().includes('<html')) {
+      return 'Error interno del servidor (500). Por favor, contacta al administrador.'
+    }
+
+    // Detect technical database constraint messages
+    if (trimmed.includes('referenced through protected foreign keys') || trimmed.includes('Cannot delete some instances of model')) {
+      return 'No se puede eliminar porque tiene elementos asociados (variantes o imágenes). Borra esos elementos primero.'
+    }
+
     // Handle python-list-like strings: "['msg']" or '["msg"]'
     if (
       (trimmed.startsWith("['") && trimmed.endsWith("']")) ||

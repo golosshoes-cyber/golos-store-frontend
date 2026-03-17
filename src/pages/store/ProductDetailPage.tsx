@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Box, Breadcrumbs, Button, Chip,
   Container, Divider, Grid, IconButton, Skeleton, Typography, alpha
@@ -10,6 +10,8 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import VerifiedUserRoundedIcon from '@mui/icons-material/VerifiedUserRounded'
 import LocalShippingRoundedIcon from '@mui/icons-material/LocalShippingRounded'
 import AssignmentReturnRoundedIcon from '@mui/icons-material/AssignmentReturnRounded'
+import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 
 import { useThemeMode } from '../../contexts/ThemeModeContext'
 import { storeService } from '../../services/storeService'
@@ -131,25 +133,97 @@ export default function ProductDetailPage() {
           {/* Left: Gallery */}
           <Grid item xs={12} md={7}>
             <Box sx={{ position: 'sticky', top: 100 }}>
-              <Box sx={{
+              <Box sx={{ 
                 bgcolor: css.bgSubtle, borderRadius: 4, overflow: 'hidden', aspectRatio: '1/1',
+                position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2,
-                border: `1px solid ${css.border}`
+                border: `1px solid ${css.border}`,
+                '&:hover .carousel-nav': { opacity: 1 }
               }}>
-                <motion.img
-                  key={activeImage}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  src={images[activeImage]}
-                  alt={product.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.img
+                    key={activeImage}
+                    src={images[activeImage]}
+                    alt={product.name}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute' }}
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.2}
+                    onDragEnd={(_, info) => {
+                      if (info.offset.x > 100) {
+                        setActiveImage(prev => (prev - 1 + images.length) % images.length)
+                      } else if (info.offset.x < -100) {
+                        setActiveImage(prev => (prev + 1) % images.length)
+                      }
+                    }}
+                  />
+                </AnimatePresence>
+
+                {/* Carousel Nav Arrows */}
+                {images.length > 1 && (
+                  <>
+                    <IconButton
+                      className="carousel-nav"
+                      onClick={() => setActiveImage(prev => (prev - 1 + images.length) % images.length)}
+                      sx={{
+                        position: 'absolute', left: 16, zIndex: 2,
+                        bgcolor: alpha(css.bg, 0.8), color: css.text,
+                        opacity: 0, transition: '0.2s',
+                        backdropFilter: 'blur(8px)',
+                        '&:hover': { bgcolor: css.bg }
+                      }}
+                    >
+                      <ChevronLeftRoundedIcon />
+                    </IconButton>
+                    <IconButton
+                      className="carousel-nav"
+                      onClick={() => setActiveImage(prev => (prev + 1) % images.length)}
+                      sx={{
+                        position: 'absolute', right: 16, zIndex: 2,
+                        bgcolor: alpha(css.bg, 0.8), color: css.text,
+                        opacity: 0, transition: '0.2s',
+                        backdropFilter: 'blur(8px)',
+                        '&:hover': { bgcolor: css.bg }
+                      }}
+                    >
+                      <ChevronRightRoundedIcon />
+                    </IconButton>
+
+                    {/* Indicators */}
+                    <Box sx={{
+                      position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
+                      display: 'flex', gap: 1, zIndex: 2
+                    }}>
+                      {images.map((_, idx) => (
+                        <Box
+                          key={idx}
+                          onClick={() => setActiveImage(idx)}
+                          sx={{
+                            width: activeImage === idx ? 24 : 8,
+                            height: 8,
+                            borderRadius: 4,
+                            bgcolor: activeImage === idx ? css.text : alpha(css.text, 0.3),
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease'
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </>
+                )}
               </Box>
-              <Box sx={{ display: 'flex', gap: 1.5, overflowX: 'auto', pb: 1 }}>
+
+              {/* Thumbnails */}
+              <Box sx={{ display: 'flex', gap: 1.5, overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { height: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: alpha(css.text, 0.1), borderRadius: 2 } }}>
                 {images.map((img, idx) => (
                   <Box
                     key={idx}
                     onClick={() => setActiveImage(idx)}
-                    sx={{
+                    sx={{ 
                       width: 70, height: 70, borderRadius: 2, overflow: 'hidden', cursor: 'pointer',
                       border: `2px solid ${activeImage === idx ? css.accent : 'transparent'}`,
                       bgcolor: css.bgSubtle, flexShrink: 0, opacity: activeImage === idx ? 1 : 0.6,
