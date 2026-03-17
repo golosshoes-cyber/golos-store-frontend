@@ -53,7 +53,7 @@ export default function StoreMaintenanceGuard({ children }: StoreMaintenanceGuar
   const isExcludedPath = ['/store/login', '/store/register', '/store/terms', '/store/privacy'].includes(location.pathname)
 
   if (isMaintenanceActive && !isAdmin && !isExcludedPath) {
-    return <MaintenancePage message={branding?.maintenance_message} />
+    return <MaintenancePage branding={branding || undefined} />
   }
 
   return <>{children}</>

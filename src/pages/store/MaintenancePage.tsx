@@ -1,13 +1,12 @@
 import { motion } from 'framer-motion'
 import { useThemeMode } from '../../contexts/ThemeModeContext'
-import StoreHeader from '../../components/store/StoreHeader'
-import StoreFooter from '../../components/store/StoreFooter'
+import type { StoreBranding } from '../../types/store'
 
 interface MaintenancePageProps {
-  message?: string
+  branding?: StoreBranding
 }
 
-export default function MaintenancePage({ message }: MaintenancePageProps) {
+export default function MaintenancePage({ branding }: MaintenancePageProps) {
   const { mode } = useThemeMode()
   const isDark = mode === 'dark'
 
@@ -26,68 +25,83 @@ export default function MaintenancePage({ message }: MaintenancePageProps) {
   }
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column', 
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
       backgroundColor: css.bg,
       color: css.text,
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      justifyContent: 'center',
+      alignItems: 'center'
     }}>
-      <StoreHeader />
-      
-      <main style={{ 
-        flex: 1, 
-        display: 'flex', 
-        alignItems: 'center', 
+      <main style={{
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
-        padding: '40px 20px'
+        padding: '40px 20px',
+        width: '100%'
       }}>
-        <div style={{ 
-          maxWidth: 600, 
-          textAlign: 'center' 
+        <div style={{
+          maxWidth: 600,
+          textAlign: 'center'
         }}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            <div style={{ 
-              fontSize: 12, 
-              fontWeight: 600, 
-              letterSpacing: '0.2em', 
+            {/* Logo Section */}
+            <div style={{ marginBottom: 48, display: 'flex', justifyContent: 'center' }}>
+              {branding?.logo_url ? (
+                <img
+                  src={branding.logo_url}
+                  alt={branding.store_name}
+                  style={{ maxHeight: 60, width: 'auto', filter: isDark ? 'invert(1) brightness(2)' : 'none' }}
+                />
+              ) : (
+                <div style={{ fontSize: 24, fontWeight: 900, letterSpacing: '-0.03em' }}>
+                  {branding?.store_name || "Golos Store"}
+                </div>
+              )}
+            </div>
+
+            <div style={{
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: '0.2em',
               textTransform: 'uppercase',
               color: css.textMuted,
-              marginBottom: 24
+              marginBottom: 16
             }}>
-              Modo Mantenimiento
+              Mantenimiento
             </div>
-            
-            <h1 style={{ 
-              fontSize: 'clamp(2.5rem, 8vw, 4rem)', 
-              fontWeight: 800, 
+
+            <h1 style={{
+              fontSize: 'clamp(2rem, 6vw, 3.5rem)',
+              fontWeight: 800,
               lineHeight: 1.1,
               marginBottom: 32,
               letterSpacing: '-0.02em'
             }}>
-              Estamos trabajando <br /> 
+              Estamos trabajando <br />
               <span style={{ color: css.textMuted }}>en el sitio.</span>
             </h1>
-            
-            <p style={{ 
-              fontSize: 18, 
-              lineHeight: 1.6, 
+
+            <p style={{
+              fontSize: 17,
+              lineHeight: 1.6,
               color: css.textMuted,
               marginBottom: 48,
               maxWidth: 480,
               marginInline: 'auto'
             }}>
-              {message || "Estamos mejorando nuestra tienda para brindarte una mejor experiencia. Volveremos muy pronto con novedades increibles."}
+              {branding?.maintenance_message || "Estamos mejorando nuestra tienda para brindarte una mejor experiencia. Volveremos muy pronto con novedades increibles."}
             </p>
 
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
               gap: 32,
               paddingTop: 32,
               borderTop: `1px solid ${css.border}`
@@ -99,8 +113,6 @@ export default function MaintenancePage({ message }: MaintenancePageProps) {
           </motion.div>
         </div>
       </main>
-
-      <StoreFooter />
     </div>
   )
 }
