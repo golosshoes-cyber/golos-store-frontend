@@ -104,13 +104,13 @@ export default function ProductDetailPage() {
     return list.length > 0 ? list : [FALLBACK_IMAGE]
   }, [product])
 
-  if (loading) return <Box sx={{ p: 8 }}><Skeleton variant="rectangular" height={600} sx={{ borderRadius: 4 }} /></Box>
-  if (error || !product) return <Box sx={{ p: 8, textAlign: 'center' }}><Typography>{error || 'Producto no encontrado'}</Typography></Box>
-
   const inWishlist = useMemo(() => 
     product ? isInWishlist(product.id) : false, 
     [product?.id, wishlistVersion]
   )
+
+  if (loading) return <Box sx={{ p: 8 }}><Skeleton variant="rectangular" height={600} sx={{ borderRadius: 4 }} /></Box>
+  if (error || !product) return <Box sx={{ p: 8, textAlign: 'center' }}><Typography>{error || 'Producto no encontrado'}</Typography></Box>
 
   return (
     <Box sx={{ bgcolor: css.bg, color: css.text, minHeight: '100vh' }}>
