@@ -28,6 +28,8 @@ const WishlistPage = lazy(() => import('./pages/store/WishlistPage'))
 const ProductDetailPage = lazy(() => import('./pages/store/ProductDetailPage'))
 const StoreLoginPage = lazy(() => import('./pages/store/StoreLoginPage'))
 const StoreRegisterPage = lazy(() => import('./pages/store/StoreRegisterPage'))
+const StoreForgotPasswordPage = lazy(() => import('./pages/store/StoreForgotPasswordPage'))
+const StoreResetPasswordPage = lazy(() => import('./pages/store/StoreResetPasswordPage'))
 const StoreAccountPage = lazy(() => import('./pages/store/StoreAccountPage'))
 const CartPage = lazy(() => import('./pages/store/CartPage'))
 const CheckoutPage = lazy(() => import('./pages/store/CheckoutPage'))
@@ -113,7 +115,7 @@ function App() {
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Navigate to="/store" replace />} />
-          
+
           {/* Store Routes with Maintenance Guard */}
           <Route path="/store/*" element={
             <StoreMaintenanceGuard>
@@ -136,6 +138,14 @@ function App() {
                   element={!isAuthenticated ? <PageTransition><StoreRegisterPage /></PageTransition> : <Navigate to="/store/account" replace />}
                 />
                 <Route
+                  path="forgot-password"
+                  element={!isAuthenticated ? <PageTransition><StoreForgotPasswordPage /></PageTransition> : <Navigate to="/store/account" replace />}
+                />
+                <Route
+                  path="reset-password"
+                  element={!isAuthenticated ? <PageTransition><StoreResetPasswordPage /></PageTransition> : <Navigate to="/store/account" replace />}
+                />
+                <Route
                   path="account"
                   element={isAuthenticated ? <PageTransition><StoreAccountPage /></PageTransition> : <Navigate to="/store/login" replace />}
                 />
@@ -156,29 +166,29 @@ function App() {
             </StoreMaintenanceGuard>
           } />
 
-        <Route
-          path="/login"
-          element={
-            !isAuthenticated ? (
-              <LoginPage />
-            ) : managementAccess ? (
-              <Navigate to="/post-login-choice" replace />
-            ) : (
-              <Navigate to="/store" replace />
-            )
-          }
-        />
+          <Route
+            path="/login"
+            element={
+              !isAuthenticated ? (
+                <LoginPage />
+              ) : managementAccess ? (
+                <Navigate to="/post-login-choice" replace />
+              ) : (
+                <Navigate to="/store" replace />
+              )
+            }
+          />
 
-        <Route
-          path="/post-login-choice"
-          element={
-            isAuthenticated && managementAccess ? (
-              <PostLoginChoicePage />
-            ) : (
-              <Navigate to="/store" replace />
-            )
-          }
-        />
+          <Route
+            path="/post-login-choice"
+            element={
+              isAuthenticated && managementAccess ? (
+                <PostLoginChoicePage />
+              ) : (
+                <Navigate to="/store" replace />
+              )
+            }
+          />
 
           <Route
             path="/*"

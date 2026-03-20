@@ -9,6 +9,7 @@ import InventoryHistoryTab from '../../components/reports/InventoryHistoryTab'
 import SnapshotTab from '../../components/reports/SnapshotTab'
 import DailySummaryTab from '../../components/reports/DailySummaryTab'
 import LowStockTab from '../../components/reports/LowStockTab'
+import FinanceTab from '../../components/reports/FinanceTab'
 import { useReportsLogic } from '../../hooks/reports/useReportsLogic'
 import PageShell from '../../components/common/PageShell'
 import GlobalSectionHeader from '../../components/common/GlobalSectionHeader'
@@ -28,6 +29,8 @@ const ReportsPage: React.FC = () => {
     inventoryHistoryParams,
     dailyStartDate,
     dailyEndDate,
+    financeStartDate,
+    financeEndDate,
     productsDetails,
     variants,
     inventoryHistory,
@@ -35,14 +38,17 @@ const ReportsPage: React.FC = () => {
     snapshotsParams,
     lowStockVariants,
     dailySummary,
+    financialReport,
     isInventoryHistoryLoading,
     isSnapshotsLoading,
     isCreatingSnapshot,
     isDailySummaryLoading,
+    isFinancialReportLoading,
     inventoryHistoryError,
     snapshotsError,
     lowStockError,
     dailySummaryError,
+    financialReportError,
     handleTabChange,
     handleSelectVariant,
     handleSelectAll,
@@ -58,7 +64,10 @@ const ReportsPage: React.FC = () => {
     setMovementTypeFilter,
     setDailyStartDate,
     setDailyEndDate,
+    setFinanceStartDate,
+    setFinanceEndDate,
     refetchDailySummary,
+    refetchFinancialReport,
   } = useReportsLogic()
 
   return (
@@ -112,6 +121,7 @@ const ReportsPage: React.FC = () => {
             <Tab label="Snapshot Mensual" />
             <Tab label="Resumen Diario" />
             <Tab label="Stock Bajo" />
+            <Tab label="Finanzas" />
           </Tabs>
         </Box>
 
@@ -169,6 +179,18 @@ const ReportsPage: React.FC = () => {
               lowStockError={lowStockError ? { message: lowStockError.message } : undefined}
               onSelectVariant={handleSelectVariant}
               onSelectAll={handleSelectAll}
+            />
+          )}
+          {activeTab === 4 && (
+            <FinanceTab
+              startDate={financeStartDate}
+              endDate={financeEndDate}
+              onStartDateChange={setFinanceStartDate}
+              onEndDateChange={setFinanceEndDate}
+              onRefetch={refetchFinancialReport}
+              reportData={financialReport}
+              isLoading={isFinancialReportLoading}
+              error={financialReportError}
             />
           )}
         </Box>

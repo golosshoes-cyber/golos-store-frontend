@@ -19,8 +19,6 @@ import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-d
 import { useAuth } from '../../contexts/AuthContext'
 import { extractApiErrorMessage } from '../../utils/apiError'
 import type { LoginCredentials } from '../../types'
-import StoreHeader from '../../components/store/StoreHeader'
-import StoreFooter from '../../components/store/StoreFooter'
 
 export default function StoreLoginPage() {
   const navigate = useNavigate()
@@ -50,7 +48,6 @@ export default function StoreLoginPage() {
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <StoreHeader showCart={false} />
       <Box
         sx={{
           flex: 1,
@@ -153,8 +150,20 @@ export default function StoreLoginPage() {
                   >
                     Crear cuenta
                   </Button>
-                  <Button component={RouterLink} to="/store" variant="text">
-                    Volver
+                </Stack>
+                
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="space-between" alignItems="center" sx={{ pt: 1 }}>
+                  <Button 
+                    component={RouterLink} 
+                    to="/store/forgot-password" 
+                    variant="text" 
+                    size="small"
+                    sx={{ color: 'text.secondary', fontWeight: 600 }}
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Button>
+                  <Button component={RouterLink} to="/store" variant="text" size="small">
+                    Volver a la tienda
                   </Button>
                 </Stack>
               </Stack>
@@ -163,7 +172,6 @@ export default function StoreLoginPage() {
         </Paper>
       </Container>
       </Box>
-      <StoreFooter />
     </Box>
   )
 }

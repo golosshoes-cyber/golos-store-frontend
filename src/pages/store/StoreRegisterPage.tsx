@@ -19,8 +19,6 @@ import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-d
 import { useAuth } from '../../contexts/AuthContext'
 import { storeService } from '../../services/storeService'
 import { extractApiErrorMessage } from '../../utils/apiError'
-import StoreHeader from '../../components/store/StoreHeader'
-import StoreFooter from '../../components/store/StoreFooter'
 
 export default function StoreRegisterPage() {
   const navigate = useNavigate()
@@ -59,7 +57,6 @@ export default function StoreRegisterPage() {
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <StoreHeader showCart={false} />
       <Box
         sx={{
           flex: 1,
@@ -193,7 +190,6 @@ export default function StoreRegisterPage() {
         </Paper>
       </Container>
       </Box>
-      <StoreFooter />
     </Box>
   )
 }

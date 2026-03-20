@@ -26,6 +26,14 @@ export const useReportsLogic = () => {
   const [dailyStartDate, setDailyStartDate] = useState('')
   const [dailyEndDate, setDailyEndDate] = useState('')
 
+  // Financial Report filters
+  const [financeStartDate, setFinanceStartDate] = useState(() => {
+    const d = new Date()
+    d.setDate(1) // First day of current month
+    return d.toISOString().split('T')[0]
+  })
+  const [financeEndDate, setFinanceEndDate] = useState(new Date().toISOString().split('T')[0])
+
   const {
     variants,
     inventoryHistory,
@@ -59,6 +67,13 @@ export const useReportsLogic = () => {
     enabled: true
   })
 
+  // Financial Report Query
+  const { data: financialReport, isLoading: isFinancialReportLoading, error: financialReportError, refetch: refetchFinancialReport } = useQuery({
+    queryKey: ['financial-report', financeStartDate, financeEndDate],
+    queryFn: () => productService.financialReport({ start_date: financeStartDate, end_date: financeEndDate }),
+    enabled: true
+  })
+
   // Effects
   useEffect(() => {
     if (activeTab === 0) {
@@ -78,6 +93,12 @@ export const useReportsLogic = () => {
     }
   }, [activeTab, lowStockVariants, isLowStockLoading, lowStockError, fetchLowStockVariants])
 
+  useEffect(() => {
+    if (activeTab === 4) {
+      refetchFinancialReport()
+    }
+  }, [activeTab, financeStartDate, financeEndDate, refetchFinancialReport])
+
   // Auto-fetch inventory history when filters change
   useEffect(() => {
     handleFetchInventoryHistory()
@@ -89,7 +110,7 @@ export const useReportsLogic = () => {
     const tabParam = urlParams.get('tab')
     if (tabParam && !isNaN(Number(tabParam))) {
       const tabIndex = parseInt(tabParam, 10)
-      if (tabIndex >= 0 && tabIndex <= 3) {
+      if (tabIndex >= 0 && tabIndex <= 4) {
         setActiveTab(tabIndex)
       }
     }
@@ -226,6 +247,8 @@ export const useReportsLogic = () => {
     inventoryHistoryParams,
     dailyStartDate,
     dailyEndDate,
+    financeStartDate,
+    financeEndDate,
     
     // Data
     productsDetails,
@@ -235,18 +258,21 @@ export const useReportsLogic = () => {
     snapshotsParams,
     lowStockVariants,
     dailySummary,
+    financialReport,
     
     // Loading states
     isInventoryHistoryLoading,
     isSnapshotsLoading,
     isCreatingSnapshot,
     isDailySummaryLoading,
+    isFinancialReportLoading,
     
     // Error states
     inventoryHistoryError,
     snapshotsError,
     lowStockError,
     dailySummaryError,
+    financialReportError,
     
     // Event handlers
     handleTabChange,
@@ -266,6 +292,9 @@ export const useReportsLogic = () => {
     setMovementTypeFilter,
     setDailyStartDate,
     setDailyEndDate,
+    setFinanceStartDate,
+    setFinanceEndDate,
     refetchDailySummary,
+    refetchFinancialReport,
   }
 }

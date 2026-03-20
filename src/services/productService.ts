@@ -171,4 +171,15 @@ export const productService = {
     const response = await api.get(`/api/inventory-snapshots/?${query.toString()}`)
     return response.data
   },
+  
+  financialReport: async (params?: { start_date?: string; end_date?: string }): Promise<any> => {
+    console.log('--- PRODUCT SERVICE VERSION: 2026-03-17-V2 ---')
+    const query = new URLSearchParams()
+    if (params?.start_date) query.append('start_date', params.start_date)
+    if (params?.end_date) query.append('end_date', params.end_date)
+    const url = `/api/financial-report/?${query.toString()}`
+    console.log('Fetching financial report from:', url)
+    const response = await api.get(url)
+    return response.data
+  },
 }

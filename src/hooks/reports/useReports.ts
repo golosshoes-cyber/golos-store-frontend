@@ -115,5 +115,13 @@ export const useReports = ({ showSuccess, showError }: UseReportsProps) => {
     isLowStockLoading: lowStockQuery.isLoading,
     lowStockError: lowStockQuery.error,
     fetchLowStockVariants,
+
+    // Financial Report
+    fetchFinancialReport: (params: { start_date?: string; end_date?: string }) => {
+      return queryClient.fetchQuery({
+        queryKey: ['financial-report', params],
+        queryFn: () => productService.financialReport(params),
+      })
+    },
   }
 }

@@ -32,6 +32,14 @@ export const authService = {
     await api.post('/api/users/me/change-password/', { old_password, new_password })
   },
 
+  requestPasswordReset: async (email: string): Promise<void> => {
+    await api.post('/api/users/request-password-reset/', { email })
+  },
+
+  confirmPasswordReset: async (payload: { uidb64: string; token: string; new_password: string }): Promise<void> => {
+    await api.post('/api/users/confirm-password-reset/', payload)
+  },
+
   logout: () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
