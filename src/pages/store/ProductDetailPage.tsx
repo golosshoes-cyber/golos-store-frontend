@@ -152,7 +152,7 @@ export default function ProductDetailPage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'absolute' }}
                     drag="x"
                     dragConstraints={{ left: 0, right: 0 }}
                     dragElastic={0.2}
@@ -233,7 +233,7 @@ export default function ProductDetailPage() {
                       transition: '0.2s'
                     }}
                   >
-                    <img src={img} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={img} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                   </Box>
                 ))}
               </Box>

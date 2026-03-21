@@ -92,7 +92,7 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
           <img 
             src={product?.image_url || '/placeholder-sneaker.png'} 
             alt={product.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
         </Box>
 
