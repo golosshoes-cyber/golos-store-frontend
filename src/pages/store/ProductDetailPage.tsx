@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -50,7 +50,12 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [activeImage, setActiveImage] = useState(0)
   const [wishlistVersion, setWishlistVersion] = useState(0)
-  const [zoomProps, setZoomProps] = useState({ show: false, x: 0, y: 0 })
+  const [zoomShow, setZoomShow] = useState(false)
+  const zoomImgRef = useRef<HTMLImageElement>(null)
+
+  useEffect(() => {
+    setActiveImage(0)
+  }, [selectedVariantId])
 
   const isDark = mode === 'dark'
   const css = isDark ? {
@@ -100,10 +105,25 @@ export default function ProductDetailPage() {
 
   const images = useMemo(() => {
     if (!product) return []
-    const list = product.images.map(img => img.url).filter(Boolean) as string[]
-    if (product.image_url && !list.includes(product.image_url)) list.unshift(product.image_url)
-    return list.length > 0 ? list : [FALLBACK_IMAGE]
-  }, [product])
+    
+    // Filtramos las imágenes para la variante seleccionada o las que no tienen variante asignada (base)
+    const variantImages = product.images
+      .filter(img => img.variant_id === selectedVariantId || img.variant_id === null)
+      .map(img => img.url)
+      .filter(Boolean) as string[]
+    
+    if (product.image_url && !variantImages.includes(product.image_url)) {
+      variantImages.unshift(product.image_url)
+    }
+    
+    // Si la variante no tuviera ninguna imagen, mostramos todas como fallback preventivo
+    if (variantImages.length === 0) {
+      const allList = product.images.map(img => img.url).filter(Boolean) as string[]
+      if (allList.length > 0) return allList
+    }
+
+    return variantImages.length > 0 ? variantImages : [FALLBACK_IMAGE]
+  }, [product, selectedVariantId])
 
   const inWishlist = useMemo(() => 
     product ? isInWishlist(product.id) : false, 
@@ -111,10 +131,11 @@ export default function ProductDetailPage() {
   )
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!zoomImgRef.current) return
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect()
     const x = ((e.clientX - left) / width) * 100
     const y = ((e.clientY - top) / height) * 100
-    setZoomProps({ show: true, x, y })
+    zoomImgRef.current.style.transformOrigin = `${x}% ${y}%`
   }
 
   if (loading) return <Box sx={{ p: 8 }}><Skeleton variant="rectangular" height={600} sx={{ borderRadius: 4 }} /></Box>
@@ -146,14 +167,14 @@ export default function ProductDetailPage() {
             <Box sx={{ position: 'sticky', top: 100 }}>
               <Box 
                 onMouseMove={handleMouseMove}
-                onMouseEnter={() => setZoomProps(p => ({ ...p, show: true }))}
-                onMouseLeave={() => setZoomProps(p => ({ ...p, show: false }))}
+                onMouseEnter={() => setZoomShow(true)}
+                onMouseLeave={() => setZoomShow(false)}
                 sx={{ 
                 bgcolor: css.bgSubtle, borderRadius: 4, overflow: 'hidden', aspectRatio: '1/1',
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2,
                 border: `1px solid ${css.border}`,
-                cursor: zoomProps.show ? 'crosshair' : 'default',
+                cursor: zoomShow ? 'crosshair' : 'default',
                 '&:hover .carousel-nav': { opacity: 1 }
               }}>
                 <AnimatePresence mode="popLayout" initial={false}>
@@ -183,20 +204,20 @@ export default function ProductDetailPage() {
                 <Box sx={{
                   position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10,
                   pointerEvents: 'none',
-                  opacity: zoomProps.show ? 1 : 0,
+                  opacity: zoomShow ? 1 : 0,
                   transition: 'opacity 0.2s',
                   bgcolor: css.bgSubtle,
                   overflow: 'hidden'
                 }}>
                   {images.length > 0 && (
                     <img 
+                      ref={zoomImgRef}
                       src={images[activeImage]} 
                       alt="zoom"
                       style={{
                         width: '100%', height: '100%', objectFit: 'contain',
                         transform: 'scale(2.5)',
-                        transformOrigin: `${zoomProps.x}% ${zoomProps.y}%`,
-                        transition: 'transform-origin 0.1s ease-out'
+                        transition: 'transform-origin 0.05s ease-out'
                       }}
                     />
                   )}
