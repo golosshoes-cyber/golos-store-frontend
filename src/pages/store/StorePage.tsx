@@ -12,10 +12,8 @@ import StoreFooter from '../../components/store/StoreFooter'
 import StoreHeader from '../../components/store/StoreHeader'
 import { addItemToStoreCart, getStoreCartItems, getStoreCartItemsCount } from '../../utils/storeCart'
 import { toggleWishlistItem, isInWishlist } from '../../utils/wishlistUtils'
-import QuickViewModal from '../../components/store/QuickViewModal'
 import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded'
 import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded'
-import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded'
 
 type OrderingValue = 'name' | '-name' | 'brand' | '-brand' | 'newest' | 'oldest'
 
@@ -119,8 +117,6 @@ export default function StorePage() {
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [toast, setToast] = useState<ToastState>({ open: false, message: '', severity: 'info' })
   const [imageViewer, setImageViewer] = useState<{ open: boolean; url: string; name: string }>({ open: false, url: '', name: '' })
-  
-  const [quickView, setQuickView] = useState<{ open: boolean; product: StoreProduct | null }>({ open: false, product: null })
   const [wishlistVersion, setWishlistVersion] = useState(0)
 
   const cartFabRef = useRef<HTMLAnchorElement | null>(null)
@@ -266,13 +262,6 @@ export default function StorePage() {
     toggleWishlistItem(productId)
     setWishlistVersion(v => v + 1)
   }
-
-  const handleQuickView = (e: React.MouseEvent, product: StoreProduct) => {
-    e.stopPropagation()
-    setQuickView({ open: true, product })
-  }
-
-
 
   // ─── CSS Variables ────────────────────────────────────────────────────────────
   const isDark = mode === 'dark'
@@ -574,20 +563,6 @@ export default function StorePage() {
                         >
                           {isInWishlist(product.id) ? <FavoriteRoundedIcon sx={{ fontSize: 18 }} /> : <FavoriteBorderRoundedIcon sx={{ fontSize: 18 }} />}
                         </motion.button>
-                        
-                        <motion.button
-                          className="quick-view-btn"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={(e) => handleQuickView(e, product)}
-                          style={{
-                            width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.9)',
-                            border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: css.textMuted
-                          }}
-                        >
-                          <VisibilityRoundedIcon sx={{ fontSize: 18 }} />
-                        </motion.button>
                       </div>
                       {isLowStock && (
                         <motion.div 
@@ -698,12 +673,6 @@ export default function StorePage() {
       </div>
 
       <StoreFooter branding={branding} />
-
-      <QuickViewModal 
-        open={quickView.open} 
-        product={quickView.product} 
-        onClose={() => setQuickView({ open: false, product: null })} 
-      />
 
       {/* ── FLOATING ELEMENTS (preserved from original) ───────────────────────── */}
       <Zoom in={showBackToTop}>

@@ -50,6 +50,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [activeImage, setActiveImage] = useState(0)
   const [wishlistVersion, setWishlistVersion] = useState(0)
+  const [zoomProps, setZoomProps] = useState({ show: false, x: 0, y: 0 })
 
   const isDark = mode === 'dark'
   const css = isDark ? {
@@ -109,6 +110,13 @@ export default function ProductDetailPage() {
     [product?.id, wishlistVersion]
   )
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect()
+    const x = ((e.clientX - left) / width) * 100
+    const y = ((e.clientY - top) / height) * 100
+    setZoomProps({ show: true, x, y })
+  }
+
   if (loading) return <Box sx={{ p: 8 }}><Skeleton variant="rectangular" height={600} sx={{ borderRadius: 4 }} /></Box>
   if (error || !product) return <Box sx={{ p: 8, textAlign: 'center' }}><Typography>{error || 'Producto no encontrado'}</Typography></Box>
 
@@ -136,11 +144,16 @@ export default function ProductDetailPage() {
           {/* Left: Gallery */}
           <Grid item xs={12} md={7}>
             <Box sx={{ position: 'sticky', top: 100 }}>
-              <Box sx={{ 
+              <Box 
+                onMouseMove={handleMouseMove}
+                onMouseEnter={() => setZoomProps(p => ({ ...p, show: true }))}
+                onMouseLeave={() => setZoomProps(p => ({ ...p, show: false }))}
+                sx={{ 
                 bgcolor: css.bgSubtle, borderRadius: 4, overflow: 'hidden', aspectRatio: '1/1',
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2,
                 border: `1px solid ${css.border}`,
+                cursor: zoomProps.show ? 'crosshair' : 'default',
                 '&:hover .carousel-nav': { opacity: 1 }
               }}>
                 <AnimatePresence mode="popLayout" initial={false}>
@@ -165,6 +178,29 @@ export default function ProductDetailPage() {
                     }}
                   />
                 </AnimatePresence>
+
+                {/* Overposición de Zoom */}
+                <Box sx={{
+                  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10,
+                  pointerEvents: 'none',
+                  opacity: zoomProps.show ? 1 : 0,
+                  transition: 'opacity 0.2s',
+                  bgcolor: css.bgSubtle,
+                  overflow: 'hidden'
+                }}>
+                  {images.length > 0 && (
+                    <img 
+                      src={images[activeImage]} 
+                      alt="zoom"
+                      style={{
+                        width: '100%', height: '100%', objectFit: 'contain',
+                        transform: 'scale(2.5)',
+                        transformOrigin: `${zoomProps.x}% ${zoomProps.y}%`,
+                        transition: 'transform-origin 0.1s ease-out'
+                      }}
+                    />
+                  )}
+                </Box>
 
                 {/* Carousel Nav Arrows */}
                 {images.length > 1 && (
