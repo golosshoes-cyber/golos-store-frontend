@@ -106,23 +106,32 @@ export default function ProductDetailPage() {
   const images = useMemo(() => {
     if (!product) return []
     
-    // Filtramos las imágenes para la variante seleccionada o las que no tienen variante asignada (base)
+    // 1. Fotos estrictamente asignadas a esta variante
     const variantImages = product.images
-      .filter(img => img.variant_id === selectedVariantId || img.variant_id === null)
+      .filter(img => img.variant_id === selectedVariantId)
       .map(img => img.url)
       .filter(Boolean) as string[]
     
-    if (product.image_url && !variantImages.includes(product.image_url)) {
-      variantImages.unshift(product.image_url)
-    }
+    if (variantImages.length > 0) return variantImages
+
+    // 2. Si la variante NO tiene fotos, usamos las fotos "base" (sin variante)
+    const baseImages = product.images
+      .filter(img => img.variant_id === null)
+      .map(img => img.url)
+      .filter(Boolean) as string[]
     
-    // Si la variante no tuviera ninguna imagen, mostramos todas como fallback preventivo
-    if (variantImages.length === 0) {
-      const allList = product.images.map(img => img.url).filter(Boolean) as string[]
-      if (allList.length > 0) return allList
+    // Agregar la imagen principal del producto a las base si no está
+    if (product.image_url && !baseImages.includes(product.image_url)) {
+      baseImages.unshift(product.image_url)
     }
 
-    return variantImages.length > 0 ? variantImages : [FALLBACK_IMAGE]
+    if (baseImages.length > 0) return baseImages
+
+    // 3. Fallback a mostrar absolutamente todas las fotos si no hay de otra
+    const allImages = product.images.map(img => img.url).filter(Boolean) as string[]
+    if (allImages.length > 0) return allImages
+
+    return [FALLBACK_IMAGE]
   }, [product, selectedVariantId])
 
   const inWishlist = useMemo(() => 
@@ -278,22 +287,24 @@ export default function ProductDetailPage() {
               </Box>
 
               {/* Thumbnails */}
-              <Box sx={{ display: 'flex', gap: 1.5, overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { height: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: alpha(css.text, 0.1), borderRadius: 2 } }}>
-                {images.map((img, idx) => (
-                  <Box
-                    key={idx}
-                    onClick={() => setActiveImage(idx)}
-                    sx={{ 
-                      width: 70, height: 70, borderRadius: 2, overflow: 'hidden', cursor: 'pointer',
-                      border: `2px solid ${activeImage === idx ? css.accent : 'transparent'}`,
-                      bgcolor: css.bgSubtle, flexShrink: 0, opacity: activeImage === idx ? 1 : 0.6,
-                      transition: '0.2s'
-                    }}
-                  >
-                    <img src={img} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                  </Box>
-                ))}
-              </Box>
+              {images.length > 1 && (
+                <Box sx={{ display: 'flex', gap: 1.5, overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { height: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: alpha(css.text, 0.1), borderRadius: 2 } }}>
+                  {images.map((img, idx) => (
+                    <Box
+                      key={idx}
+                      onClick={() => setActiveImage(idx)}
+                      sx={{ 
+                        width: 70, height: 70, borderRadius: 2, overflow: 'hidden', cursor: 'pointer',
+                        border: `2px solid ${activeImage === idx ? css.accent : 'transparent'}`,
+                        bgcolor: css.bgSubtle, flexShrink: 0, opacity: activeImage === idx ? 1 : 0.6,
+                        transition: '0.2s'
+                      }}
+                    >
+                      <img src={img} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </Box>
           </Grid>
 
