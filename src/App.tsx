@@ -9,6 +9,7 @@ import MainLayout from './layouts/MainLayout'
 import ProtectedRoute from './components/admin/ProtectedRoute'
 import PageTransition from './components/common/PageTransition'
 import StoreMaintenanceGuard from './components/store/StoreMaintenanceGuard'
+import { useStockWebsocket } from './hooks/useStockWebsocket'
 
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
 const PostLoginChoicePage = lazy(() => import('./pages/auth/PostLoginChoicePage'))
@@ -63,6 +64,9 @@ function App() {
   const { isAuthenticated, isLoading, user } = useAuth()
   const managementAccess = canAccessManagement(user)
   const location = useLocation()
+
+  // Conectar WebSockets para actualizaciones de stock en tiempo real
+  useStockWebsocket()
 
   useEffect(() => {
     let mounted = true
