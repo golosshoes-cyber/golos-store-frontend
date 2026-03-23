@@ -383,7 +383,7 @@ export default function ProductDetailPage() {
                     {inWishlist ? 'En tu Wishlist' : 'Guardar en Wishlist'}
                   </Button>
                   <IconButton
-                    component="a" href={`https://wa.me/?text=Hola, me interesa ${product.name}`} target="_blank"
+                    component="a" href={`https://wa.me/573189374198?text=Hola,%20me%20interesa%20${encodeURIComponent(product.name)}`} target="_blank"
                     sx={{ border: `1px solid ${css.border}`, borderRadius: 3, width: 56, color: '#25D366' }}
                   >
                     <WhatsAppIcon />

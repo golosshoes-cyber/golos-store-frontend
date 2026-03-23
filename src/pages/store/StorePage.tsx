@@ -77,7 +77,7 @@ const currencyFormatter = new Intl.NumberFormat('es-CO', {
   currency: 'COP',
   maximumFractionDigits: 0,
 })
-const WHATSAPP_NUMBER = (import.meta.env.VITE_STORE_WHATSAPP_NUMBER || '').toString().trim()
+const WHATSAPP_NUMBER = (import.meta.env.VITE_STORE_WHATSAPP_NUMBER || '573189374198').toString().trim()
 const WHATSAPP_MESSAGE = (import.meta.env.VITE_STORE_WHATSAPP_MESSAGE || 'Hola, quiero ayuda con una compra en Golos Store.').toString().trim()
 
 const getDefaultVariantId = (product: StoreProduct): number | undefined => {

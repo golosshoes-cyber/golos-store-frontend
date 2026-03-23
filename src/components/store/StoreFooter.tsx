@@ -6,7 +6,8 @@ import {
   PhoneOutlined, 
   LocationOnOutlined, 
   Instagram, 
-  Facebook 
+  Facebook,
+  WhatsApp
 } from '@mui/icons-material'
 import { useThemeMode } from '../../contexts/ThemeModeContext'
 import { storeService } from '../../services/storeService'
@@ -123,7 +124,7 @@ export default function StoreFooter({ branding: initialBranding }: StoreFooterPr
             <Stack direction="row" spacing={1} sx={{ mb: 3, ml: -1 }}>
               <IconButton 
                 component="a" 
-                href="https://instagram.com" 
+                href="https://www.instagram.com/golos_shoes?utm_source=qr&igsh=enpqc2plamthamJq" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 aria-label="Instagram" 
@@ -133,7 +134,17 @@ export default function StoreFooter({ branding: initialBranding }: StoreFooterPr
               </IconButton>
               <IconButton 
                 component="a" 
-                href="https://facebook.com" 
+                href="https://wa.me/573189374198" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                aria-label="WhatsApp" 
+                sx={{ color: css.iconColor, '&:hover': { color: '#25D366' } }}
+              >
+                <WhatsApp />
+              </IconButton>
+              <IconButton 
+                component="a" 
+                href="https://www.facebook.com/profile.php?id=61566992335613" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 aria-label="Facebook" 

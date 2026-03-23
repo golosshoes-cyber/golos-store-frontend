@@ -106,9 +106,9 @@ export default function MaintenancePage({ branding }: MaintenancePageProps) {
               paddingTop: 32,
               borderTop: `1px solid ${css.border}`
             }}>
-              <a href="#" style={{ color: css.text, textDecoration: 'none', fontSize: 13, fontWeight: 500 }}>Instagram</a>
-              <a href="#" style={{ color: css.text, textDecoration: 'none', fontSize: 13, fontWeight: 500 }}>WhatsApp</a>
-              <a href="#" style={{ color: css.text, textDecoration: 'none', fontSize: 13, fontWeight: 500 }}>Facebook</a>
+              <a href="https://www.instagram.com/golos_shoes?utm_source=qr&igsh=enpqc2plamthamJq" target="_blank" rel="noopener noreferrer" style={{ color: css.text, textDecoration: 'none', fontSize: 13, fontWeight: 500 }}>Instagram</a>
+              <a href="https://wa.me/573189374198" target="_blank" rel="noopener noreferrer" style={{ color: css.text, textDecoration: 'none', fontSize: 13, fontWeight: 500 }}>WhatsApp</a>
+              <a href="https://www.facebook.com/profile.php?id=61566992335613" target="_blank" rel="noopener noreferrer" style={{ color: css.text, textDecoration: 'none', fontSize: 13, fontWeight: 500 }}>Facebook</a>
             </div>
           </motion.div>
         </div>
