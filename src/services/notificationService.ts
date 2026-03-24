@@ -8,6 +8,16 @@ export const notificationService = {
     return response.data
   },
 
+  getUserAlerts: async () => {
+    const response = await api.get('/api/notifications/user_alerts/')
+    return response.data
+  },
+
+  markAlertAsRead: async (id: number) => {
+    const response = await api.post(`/api/notifications/${id}/mark_read/`)
+    return response.data
+  },
+
   getDailySummary: async () => {
     const response = await api.get('/api/notifications/daily_summary/')
     return response.data

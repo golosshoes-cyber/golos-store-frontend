@@ -30,4 +30,6 @@ export const useStockWebsocket = () => {
       }
     }
   }, [lastJsonMessage, queryClient]);
+
+  return { lastJsonMessage };
 };

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   AppBar,
   Box,
@@ -56,6 +56,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useCommonPermissions } from '../hooks/auth/usePermissions'
 import { useThemeMode } from '../contexts/ThemeModeContext'
+import { useStockWebsocket } from '../hooks/useStockWebsocket'
 
 const drawerWidth = 220
 
@@ -131,6 +132,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [notifAnchorEl, setNotifAnchorEl] = useState<null | HTMLElement>(null)
   const notifOpen = Boolean(notifAnchorEl)
 
+  // Query for user alerts
+  const { data: userAlertsData, refetch: refetchUserAlerts } = useQuery({
+    queryKey: ['header-user-alerts'],
+    queryFn: () => notificationService.getUserAlerts(),
+    refetchInterval: 60000,
+  })
+
+  // Listen to WebSockets for live notifications
+  const { lastJsonMessage } = useStockWebsocket()
+  useEffect(() => {
+    if (lastJsonMessage && (lastJsonMessage as any).type === 'system_alert') {
+      refetchUserAlerts()
+    }
+  }, [lastJsonMessage, refetchUserAlerts])
+
+  const userAlerts = userAlertsData?.alerts || []
+  const unreadCount = userAlertsData?.summary?.unread_count || 0
+
   // Query for alerts
   const { data: alertsData } = useQuery({
     queryKey: ['header-low-stock-alerts'],
@@ -140,7 +159,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const totalCritical = alertsData?.summary?.critical_count || 0
   const totalWarning = alertsData?.summary?.warning_count || 0
-  const totalAlerts = totalCritical + totalWarning
+  const totalAlerts = totalCritical + totalWarning + unreadCount
 
   // Branding details
   const { data: brandingData } = useQuery({
@@ -778,14 +797,54 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             Ver todo
           </Typography>
         </Box>
-        {totalAlerts === 0 ? (
+        {totalAlerts === 0 && userAlerts.length === 0 ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>
             <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>No hay alertas pendientes</Typography>
           </Box>
         ) : (
           <List sx={{ p: 0 }}>
-            {[...(alertsData?.critical || []), ...(alertsData?.warning || [])].slice(0, 5).map((alert: any, idx: number) => (
-              <ListItem key={idx} 
+            {/* System Notifications (Sales, etc) */}
+            {userAlerts.slice(0, 5).map((alert: any) => (
+              <ListItem key={`ua-${alert.id}`} 
+                onClick={async () => {
+                  if (!alert.is_read) {
+                    await notificationService.markAlertAsRead(alert.id);
+                    refetchUserAlerts();
+                  }
+                  if (alert.related_link) navigate(alert.related_link);
+                  setNotifAnchorEl(null);
+                }}
+                sx={{ 
+                  px: 1.5, 
+                  py: 1, 
+                  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                  '&:hover': { bgcolor: alpha(theme.palette.action.hover, 0.5) },
+                  cursor: 'pointer',
+                  opacity: alert.is_read ? 0.6 : 1
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                  <Box sx={{ 
+                    width: 8, height: 8, borderRadius: '50%', mt: 0.5,
+                    bgcolor: alert.is_read ? 'transparent' : 'error.main',
+                    border: alert.is_read ? `1px solid ${theme.palette.divider}` : 'none',
+                    flexShrink: 0
+                  }} />
+                  <Box>
+                    <Typography sx={{ fontSize: '11px', fontWeight: alert.is_read ? 400 : 600, lineHeight: 1.2 }}>
+                      {alert.title}
+                    </Typography>
+                    <Typography sx={{ fontSize: '10px', color: 'text.secondary', mt: 0.2 }}>
+                      {alert.message}
+                    </Typography>
+                  </Box>
+                </Box>
+              </ListItem>
+            ))}
+
+            {/* Low stock alerts fallback */}
+            {[...(alertsData?.critical || []), ...(alertsData?.warning || [])].slice(0, 3).map((alert: any, idx: number) => (
+              <ListItem key={`stock-${idx}`} 
                 onClick={() => {
                   navigate(`/variant/${alert.id}`)
                   setNotifAnchorEl(null)
