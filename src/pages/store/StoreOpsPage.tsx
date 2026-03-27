@@ -210,36 +210,7 @@ export default function StoreOpsPage() {
           {/* Widgets de Estado Rápidos */}
           <Grid container spacing={2}>
             {wompiHealth && (
-              <Grid item xs={12} md={6}>
-                <Box sx={{
-                  p: 2.5,
-                  borderRadius: 2,
-                  border: `1px solid ${theme.palette.divider}`,
-                  bgcolor: 'background.paper',
-                }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Estado Pasarela (Wompi)</Typography>
-                    <Box sx={{
-                      px: 1, py: 0.25, borderRadius: '999px', fontSize: '11px', fontWeight: 700,
-                      bgcolor: wompiHealth.configured ? alpha(theme.palette.success.main, 0.08) : alpha(theme.palette.warning.main, 0.08),
-                      color: wompiHealth.configured ? 'success.main' : 'warning.main',
-                      border: `1px solid ${alpha(wompiHealth.configured ? theme.palette.success.main : theme.palette.warning.main, 0.2)}`
-                    }}>
-                      {wompiHealth.configured ? 'Configurado' : 'Pendiente'}
-                    </Box>
-                  </Box>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    Ambiente: <strong>{wompiHealth.environment}</strong>
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-                    Endpoint: {wompiHealth.api_base_url}
-                  </Typography>
-                </Box>
-              </Grid>
-            )}
-
-            {branding && (
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} sm={6} md={3}>
                 <Box sx={{
                   p: 2.5,
                   borderRadius: 2,
@@ -247,53 +218,86 @@ export default function StoreOpsPage() {
                   bgcolor: 'background.paper',
                   height: '100%',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
+                  flexDirection: 'column'
                 }}>
-                  <Box>
-                    <Typography variant="subtitle2" gutterBottom sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  Carrusel y Promociones (Hero)
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 400 }}>
-                    - Las imágenes habilitadas rotarán en el inicio de la tienda
-                  </Typography>
-                </Typography>
+                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1.5}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>Pasarela<br/>(Wompi)</Typography>
+                    <Box sx={{
+                      px: 1, py: 0.25, borderRadius: '999px', fontSize: '10px', fontWeight: 700,
+                      bgcolor: wompiHealth.configured ? alpha(theme.palette.success.main, 0.08) : alpha(theme.palette.warning.main, 0.08),
+                      color: wompiHealth.configured ? 'success.main' : 'warning.main',
+                      border: `1px solid ${alpha(wompiHealth.configured ? theme.palette.success.main : theme.palette.warning.main, 0.2)}`
+                    }}>
+                      {wompiHealth.configured ? 'Activado' : 'Pendiente'}
+                    </Box>
                   </Box>
-                  <Stack direction="row" spacing={1}>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<VerifiedUserIcon sx={{ fontSize: 16 }} />}
-                      onClick={() => setLegalDialogOpen(true)}
-                      sx={{ borderRadius: 1.5, fontSize: '11px' }}
-                    >
-                      Legal
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<CampaignIcon sx={{ fontSize: 16 }} />}
-                      onClick={() => setPromoDialogOpen(true)}
-                      sx={{ borderRadius: 1.5, fontSize: '11px' }}
-                    >
-                      Promos
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<MaintenanceIcon sx={{ fontSize: 16 }} />}
-                      onClick={() => setMaintenanceDialogOpen(true)}
-                      sx={{ 
-                        borderRadius: 1.5, 
-                        fontSize: '11px',
-                        borderColor: branding?.maintenance_mode ? 'warning.main' : theme.palette.divider,
-                        color: branding?.maintenance_mode ? 'warning.main' : 'inherit',
-                      }}
-                    >
-                      {branding?.maintenance_mode ? 'Mantenimiento (ON)' : 'Mantenimiento'}
-                    </Button>
-                  </Stack>
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      Ambiente: <strong>{wompiHealth.environment}</strong>
+                    </Typography>
+                  </Box>
+                  {/* Si un día se necesita botón para Wompi, iría aquí */}
                 </Box>
               </Grid>
+            )}
+
+            {branding && (
+              <>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Box sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Datos Legales</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1, lineHeight: 1.4 }}>
+                      Configura NIT, razón social e información facturación.
+                    </Typography>
+                    <Button 
+                      size="small" 
+                      variant="outlined" 
+                      onClick={() => setLegalDialogOpen(true)} 
+                      startIcon={<VerifiedUserIcon sx={{ fontSize: 16 }} />}
+                      sx={{ mt: 2, minWidth: '100%', borderRadius: 1.5, fontSize: '12px' }}
+                    >
+                      Editar Legales
+                    </Button>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                  <Box sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Personalización</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1, lineHeight: 1.4 }}>
+                      Logo, tagline y barra de anuncios promocional.
+                    </Typography>
+                    <Button 
+                      size="small" 
+                      variant="outlined" 
+                      onClick={() => setPromoDialogOpen(true)} 
+                      startIcon={<CampaignIcon sx={{ fontSize: 16 }} />}
+                      sx={{ mt: 2, minWidth: '100%', borderRadius: 1.5, fontSize: '12px' }}
+                    >
+                      Configurar Personalización
+                    </Button>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                  <Box sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${branding.maintenance_mode ? theme.palette.warning.main : theme.palette.divider}`, bgcolor: branding.maintenance_mode ? alpha(theme.palette.warning.main, 0.05) : 'background.paper', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: branding.maintenance_mode ? 'warning.main' : 'inherit' }}>Acceso Público</Typography>
+                    <Typography variant="caption" color={branding.maintenance_mode ? 'warning.dark' : 'text.secondary'} sx={{ flexGrow: 1, lineHeight: 1.4 }}>
+                      {branding.maintenance_mode ? 'La tienda está oculta por mantenimiento.' : 'La tienda está visible al público.'}
+                    </Typography>
+                    <Button 
+                      size="small" 
+                      variant={branding.maintenance_mode ? 'contained' : 'outlined'} 
+                      color={branding.maintenance_mode ? 'warning' : 'primary'} 
+                      startIcon={<MaintenanceIcon sx={{ fontSize: 16 }} />} 
+                      onClick={() => setMaintenanceDialogOpen(true)} 
+                      sx={{ mt: 2, minWidth: '100%', borderRadius: 1.5, fontSize: '12px', boxShadow: 'none' }}
+                    >
+                      {branding.maintenance_mode ? 'En Mantenimiento' : 'Configurar'}
+                    </Button>
+                  </Box>
+                </Grid>
+              </>
             )}
           </Grid>
 

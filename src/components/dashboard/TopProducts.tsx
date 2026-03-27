@@ -38,7 +38,7 @@ const TopProducts: React.FC<TopProductsProps> = ({ products, loading }) => {
             Top productos
           </Typography>
           <Typography 
-            onClick={() => navigate('/reports')}
+            onClick={() => navigate('/analytics/reports')}
             sx={{ fontSize: '11px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}
           >
             Ver reportes →

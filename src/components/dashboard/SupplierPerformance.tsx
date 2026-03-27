@@ -37,7 +37,7 @@ const SupplierPerformance: React.FC<SupplierPerformanceProps> = ({ suppliers, lo
             Rendimiento proveedores
           </Typography>
           <Typography 
-            onClick={() => navigate('/suppliers')}
+            onClick={() => navigate('/inventory/suppliers')}
             sx={{ fontSize: '11px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}
           >
             Ver todos →

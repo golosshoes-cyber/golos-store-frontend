@@ -246,7 +246,7 @@ const VariantDetailPage: React.FC = () => {
               <Button
                 variant="outlined"
                 startIcon={<Edit />}
-                onClick={() => navigate('/inventory', { state: { prefillVariant: variant.id } })}
+                onClick={() => navigate('/inventory/stock', { state: { prefillVariant: variant.id } })}
                 sx={{ 
                   borderRadius: 1.5,
                   color: 'text.secondary',

@@ -63,7 +63,7 @@ const LowStockPage: React.FC = () => {
           <Button
             variant="outlined"
             startIcon={<CartIcon />}
-            onClick={() => navigate('/purchases')}
+            onClick={() => navigate('/inventory/purchases')}
             sx={{
               borderColor: 'rgba(255,255,255,0.3)',
               color: 'white',
@@ -114,7 +114,7 @@ const LowStockPage: React.FC = () => {
                       <Button
                         size="small"
                         variant="outlined"
-                        onClick={() => navigate('/purchases?variant=' + product.id + '&cost=' + product.cost)}
+                        onClick={() => navigate('/inventory/purchases?variant=' + product.id + '&cost=' + product.cost)}
                       >
                         Comprar
                       </Button>

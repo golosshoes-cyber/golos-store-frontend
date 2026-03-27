@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import {
   AppBar,
   Box,
@@ -51,6 +51,8 @@ import {
 import { storeService } from '../services/storeService'
 import { notificationService } from '../services/notificationService'
 import { productService } from '../services/productService'
+import ProductViewDialog from '../components/products/ProductViewDialog'
+import type { Product } from '../types'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -65,24 +67,34 @@ const menuSections = [
     label: '',
     items: [
       { text: 'Dashboard', icon: <GridViewIcon />, path: '/dashboard' },
-      { text: 'Productos', icon: <AddBoxIcon />, path: '/products' },
-      { text: 'Ventas', icon: <ShoppingCartIcon />, path: '/sales' },
-      { text: 'Compras', icon: <ComprasIcon />, path: '/purchases' },
-      { text: 'Inventario', icon: <InventarioIcon />, path: '/inventory' },
+    ]
+  },
+  {
+    label: 'Inventario',
+    items: [
+      { text: 'Productos', icon: <AddBoxIcon />, path: '/inventory/products' },
+      { text: 'Stock', icon: <InventarioIcon />, path: '/inventory/stock' },
+      { text: 'Compras', icon: <ComprasIcon />, path: '/inventory/purchases' },
+      { text: 'Proveedores', icon: <ProveedoresIcon />, path: '/inventory/suppliers' },
+    ]
+  },
+  {
+    label: 'Ventas',
+    items: [
+      { text: 'Órdenes', icon: <ShoppingCartIcon />, path: '/sales/orders' },
     ]
   },
   {
     label: 'Análisis',
     items: [
-      { text: 'Reportes', icon: <ReportesIcon />, path: '/reports' },
-      { text: 'Finanzas', icon: <FinanzasIcon />, path: '/admin/finance' },
+      { text: 'Reportes', icon: <ReportesIcon />, path: '/analytics/reports' },
+      { text: 'Finanzas', icon: <FinanzasIcon />, path: '/analytics/finance' },
     ]
   },
   {
-    label: 'Config',
+    label: 'Configuración',
     items: [
-      { text: 'Proveedores', icon: <ProveedoresIcon />, path: '/suppliers' },
-      { text: 'Gestionar tienda', icon: <InventarioIcon />, path: '/store/ops' },
+      { text: 'Ajustes tienda', icon: <InventarioIcon />, path: '/settings/store' },
     ]
   }
 ]
@@ -92,17 +104,14 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const getProductName = (product: any) => {
-    if (!product) return ''
-    if (typeof product === 'string') return product
-    return product.name || ''
-  }
 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const profileButtonRef = useRef<HTMLDivElement>(null)
   const [searchValue, setSearchValue] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
+  const [quickViewOpen, setQuickViewOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const theme = useTheme()
@@ -114,9 +123,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     canCreateProduct,
     canCreatePurchase,
     canViewReports,
+    canViewFinance,
   } = useCommonPermissions()
 
   const canAccessAdmin = canManageUsers || isAdmin
+
+  // Quick View: fetch product and open dialog
+  const handleSearchSelect = useCallback(async (productId: number) => {
+    try {
+      const product = await productService.getProduct(productId)
+      setQuickViewProduct(product)
+      setQuickViewOpen(true)
+    } catch (err) {
+      navigate(`/inventory/products`)
+    }
+  }, [navigate])
 
   // Search logic
   const {
@@ -181,19 +202,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const breadcrumbLabels: Record<string, string> = {
     dashboard: 'Dashboard',
     products: 'Productos',
+    stock: 'Inventario',
     purchases: 'Compras',
     suppliers: 'Proveedores',
-    'store/ops': 'Operaciones',
-    sales: 'Ventas',
     inventory: 'Inventario',
+    sales: 'Ventas',
+    orders: 'Órdenes',
+    analytics: 'Análisis',
     reports: 'Reportes',
-    notifications: 'Notificaciones',
-    profile: 'Perfil',
-    admin: 'Administración',
+    finance: 'Finanzas',
+    settings: 'Configuración',
+    store: 'Tienda',
     users: 'Usuarios',
     groups: 'Grupos',
-    ops: 'Operaciones',
-    finance: 'Finanzas',
+    profile: 'Perfil',
+    notifications: 'Notificaciones',
   }
 
   const pathSegments = location.pathname.split('/').filter(Boolean)
@@ -231,9 +254,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   })
 
   const getVisibleItems = (items: any[]) => items.filter((item) => {
-    if (['reports', 'notifications'].includes(item.path)) return canViewReports
-    if (item.path === 'sales') return canCreateSale
-    if (['products', 'purchases', 'suppliers', 'inventory', 'store/ops'].includes(item.path)) {
+    if (['/analytics/reports', '/notifications'].includes(item.path)) return canViewReports
+    if (item.path === '/analytics/finance') return canViewFinance
+    if (item.path === '/sales/orders') return canCreateSale
+    if (['/inventory/products', '/inventory/purchases', '/inventory/suppliers', '/inventory/stock', '/settings/store'].includes(item.path)) {
       return canCreateProduct || canCreatePurchase
     }
     return true
@@ -279,7 +303,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </Typography>
       </Box>
 
-      <Box sx={{ flex: 1, py: 0.5, overflowY: 'auto' }}>
+      <Box sx={{ flex: 1, minHeight: 0, py: 0.5, overflowY: 'auto' }}>
         {visibleSections.map((section) => (
           <Box key={section.label} sx={{ mb: 0.8 }}>
             {section.label && (
@@ -334,9 +358,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <List sx={{ px: 0, py: 0 }}>
               <ListItem disablePadding sx={{ mb: 0.2 }}>
                 <ListItemButton
-                  selected={location.pathname.includes('/admin/users')}
-                  onClick={() => navigate('/admin/users')}
-                  sx={navItemSx(location.pathname.includes('/admin/users'))}
+                  selected={location.pathname.includes('/settings/users')}
+                  onClick={() => navigate('/settings/users')}
+                  sx={navItemSx(location.pathname.includes('/settings/users'))}
                 >
                   <ListItemIcon>
                     <AdminPanelSettingsIcon sx={{ fontSize: 16 }} />
@@ -346,9 +370,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </ListItem>
               <ListItem disablePadding sx={{ mb: 0.2 }}>
                 <ListItemButton
-                  selected={location.pathname.includes('/admin/groups')}
-                  onClick={() => navigate('/admin/groups')}
-                  sx={navItemSx(location.pathname.includes('/admin/groups'))}
+                  selected={location.pathname.includes('/settings/groups')}
+                  onClick={() => navigate('/settings/groups')}
+                  sx={navItemSx(location.pathname.includes('/settings/groups'))}
                 >
                   <ListItemIcon>
                     <GroupWorkIcon sx={{ fontSize: 16 }} />
@@ -359,6 +383,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </List>
           </Box>
         )}
+
+        {/* Acciones Rápidas Móvil (Solo Visible en XS) */}
+        <Box sx={{ display: { xs: 'block', sm: 'none' }, mt: 2, mb: 2, px: 2 }}>
+          <Typography variant="overline" sx={{ px: 1, display: 'block', mb: 1, fontSize: '10px', color: 'text.disabled', fontWeight: 600 }}>
+            Acciones Rápidas
+          </Typography>
+          <Button 
+             fullWidth size="small" variant="outlined" 
+             onClick={() => { setMobileOpen(false); window.open('https://golosshoes.shop', '_blank'); }} 
+             sx={{ mb: 1, borderRadius: 1.5, fontSize: '12px', justifyContent: 'flex-start', px: 2 }}
+          >
+            Ver Tienda
+          </Button>
+          <Button 
+             fullWidth size="small" variant="contained" 
+             onClick={() => { setMobileOpen(false); navigate('/inventory/products?create=true'); }} 
+             sx={{ mb: 1, borderRadius: 1.5, fontSize: '12px', justifyContent: 'flex-start', px: 2, bgcolor: 'text.primary', color: 'background.default' }}
+          >
+            + Nuevo Producto
+          </Button>
+          <Button 
+             fullWidth size="small" variant="contained" 
+             onClick={() => { setMobileOpen(false); navigate('/sales/orders?create=true'); }} 
+             sx={{ borderRadius: 1.5, fontSize: '12px', justifyContent: 'flex-start', px: 2, bgcolor: 'text.primary', color: 'background.default' }}
+          >
+            + Nueva Venta
+          </Button>
+        </Box>
       </Box>
 
       <Box sx={{ p: 1, borderTop: `1px solid ${theme.palette.divider}`, position: 'relative' }}>
@@ -447,7 +499,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           color: 'text.primary',
           borderBottom: `1px solid ${theme.palette.divider}`,
           boxShadow: 'none',
-          zIndex: (theme) => theme.zIndex.drawer + 1,
+          zIndex: (theme) => ({ xs: theme.zIndex.appBar, sm: theme.zIndex.drawer + 1 }),
         }}
       >
         <Toolbar
@@ -597,13 +649,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               disablePortal
               options={searchResults?.results || []}
               getOptionLabel={(option: any) =>
-                `${option.sku} - ${getProductName(option.product)} ${option.size} ${option.color || ''}`
+                `${option.product_name || ''} ${option.size || ''} ${option.color || ''}`
               }
               loading={searchLoading}
               onInputChange={(_, value) => setSearchValue(value)}
               onChange={(_, value: any) => {
                 if (value) {
-                  navigate(`/variant/${value.id}`)
+                  handleSearchSelect(value.product)
                   setSearchValue('')
                   setSearchOpen(false)
                 }
@@ -611,7 +663,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  placeholder="Buscar..."
+                  placeholder="Buscar producto..."
                   size="small"
                   InputProps={{
                     ...params.InputProps,
@@ -627,28 +679,80 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                       fontSize: '11px',
                       '& fieldset': { borderColor: theme.palette.divider },
                     },
-                    minWidth: { xs: 120, sm: 160 },
+                    minWidth: { xs: 120, sm: 280 },
                   }}
                 />
               )}
               renderOption={(props, option: any) => {
                 const { key, ...other } = props
+                const stockColor = option.stock <= 0 ? 'error.main' : option.stock <= 5 ? 'warning.main' : 'success.main'
                 return (
                   <li key={key} {...other}>
-                    <Box sx={{ py: 0.5 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '11px' }}>
-                        {option.sku}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '10px' }}>
-                        {getProductName(option.product)} {option.size} {option.color || ''}
-                      </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, py: 0.5, width: '100%' }}>
+                      {/* Thumbnail */}
+                      <Box sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 1,
+                        overflow: 'hidden',
+                        flexShrink: 0,
+                        bgcolor: alpha(theme.palette.text.primary, 0.04),
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                        {option.image_url ? (
+                          <img
+                            src={option.image_url}
+                            alt={option.product_name || ''}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <AddBoxIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
+                        )}
+                      </Box>
+
+                      {/* Info */}
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="body2" noWrap sx={{ fontWeight: 600, fontSize: '11px', lineHeight: 1.3 }}>
+                          {option.product_name || 'Producto'}
+                        </Typography>
+                        <Typography variant="caption" noWrap sx={{ color: 'text.secondary', display: 'block', fontSize: '10px', lineHeight: 1.2 }}>
+                          {[option.size, option.color, option.gender].filter(Boolean).join(' · ')}
+                          {option.product_brand ? ` — ${option.product_brand}` : ''}
+                        </Typography>
+                      </Box>
+
+                      {/* Price & Stock */}
+                      <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                        <Typography sx={{ fontSize: '11px', fontWeight: 600, lineHeight: 1.3 }}>
+                          ${Number(option.price || 0).toLocaleString('es-CO')}
+                        </Typography>
+                        <Typography sx={{
+                          fontSize: '9px',
+                          fontWeight: 600,
+                          color: stockColor,
+                          lineHeight: 1.2,
+                        }}>
+                          Stock: {option.stock ?? 0}
+                        </Typography>
+                      </Box>
                     </Box>
                   </li>
                 )
               }}
+              noOptionsText={searchValue.length >= 2 ? 'Sin resultados' : 'Escribe para buscar...'}
               slotProps={{
                 popper: {
                   sx: { zIndex: 1400 },
+                },
+                paper: {
+                  sx: {
+                    borderRadius: 2,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    mt: 0.5,
+                  },
                 },
               }}
             />
@@ -688,6 +792,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               variant="outlined"
               size="small"
               sx={{
+                display: { xs: 'none', sm: 'inline-flex' },
                 fontSize: '11px',
                 height: 30,
                 minWidth: 'auto',
@@ -706,10 +811,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </Button>
 
             <Button
-              onClick={() => navigate('/products?create=true')}
+              onClick={() => navigate('/inventory/products?create=true')}
               variant="contained"
               size="small"
               sx={{
+                display: { xs: 'none', sm: 'inline-flex' },
                 fontSize: '10px',
                 height: 30,
                 minWidth: 'auto',
@@ -728,10 +834,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </Button>
 
             <Button
-              onClick={() => navigate('/sales?create=true')}
+              onClick={() => navigate('/sales/orders?create=true')}
               variant="contained"
               size="small"
               sx={{
+                display: { xs: 'none', sm: 'inline-flex' },
                 fontSize: '10px',
                 height: 30,
                 minWidth: 'auto',
@@ -789,7 +896,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Typography sx={{ fontSize: '13px', fontWeight: 600 }}>Notificaciones</Typography>
           <Typography 
             onClick={() => {
-              navigate('/reports?tab=3')
+              navigate('/analytics/reports?tab=3')
               setNotifAnchorEl(null)
             }}
             sx={{ fontSize: '11px', color: 'primary.main', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
@@ -915,6 +1022,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       }}>
         {children}
       </Box>
+      {/* Product Quick View from Search */}
+      <ProductViewDialog
+        open={quickViewOpen}
+        product={quickViewProduct}
+        onClose={() => { setQuickViewOpen(false); setQuickViewProduct(null); }}
+      />
     </Box>
   )
 }

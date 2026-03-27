@@ -37,7 +37,7 @@ const RecentMovements: React.FC<RecentMovementsProps> = ({ movements, loading })
             Movimientos recientes
           </Typography>
           <Typography 
-            onClick={() => navigate('/inventory')}
+            onClick={() => navigate('/inventory/stock')}
             sx={{ fontSize: '11px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}
           >
             Ver todos →

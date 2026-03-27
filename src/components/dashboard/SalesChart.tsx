@@ -63,7 +63,7 @@ const SalesChart: React.FC<SalesChartProps> = ({ chartData, loading }) => {
             Ventas últimos 30 días
           </Typography>
           <Typography 
-            onClick={() => navigate('/reports')}
+            onClick={() => navigate('/analytics/reports')}
             sx={{ fontSize: '14px', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}
           >
             ↗

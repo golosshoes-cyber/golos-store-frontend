@@ -153,19 +153,7 @@ function App() {
                   path="account"
                   element={isAuthenticated ? <PageTransition><StoreAccountPage /></PageTransition> : <Navigate to="/store/login" replace />}
                 />
-                <Route
-                  path="ops"
-                  element={
-                    <ProtectedRoute
-                      requiredGroups={['Managers']}
-                      fallback={<Navigate to="/dashboard" replace />}
-                    >
-                      <MainLayout>
-                        <StoreOpsPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+
               </Routes>
             </StoreMaintenanceGuard>
           } />
@@ -203,17 +191,31 @@ function App() {
                     <Routes>
                       {/* Sub-routes don't need PageTransition as they are inside MainLayout */}
                       <Route path="dashboard" element={<DashboardPage />} />
-                      <Route path="products" element={<ProductsPage />} />
-                      <Route path="sales" element={<SalesPage />} />
-                      <Route path="inventory" element={<InventoryPage />} />
+                      <Route path="inventory/products" element={<ProductsPage />} />
+                      <Route path="sales/orders" element={<SalesPage />} />
+                      <Route path="inventory/stock" element={<InventoryPage />} />
                       <Route path="profile" element={<ProfilePage />} />
-                      <Route path="purchases" element={<PurchasePage />} />
-                      <Route path="suppliers" element={<SuppliersPage />} />
+                      <Route path="inventory/purchases" element={<PurchasePage />} />
+                      <Route path="inventory/suppliers" element={<SuppliersPage />} />
+                      
+                      {/* Nuevas rutas de configuración */}
                       <Route
-                        path="reports"
+                        path="settings/store"
                         element={
                           <ProtectedRoute
-                            requiredGroups={['Managers']}
+                            requiredPermissions={['inventory.change_sale']}
+                            fallback={<Navigate to="/dashboard" replace />}
+                          >
+                            <StoreOpsPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      
+                      <Route
+                        path="analytics/reports"
+                        element={
+                          <ProtectedRoute
+                            requiredPermissions={['inventory.view_sale', 'auth.view_user']}
                             fallback={<Navigate to="/dashboard" replace />}
                           >
                             <ReportsPage />
@@ -221,10 +223,10 @@ function App() {
                         }
                       />
                       <Route
-                        path="admin/users"
+                        path="settings/users"
                         element={
                           <ProtectedRoute
-                            requiredGroups={['Managers']}
+                            requiredPermissions={['auth.view_user']}
                             fallback={<Navigate to="/dashboard" replace />}
                           >
                             <UsersManagement />
@@ -232,10 +234,10 @@ function App() {
                         }
                       />
                       <Route
-                        path="admin/groups"
+                        path="settings/groups"
                         element={
                           <ProtectedRoute
-                            requiredGroups={['Managers']}
+                            requiredPermissions={['auth.view_group']}
                             fallback={<Navigate to="/dashboard" replace />}
                           >
                             <GroupsManagement />
@@ -243,10 +245,10 @@ function App() {
                         }
                       />
                       <Route
-                        path="admin/finance"
+                        path="analytics/finance"
                         element={
                           <ProtectedRoute
-                            requiredGroups={['Managers']}
+                            requiredPermissions={['inventory.view_financialtransaction']}
                             fallback={<Navigate to="/dashboard" replace />}
                           >
                             <FinancePage />

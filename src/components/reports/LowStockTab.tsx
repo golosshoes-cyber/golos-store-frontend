@@ -197,7 +197,7 @@ const LowStockTab: React.FC<LowStockTabProps> = ({
                             variant="outlined"
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate('/purchases', { state: { openCreateModal: true, initialVariant: item.id } });
+                              navigate('/inventory/purchases', { state: { openCreateModal: true, initialVariant: item.id } });
                             }}
                             sx={{ fontSize: '10px', py: 0.2, minWidth: 'auto', borderRadius: 1.2 }}
                           >
@@ -240,7 +240,7 @@ const LowStockTab: React.FC<LowStockTabProps> = ({
                   size="small" 
                   variant="contained" 
                   color="inherit"
-                  onClick={() => navigate('/purchases', { state: { openCreateModal: true, initialVariants: Array.from(selectedVariants) } })}
+                  onClick={() => navigate('/inventory/purchases', { state: { openCreateModal: true, initialVariants: Array.from(selectedVariants) } })}
                   sx={{ 
                     bgcolor: 'background.paper', 
                     color: 'text.primary', 

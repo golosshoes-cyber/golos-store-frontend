@@ -80,7 +80,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     refreshUser,
     isAuthenticated: !!user,
-    isAdmin: (user?.is_superuser === true) || (user?.is_staff === true) || false,
+    isAdmin: (user?.is_superuser === true) || false,
     isStaff: user?.is_staff || false,
   }
 

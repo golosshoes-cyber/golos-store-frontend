@@ -90,6 +90,9 @@ export interface Product {
 export interface ProductVariant {
   id: number;
   product: number;
+  product_name?: string;
+  product_brand?: string;
+  image_url?: string | null;
   sku: string;
   size: string;
   gender: string;

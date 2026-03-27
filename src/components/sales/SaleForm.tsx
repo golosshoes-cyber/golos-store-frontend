@@ -142,6 +142,11 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onSubmit, onCancel, loading =
     saleItems.forEach((item, index) => {
       if (!item.variantId) {
         errors.push(`Producto ${index + 1}: Debe seleccionar una variante`)
+      } else if (!sale) {
+        const variant = variants.find(v => v.id.toString() === item.variantId)
+        if (variant && item.quantity && parseInt(item.quantity) > variant.stock) {
+          errors.push(`Producto ${index + 1}: La cantidad (${item.quantity}) supera el stock disponible (${variant.stock})`)
+        }
       }
       if (!item.quantity || parseInt(item.quantity) <= 0) {
         errors.push(`Producto ${index + 1}: La cantidad debe ser mayor a 0`)
@@ -257,7 +262,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onSubmit, onCancel, loading =
               </Typography>
               <Autocomplete
                 options={variants}
-                getOptionLabel={(option) => `${getProductName(option.product)} - ${option.size} - ${option.color || 'Sin color'}`}
+                getOptionLabel={(option) => `${getProductName(option.product)} - ${option.size} - ${option.color || 'Sin color'} (Disp: ${option.stock})`}
                 getOptionKey={(option) => option.id}
                 value={variants.find(v => v.id.toString() === item.variantId) || null}
                 onChange={(_, newValue) => {

@@ -13,6 +13,7 @@ import {
   Tooltip,
   alpha,
   useTheme,
+  useMediaQuery,
 } from '@mui/material'
 import {
   Visibility as VisibilityIcon,
@@ -24,6 +25,7 @@ import {
 } from '@mui/icons-material'
 import { Sale } from '../../types'
 import { formatCurrency } from '../../utils/currency'
+import SalesMobileList from './SalesMobileList'
 
 interface SalesTableProps {
   sales: Sale[]
@@ -52,6 +54,7 @@ const SalesTable: React.FC<SalesTableProps> = ({
   onSortChange,
 }) => {
   const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const statusColorMap: Record<string, 'success' | 'primary' | 'warning' | 'error' | 'secondary'> = {
     completed: 'success',
@@ -118,6 +121,21 @@ const SalesTable: React.FC<SalesTableProps> = ({
       <Box display="flex" justifyContent="center" alignItems="center" height="400px">
         <CircularProgress />
       </Box>
+    )
+  }
+
+  if (isMobile) {
+    return (
+      <SalesMobileList
+        sales={sales}
+        loading={loading}
+        onEdit={onEdit}
+        onConfirm={onConfirm}
+        onCancel={onCancel}
+        onViewDetails={onViewDetails}
+        selectedIds={selectedIds}
+        onSelectionChange={onSelectionChange}
+      />
     )
   }
 

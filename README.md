@@ -53,17 +53,21 @@ VITE_STORE_WHATSAPP_MESSAGE=Hola, quiero ayuda con una compra en Golos Store.
 En desarrollo, Vite proxy redirige `/api` a Django (ver `vite.config.ts`).
 En produccion, lo recomendado es servir frontend y backend bajo el mismo dominio (Nginx reverse proxy).
 
-## Funcionalidades tienda online
+## Funcionalidades Destacadas
 
-- catalogo publico con variantes
-- selector de variante y cantidad
-- imagen ampliada al hacer click
-- badge de `Ultimas unidades` basado en `stock_minimum` del backend
-- carrito con miniatura por variante
-- checkout en espanol, stepper y mensajes de confianza
-- estado de pedido y flujo de pago Wompi
-- acceso Terms
-- boton flotante de WhatsApp configurable por env
+### Panel Interno (Dashboard)
+- **Notificaciones en Tiempo Real**: Sistema de alertas persistente ("campanita") conectado vía WebSockets.
+- **Módulo POS**: Diseño refinado de Tickets optimizado para impresoras térmicas.
+- **Gestión Integral**: Inventario, Ventas, Reportes Financieros, Compras y Administración de Usuarios/Grupos.
+
+### Tienda Online
+- **Catálogo Público**: Variantes, selector de cantidad y buscador.
+- **UI Moderna y Limpia**: Tarjetas de producto amigables, eliminación del quick view modal, header compacto con menú de usuario (avatar, mi cuenta).
+- **Detalle de Producto Mejorado**: Zoom interactivo sobre imágenes para una inspección profunda.
+- **Cuentas de Cliente**: Manejo de sesiones y flujo seguro de recuperación de contraseña.
+- **Carrito y Checkout**: Checkout optimizado en español con stepper, integración de guías, y pasarela de pago Wompi.
+- Badge dinámico de `Últimas unidades` (stock mínimo).
+- Botón flotante de ayuda vía WhatsApp configurable.
 
 ## Rutas principales
 

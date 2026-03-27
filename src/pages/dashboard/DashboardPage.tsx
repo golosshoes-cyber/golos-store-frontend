@@ -134,7 +134,7 @@ const DashboardPage: React.FC = () => {
             Hay <strong>{lowStock}</strong> {lowStock === 1 ? 'producto' : 'productos'} con stock bajo que requiere atención.
           </Typography>
           <Typography 
-            onClick={() => navigate('/reports?tab=3')}
+            onClick={() => navigate('/analytics/reports?tab=3')}
             sx={{ 
               fontSize: '12px', 
               fontWeight: 500,

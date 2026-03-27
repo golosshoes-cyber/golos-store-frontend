@@ -11,7 +11,7 @@ interface StoreMaintenanceGuardProps {
 }
 
 export default function StoreMaintenanceGuard({ children }: StoreMaintenanceGuardProps) {
-  const { isAdmin } = useAuth()
+  const { isAdmin, isStaff } = useAuth()
   const location = useLocation()
   
   const [branding, setBranding] = useState<StoreBranding | null>(null)
@@ -52,7 +52,7 @@ export default function StoreMaintenanceGuard({ children }: StoreMaintenanceGuar
   // Evitar bucle infinito si ya estamos en una pagina legal o de login
   const isExcludedPath = ['/store/login', '/store/register', '/store/terms', '/store/privacy'].includes(location.pathname)
 
-  if (isMaintenanceActive && !isAdmin && !isExcludedPath) {
+  if (isMaintenanceActive && !isAdmin && !isStaff && !isExcludedPath) {
     return <MaintenancePage branding={branding || undefined} />
   }
 
