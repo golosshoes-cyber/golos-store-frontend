@@ -3,7 +3,7 @@ import useWebSocket from 'react-use-websocket';
 import { useQueryClient } from '@tanstack/react-query';
 
 // Determinamos la URL de WebSockets con base en la variable de entorno o un valor por defecto
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 const WS_URL = baseURL.replace(/^http/, 'ws') + '/ws/stock/';
 
 export const useStockWebsocket = () => {
