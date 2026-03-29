@@ -953,7 +953,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             {[...(alertsData?.critical || []), ...(alertsData?.warning || [])].slice(0, 3).map((alert: any, idx: number) => (
               <ListItem key={`stock-${idx}`} 
                 onClick={() => {
-                  navigate(`/variant/${alert.id}`)
+                  navigate(`/inventory/stock`)
                   setNotifAnchorEl(null)
                 }}
                 sx={{ 
