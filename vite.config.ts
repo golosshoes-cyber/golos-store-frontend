@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
       '/api': {
         target: mode === 'development'
           ? 'http://localhost:8000'
-          : 'https://api.golosshoes.shop',
+          : 'https://api.golosshoes.com',
         changeOrigin: true,
         secure: mode !== 'development',
       }
