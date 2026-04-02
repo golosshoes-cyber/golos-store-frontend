@@ -3,8 +3,13 @@ import { LoginCredentials, AuthResponse, User } from '../types'
 
 // TODO: Implementar servicios de autenticación
 export const authService = {
-  login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
+  login: async (credentials: LoginCredentials): Promise<any> => {
     const response = await api.post('/api/token/', credentials)
+    return response.data
+  },
+
+  verifyOtp: async (username: string, otp_code: string): Promise<AuthResponse> => {
+    const response = await api.post('/api/token/verify-otp/', { username, otp_code })
     return response.data
   },
 

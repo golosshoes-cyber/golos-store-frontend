@@ -391,7 +391,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Typography>
           <Button 
              fullWidth size="small" variant="outlined" 
-             onClick={() => { setMobileOpen(false); window.open('https://golosshoes.shop', '_blank'); }} 
+             onClick={() => { setMobileOpen(false); window.open(import.meta.env.VITE_SITE_URL || '#', '_blank'); }} 
              sx={{ mb: 1, borderRadius: 1.5, fontSize: '12px', justifyContent: 'flex-start', px: 2 }}
           >
             Ver Tienda
@@ -788,7 +788,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </IconButton>
 
             <Button
-              onClick={() => window.open('https://golosshoes.shop', '_blank')}
+              onClick={() => window.open(import.meta.env.VITE_SITE_URL || '#', '_blank')}
               variant="outlined"
               size="small"
               sx={{

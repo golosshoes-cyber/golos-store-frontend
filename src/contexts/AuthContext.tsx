@@ -5,7 +5,8 @@ import { authService } from '../services/authService'
 interface AuthContextType {
   user: User | null
   isLoading: boolean
-  login: (credentials: LoginCredentials) => Promise<void>
+  login: (credentials: LoginCredentials) => Promise<any>
+  verifyOtp: (username: string, otp_code: string) => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
   isAuthenticated: boolean
@@ -52,13 +53,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credentials: LoginCredentials) => {
     try {
       const response = await authService.login(credentials)
+      
+      // Si se requiere OTP (segundo factor), no establecemos el usuario todavía
+      if (response.otp_required) {
+        return response
+      }
+
+      localStorage.setItem('access_token', response.access)
+      localStorage.setItem('refresh_token', response.refresh)
+      
+      const currentUser = await authService.getCurrentUser()
+      setUser(currentUser)
+      return response
+    } catch (error) {
+      console.error('Login error:', error)
+      throw error
+    }
+  }
+
+  const verifyOtp = async (username: string, otp_code: string) => {
+    try {
+      const response = await authService.verifyOtp(username, otp_code)
+      
       localStorage.setItem('access_token', response.access)
       localStorage.setItem('refresh_token', response.refresh)
       
       const currentUser = await authService.getCurrentUser()
       setUser(currentUser)
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('OTP verification error:', error)
       throw error
     }
   }
@@ -77,6 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     isLoading,
     login,
+    verifyOtp,
     logout,
     refreshUser,
     isAuthenticated: !!user,
