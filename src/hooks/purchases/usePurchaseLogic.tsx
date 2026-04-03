@@ -36,6 +36,7 @@ export const usePurchaseLogic = () => {
     handleVariantChange,
   } = usePurchaseItems()
 
+  const [paymentMethod, setPaymentMethod] = useState<string>('cash')
   const { handleSubmit, isLoading: formLoading } = usePurchaseForm()
 
   // Queries
@@ -124,7 +125,7 @@ export const usePurchaseLogic = () => {
 
   // Mutation Handler
   const onSubmit = async () => {
-    const result = await handleSubmit(purchaseItems)
+    const result = await handleSubmit(purchaseItems, paymentMethod)
     if (result.success) {
       setSuccess('Compra registrada exitosamente')
       setCreateModalOpen(false)
@@ -165,6 +166,8 @@ export const usePurchaseLogic = () => {
     variantOptions,
     purchaseItems,
     suppliers, // For the filters/create
+    paymentMethod,
+    setPaymentMethod,
     products: allProducts, // For the filters
     
     // Loading states

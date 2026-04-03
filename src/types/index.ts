@@ -238,3 +238,91 @@ export interface ApiResponse<T> {
   previous?: string;
   results: T[];
 }
+
+/**
+ * Customer entity interface (for credit/fiado tracking)
+ */
+export interface CustomerEntity {
+  id: number;
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  id_number?: string | null;
+  address?: string | null;
+  credit_limit: number;
+  is_active: boolean;
+  notes?: string | null;
+  total_debt: number;
+  available_credit: number | null;
+  active_receivables_count?: number;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+}
+
+/**
+ * Account Receivable interface
+ */
+export interface AccountReceivable {
+  id: number;
+  sale: number;
+  customer: CustomerEntity;
+  total_amount: number;
+  paid_amount: number;
+  balance: number;
+  status: 'pending' | 'partial' | 'paid' | 'overdue' | 'written_off';
+  due_date?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  payments: ReceivablePayment[];
+  sale_info: {
+    id: number;
+    customer: string;
+    total: number;
+    status: string;
+    created_at: string;
+    document_number?: string | null;
+  };
+}
+
+/**
+ * Receivable Payment (abono) interface
+ */
+export interface ReceivablePayment {
+  id: number;
+  receivable: number;
+  amount: number;
+  payment_method: string;
+  payment_reference?: string | null;
+  notes?: string | null;
+  financial_transaction?: number | null;
+  created_at: string;
+  created_by: string;
+}
+
+/**
+ * Receivable summary interface
+ */
+export interface ReceivableSummary {
+  global: {
+    total_debt: number | null;
+    total_accounts: number;
+    total_original: number | null;
+  };
+  by_status: Array<{
+    status: string;
+    count: number;
+    total: number;
+    balance: number;
+  }>;
+  top_debtors: Array<{
+    id: number;
+    name: string;
+    phone?: string | null;
+    debt: number;
+    accounts_count: number;
+    credit_limit: number;
+  }>;
+}

@@ -23,6 +23,7 @@ const ReportsPage = lazy(() => import('./pages/reports/ReportsPage'))
 const UsersManagement = lazy(() => import('./pages/admin/UsersManagement'))
 const GroupsManagement = lazy(() => import('./pages/admin/GroupsManagement'))
 const FinancePage = lazy(() => import('./pages/admin/FinancePage'))
+const ReceivablesPage = lazy(() => import('./pages/receivables/ReceivablesPage'))
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'))
 const StorePage = lazy(() => import('./pages/store/StorePage'))
 const WishlistPage = lazy(() => import('./pages/store/WishlistPage'))
@@ -193,6 +194,7 @@ function App() {
                       <Route path="dashboard" element={<DashboardPage />} />
                       <Route path="inventory/products" element={<ProductsPage />} />
                       <Route path="sales/orders" element={<SalesPage />} />
+                      <Route path="sales/receivables" element={<ReceivablesPage />} />
                       <Route path="inventory/stock" element={<InventoryPage />} />
                       <Route path="profile" element={<ProfilePage />} />
                       <Route path="inventory/purchases" element={<PurchasePage />} />

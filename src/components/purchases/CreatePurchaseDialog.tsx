@@ -15,6 +15,7 @@ import {
   Autocomplete,
   MenuItem,
   useTheme,
+  alpha,
 } from '@mui/material'
 import type { PurchaseItem, VariantOption } from '../../types/purchases'
 import type { ProductVariant, Supplier, Product } from '../../types'
@@ -37,6 +38,8 @@ interface CreatePurchaseDialogProps {
   onVariantChange: (index: number, variantId: string, variants: ProductVariant[]) => void
   onRemoveItem: (index: number) => void
   onSubmit: () => void
+  paymentMethod: string
+  onPaymentMethodChange: (val: string) => void
 }
 
 const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
@@ -49,6 +52,8 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
   variants,
   isLoading,
   isMobile,
+  paymentMethod,
+  onPaymentMethodChange,
   onClearAll,
   onAddItem,
   onItemChange,
@@ -92,32 +97,53 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
         </>
       }
     >
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-        {purchaseItems.length > 0 && (
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={onClearAll}
+      <Box sx={{ mb: 4, p: 2, bgcolor: alpha(theme.palette.text.primary, 0.02), borderRadius: 2, display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'center' }}>
+        <Box sx={{ minWidth: 200, flex: 1 }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.5, display: 'block', textTransform: 'uppercase', color: 'text.secondary' }}>
+            Origen de los Fondos *
+          </Typography>
+          <TextField
+            select
+            fullWidth
             size="small"
-            sx={{ borderRadius: 1.5, fontSize: '12px' }}
+            value={paymentMethod}
+            onChange={(e) => onPaymentMethodChange(e.target.value)}
+            sx={{ bgcolor: 'background.paper' }}
           >
-            Limpiar Todo
+            <MenuItem value="cash">Efectivo (Caja Abierta)</MenuItem>
+            <MenuItem value="bank_transfer">Transferencia Bancaria</MenuItem>
+            <MenuItem value="credit">Crédito a Proveedor</MenuItem>
+            <MenuItem value="none">Sin registrar pago (Solo Stock)</MenuItem>
+          </TextField>
+        </Box>
+        
+        <Box sx={{ flex: 2, display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+          {purchaseItems.length > 0 && (
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={onClearAll}
+              size="small"
+              sx={{ borderRadius: 1.5, fontSize: '12px' }}
+            >
+              Limpiar Todo
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            onClick={onAddItem}
+            size="small"
+            sx={{ 
+              bgcolor: 'text.primary', 
+              color: 'background.default',
+              borderRadius: 1.5, 
+              fontSize: '12px',
+              '&:hover': { bgcolor: 'text.secondary' }
+            }}
+          >
+            + Agregar Item
           </Button>
-        )}
-        <Button
-          variant="contained"
-          onClick={onAddItem}
-          size="small"
-          sx={{ 
-            bgcolor: 'text.primary', 
-            color: 'background.default',
-            borderRadius: 1.5, 
-            fontSize: '12px',
-            '&:hover': { bgcolor: 'text.secondary' }
-          }}
-        >
-          + Agregar Item
-        </Button>
+        </Box>
       </Box>
 
       <Box 
@@ -136,7 +162,7 @@ const CreatePurchaseDialog: React.FC<CreatePurchaseDialogProps> = ({
             letterSpacing: '1px'
           }}
         >
-          Items de la Compra
+          Detalle de Items
         </Typography>
 
         {purchaseItems.length === 0 ? (

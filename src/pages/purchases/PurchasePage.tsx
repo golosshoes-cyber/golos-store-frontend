@@ -3,6 +3,7 @@ import {
   Alert,
   useMediaQuery,
   useTheme,
+  Box,
 } from '@mui/material'
 import {
   AddShoppingCart,
@@ -15,7 +16,6 @@ import GlobalSectionHeader from '../../components/common/GlobalSectionHeader'
 import GradientButton from '../../components/common/GradientButton'
 import ExportButton from '../../components/common/ExportButton'
 import { exportService } from '../../services/exportService'
-import { Box } from '@mui/material'
 
 const PurchasePage: React.FC = () => {
   const theme = useTheme()
@@ -40,6 +40,8 @@ const PurchasePage: React.FC = () => {
     detailsLoading,
     formLoading,
     purchasesCount,
+    paymentMethod,
+    setPaymentMethod,
     setCreateModalOpen,
     setError,
     setSuccess,
@@ -113,6 +115,8 @@ const PurchasePage: React.FC = () => {
         variants={variants}
         isLoading={formLoading}
         isMobile={isMobile}
+        paymentMethod={paymentMethod}
+        onPaymentMethodChange={setPaymentMethod}
         onClearAll={handleClearAll}
         onAddItem={handleAddItem}
         onItemChange={handleItemChange}

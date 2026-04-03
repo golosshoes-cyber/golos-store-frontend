@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   Box,
   Grid,
@@ -29,12 +29,15 @@ import { formatCurrency } from '../../utils/currency'
 import TransactionDialog from '../../components/finance/TransactionDialog'
 import CashSessionDialog from '../../components/finance/CashSessionDialog'
 import CategoriesDialog from '../../components/finance/CategoriesDialog'
+import { useAuth } from '../../contexts/AuthContext'
+import { posPrinterService } from '../../utils/posPrinter'
 
 const FinancePage: React.FC = () => {
   const theme = useTheme()
   const queryClient = useQueryClient()
+  const { user } = useAuth()
   
-  // Estados de Diálogos
+  // ... existing code ...
   const [transactionDialogOpen, setTransactionDialogOpen] = useState(false)
   const [cashDialogOpen, setCashDialogOpen] = useState(false)
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false)
@@ -43,6 +46,7 @@ const FinancePage: React.FC = () => {
   const [cashMode, setCashMode] = useState<'open' | 'close'>('open')
 
   // Consultar sesión actual
+  // ... existing code ...
   const { data: currentSession } = useQuery({
     queryKey: ['current-cash-session'],
     queryFn: () => financeService.getCurrentSession(),
@@ -50,6 +54,7 @@ const FinancePage: React.FC = () => {
   })
 
   // Consultar transacciones recientes
+  // ... existing code ...
   const { data: recentTransactions, isLoading: loadingTransactions } = useQuery({
     queryKey: ['recent-transactions'],
     queryFn: () => financeService.getTransactions({ limit: 15 }),
@@ -57,6 +62,7 @@ const FinancePage: React.FC = () => {
   })
 
   // Mutaciones
+  // ... existing code ...
   const openSessionMutation = useMutation({
     mutationFn: (data: { initial_balance: number; notes?: string }) => financeService.openSession(data),
     onSuccess: () => {
@@ -80,14 +86,60 @@ const FinancePage: React.FC = () => {
       ...data,
       session: currentSession?.id
     }),
-    onSuccess: () => {
+    onSuccess: (response: any, variables: any) => {
       queryClient.invalidateQueries({ queryKey: ['recent-transactions'] })
       queryClient.invalidateQueries({ queryKey: ['current-cash-session'] })
       setTransactionDialogOpen(false)
+
+      // ✅ INTEGRACIÓN: Abrir cajón si es un gasto en efectivo
+      if (variables.transaction_type === 'expense' && variables.payment_method === 'cash') {
+        posPrinterService.openDrawerForExpense({
+          amount: variables.amount,
+          description: variables.description,
+          userName: user?.username || 'Cajero',
+          category: response?.category_name || 'Gasto General'
+        })
+      }
     },
   })
 
   const isSessionOpen = !!currentSession
+
+  // Calcular el resumen de la sesión actual para el cierre
+  const sessionSummary = useMemo(() => {
+    if (!currentSession || !currentSession.transactions) return null;
+
+    const initial = parseFloat(currentSession.initial_balance) || 0;
+    let totalSales = 0;
+    let totalExpenses = 0;
+    let cashIn = 0;
+    let cashOut = 0;
+    let transfersIn = 0;
+    let transfersOut = 0;
+
+    currentSession.transactions.forEach((tx: any) => {
+      const amount = parseFloat(tx.amount) || 0;
+      if (tx.transaction_type === 'income') {
+        totalSales += amount;
+        if (tx.payment_method === 'cash') cashIn += amount;
+        else transfersIn += amount;
+      } else {
+        totalExpenses += amount;
+        if (tx.payment_method === 'cash') cashOut += amount;
+        else transfersOut += amount;
+      }
+    });
+
+    const cash_expected = initial + cashIn - cashOut;
+    const transfers_expected = transfersIn - transfersOut;
+
+    return {
+      cash_expected,
+      transfers_expected,
+      total_sales: totalSales,
+      total_expenses: totalExpenses
+    };
+  }, [currentSession]);
 
   return (
     <PageShell>
@@ -386,7 +438,8 @@ const FinancePage: React.FC = () => {
         open={cashDialogOpen}
         onClose={() => setCashDialogOpen(false)}
         mode={cashMode}
-        expectedBalance={0} // TODO: Calcular basado en ventas + transacciones
+        expectedBalance={sessionSummary?.cash_expected || 0}
+        summary={sessionSummary || undefined}
         onConfirm={(data) => {
           if (cashMode === 'open') {
             openSessionMutation.mutate(data)

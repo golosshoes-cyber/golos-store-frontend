@@ -6,7 +6,7 @@ interface PurchaseItemData {
   variantId: number
   quantity: number
   unitCost: number
-  supplierId: number
+  supplierId?: number
 }
 
 interface PurchaseItem {
@@ -25,15 +25,18 @@ export const usePurchaseForm = () => {
   const queryClient = useQueryClient()
 
   const createPurchaseMutation = useMutation({
-    mutationFn: productService.createPurchase,
+    mutationFn: ({ items, paymentMethod }: { items: PurchaseItemData[], paymentMethod: string }) => 
+      productService.createPurchase(items, paymentMethod),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['low-stock-products'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
       queryClient.invalidateQueries({ queryKey: ['variants'] })
+      queryClient.invalidateQueries({ queryKey: ['current-cash-session'] })
+      queryClient.invalidateQueries({ queryKey: ['recent-transactions'] })
     },
   })
 
-  const handleSubmit = async (items: PurchaseItem[]): Promise<{ success: boolean; error?: string }> => {
+  const handleSubmit = async (items: PurchaseItem[], paymentMethod: string = 'none'): Promise<{ success: boolean; error?: string }> => {
     try {
       const purchaseItemsData: PurchaseItemData[] = []
       
@@ -59,11 +62,11 @@ export const usePurchaseForm = () => {
           variantId: parseInt(variantId),
           quantity: parseInt(item.quantity),
           unitCost: parseFloat(item.unitCost),
-          supplierId: item.supplierId ? parseInt(item.supplierId) : 1
+          supplierId: item.supplierId ? parseInt(item.supplierId) : undefined
         })
       }
       
-      await createPurchaseMutation.mutateAsync(purchaseItemsData)
+      await createPurchaseMutation.mutateAsync({ items: purchaseItemsData, paymentMethod })
       
       return { success: true }
     } catch (error: any) {

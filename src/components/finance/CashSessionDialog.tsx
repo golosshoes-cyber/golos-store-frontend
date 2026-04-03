@@ -18,6 +18,12 @@ interface CashSessionDialogProps {
   mode: 'open' | 'close'
   loading?: boolean
   expectedBalance?: number
+  summary?: {
+    cash_expected: number
+    transfers_expected: number
+    total_sales: number
+    total_expenses: number
+  }
 }
 
 const CashSessionDialog: React.FC<CashSessionDialogProps> = ({
@@ -26,7 +32,8 @@ const CashSessionDialog: React.FC<CashSessionDialogProps> = ({
   onConfirm,
   mode,
   loading,
-  expectedBalance = 0
+  expectedBalance = 0,
+  summary
 }) => {
   const theme = useTheme()
   const [balance, setBalance] = useState('')
@@ -54,12 +61,39 @@ const CashSessionDialog: React.FC<CashSessionDialogProps> = ({
       <form onSubmit={handleSubmit}>
         <Stack spacing={1.8} sx={{ mt: 0.5 }}>
           {mode === 'close' && (
-            <Box sx={{ p: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.04), border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`, borderRadius: 2, textAlign: 'center' }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' }}>Saldo Esperado</Typography>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                {formatCurrency(expectedBalance)}
-              </Typography>
-            </Box>
+            <Stack spacing={1.5}>
+              {summary ? (
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                  <Box sx={{ p: 1.2, bgcolor: alpha(theme.palette.success.main, 0.05), border: `1px solid ${alpha(theme.palette.success.main, 0.15)}`, borderRadius: 2, textAlign: 'center' }}>
+                    <Typography variant="caption" color="success.main" sx={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', display: 'block', mb: 0.2 }}>Dinero en Efectivo</Typography>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'success.dark', lineHeight: 1.2 }}>
+                      {formatCurrency(summary.cash_expected)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ p: 1.2, bgcolor: alpha(theme.palette.info.main, 0.05), border: `1px solid ${alpha(theme.palette.info.main, 0.15)}`, borderRadius: 2, textAlign: 'center' }}>
+                    <Typography variant="caption" color="info.main" sx={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', display: 'block', mb: 0.2 }}>Transferencias</Typography>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'info.dark', lineHeight: 1.2 }}>
+                      {formatCurrency(summary.transfers_expected)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ gridColumn: '1 / span 2', p: 1, bgcolor: alpha(theme.palette.text.primary, 0.03), borderRadius: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>Ventas Totales (+)</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>{formatCurrency(summary.total_sales)}</Typography>
+                  </Box>
+                  <Box sx={{ gridColumn: '1 / span 2', p: 1, bgcolor: alpha(theme.palette.text.primary, 0.03), borderRadius: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, mt: -0.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>Egresos Totales (-)</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'error.main' }}>{formatCurrency(summary.total_expenses)}</Typography>
+                  </Box>
+                </Box>
+              ) : (
+                <Box sx={{ p: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.04), border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`, borderRadius: 2, textAlign: 'center' }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' }}>Saldo Esperado</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    {formatCurrency(expectedBalance)}
+                  </Typography>
+                </Box>
+              )}
+            </Stack>
           )}
           
           <TextField

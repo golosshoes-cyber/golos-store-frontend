@@ -43,6 +43,7 @@ import {
   Search as SearchIcon,
   NavigateNext as NavigateNextIcon,
   Payments as FinanzasIcon,
+  AccountBalanceWallet as CxCIcon,
 } from '@mui/icons-material'
 import {
   TextField,
@@ -82,6 +83,7 @@ const menuSections = [
     label: 'Ventas',
     items: [
       { text: 'Órdenes', icon: <ShoppingCartIcon />, path: '/sales/orders' },
+      { text: 'Cuentas x Cobrar', icon: <CxCIcon />, path: '/sales/receivables' },
     ]
   },
   {
@@ -217,6 +219,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     groups: 'Grupos',
     profile: 'Perfil',
     notifications: 'Notificaciones',
+    receivables: 'Cuentas por Cobrar',
   }
 
   const pathSegments = location.pathname.split('/').filter(Boolean)
@@ -256,7 +259,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const getVisibleItems = (items: any[]) => items.filter((item) => {
     if (['/analytics/reports', '/notifications'].includes(item.path)) return canViewReports
     if (item.path === '/analytics/finance') return canViewFinance
-    if (item.path === '/sales/orders') return canCreateSale
+    if (item.path === '/sales/orders' || item.path === '/sales/receivables') return canCreateSale
     if (['/inventory/products', '/inventory/purchases', '/inventory/suppliers', '/inventory/stock', '/settings/store'].includes(item.path)) {
       return canCreateProduct || canCreatePurchase
     }

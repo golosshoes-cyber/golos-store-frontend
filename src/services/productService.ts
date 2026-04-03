@@ -67,7 +67,7 @@ export const productService = {
     return response.data
   },
 
-  createPurchase: async (items: {variantId: number, quantity: number, unitCost: number, supplierId?: number}[]) => {
+  createPurchase: async (items: {variantId: number, quantity: number, unitCost: number, supplierId?: number}[], paymentMethod: string = 'none') => {
     // Group items by supplierId
     const itemsBySupplier: Record<number, any[]> = {}
     
@@ -88,7 +88,8 @@ export const productService = {
       const supplierId = parseInt(supplierIdStr)
       lastResponse = await api.post('/api/purchases/bulk_purchase/', { 
         supplier: supplierId, 
-        items: supplierItems 
+        items: supplierItems,
+        payment_method: paymentMethod
       })
     }
     
