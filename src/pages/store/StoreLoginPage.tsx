@@ -24,9 +24,11 @@ export default function StoreLoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const theme = useTheme()
-  const { login } = useAuth()
-
+  const { login, verifyOtp } = useAuth()
   const [credentials, setCredentials] = useState<LoginCredentials>({ username: '', password: '' })
+  const [otpCode, setOtpCode] = useState('')
+  const [isOtpRequired, setIsOtpRequired] = useState(false)
+  const [otpMessage, setOtpMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -36,14 +38,31 @@ export default function StoreLoginPage() {
     setErrorMessage(null)
 
     try {
-      await login(credentials)
+      if (!isOtpRequired) {
+        const response = await login(credentials)
+        if (response?.otp_required) {
+          setIsOtpRequired(true)
+          setOtpMessage(response.message || 'Se ha enviado un código a tu correo.')
+          return
+        }
+      } else {
+        await verifyOtp(credentials.username, otpCode)
+      }
+
       const nextPath = searchParams.get('next') || '/store/account'
       navigate(nextPath.startsWith('/') ? nextPath : '/store/account', { replace: true })
     } catch (error) {
-      setErrorMessage(extractApiErrorMessage(error, 'No se pudo iniciar sesion.'))
+      setErrorMessage(extractApiErrorMessage(error, 'No se pudo iniciar sesión.'))
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleBack = () => {
+    setIsOtpRequired(false)
+    setOtpCode('')
+    setErrorMessage(null)
+    setOtpMessage(null)
   }
 
   return (
@@ -110,62 +129,113 @@ export default function StoreLoginPage() {
               <Chip size="small" icon={<LocalMallRoundedIcon />} label="Seguimiento de pedidos" />
             </Stack>
 
-            {errorMessage && <Alert severity="error" onClose={() => setErrorMessage(null)}>{errorMessage}</Alert>}
+            {isOtpRequired && otpMessage && (
+              <Alert severity="info" sx={{ mb: 1.5 }}>
+                {otpMessage}
+              </Alert>
+            )}
+
+            {errorMessage && (
+              <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 1.5 }}>
+                {errorMessage}
+              </Alert>
+            )}
 
             <Box component="form" onSubmit={handleSubmit}>
               <Stack spacing={1.5}>
-                <TextField
-                  required
-                  label="Usuario"
-                  value={credentials.username}
-                  onChange={(event) => setCredentials((prev) => ({ ...prev, username: event.target.value }))}
-                />
-                <TextField
-                  required
-                  type="password"
-                  label="Contrasena"
-                  value={credentials.password}
-                  onChange={(event) => setCredentials((prev) => ({ ...prev, password: event.target.value }))}
-                />
+                {!isOtpRequired ? (
+                  <>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Usuario"
+                      value={credentials.username}
+                      onChange={(event) => setCredentials((prev) => ({ ...prev, username: event.target.value }))}
+                      disabled={loading}
+                    />
+                    <TextField
+                      required
+                      fullWidth
+                      type="password"
+                      label="Contraseña"
+                      value={credentials.password}
+                      onChange={(event) => setCredentials((prev) => ({ ...prev, password: event.target.value }))}
+                      disabled={loading}
+                    />
+                  </>
+                ) : (
+                  <TextField
+                    required
+                    fullWidth
+                    label="Código de 6 dígitos"
+                    placeholder="000000"
+                    autoFocus
+                    value={otpCode}
+                    onChange={(event) => setOtpCode(event.target.value)}
+                    disabled={loading}
+                    inputProps={{
+                      maxLength: 6,
+                      style: { textAlign: 'center', fontSize: '24px', letterSpacing: '4px' },
+                    }}
+                  />
+                )}
 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                   <Button
                     type="submit"
                     variant="contained"
-                    startIcon={<LoginRoundedIcon />}
+                    startIcon={!loading && <LoginRoundedIcon />}
                     disabled={loading}
                     sx={{
-                      minWidth: 150,
+                      flex: 1,
                       fontWeight: 800,
                       backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                     }}
                   >
-                    {loading ? 'Ingresando...' : 'Ingresar'}
+                    {loading
+                      ? (isOtpRequired ? 'Verificando...' : 'Ingresando...')
+                      : (isOtpRequired ? 'Verificar Código' : 'Ingresar')}
                   </Button>
-                  <Button
-                    component={RouterLink}
-                    to={`/store/register${searchParams.get('next') ? `?next=${encodeURIComponent(searchParams.get('next') || '')}` : ''}`}
-                    variant="outlined"
-                    sx={{ fontWeight: 700 }}
-                  >
-                    Crear cuenta
-                  </Button>
+                  
+                  {isOtpRequired && (
+                    <Button
+                      variant="outlined"
+                      onClick={handleBack}
+                      disabled={loading}
+                      sx={{ fontWeight: 700 }}
+                    >
+                      Volver
+                    </Button>
+                  )}
+
+                  {!isOtpRequired && (
+                    <Button
+                      component={RouterLink}
+                      to={`/store/register${searchParams.get('next') ? `?next=${encodeURIComponent(searchParams.get('next') || '')}` : ''}`}
+                      variant="outlined"
+                      sx={{ fontWeight: 700 }}
+                    >
+                      Crear cuenta
+                    </Button>
+                  )}
                 </Stack>
                 
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="space-between" alignItems="center" sx={{ pt: 1 }}>
-                  <Button 
-                    component={RouterLink} 
-                    to="/store/forgot-password" 
-                    variant="text" 
-                    size="small"
-                    sx={{ color: 'text.secondary', fontWeight: 600 }}
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </Button>
-                  <Button component={RouterLink} to="/store" variant="text" size="small">
-                    Volver a la tienda
-                  </Button>
-                </Stack>
+                {!isOtpRequired && (
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="space-between" alignItems="center" sx={{ pt: 1 }}>
+                    <Button 
+                      component={RouterLink} 
+                      to="/store/forgot-password" 
+                      variant="text" 
+                      size="small"
+                      sx={{ color: 'text.secondary', fontWeight: 600 }}
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </Button>
+                    <Button component={RouterLink} to="/store" variant="text" size="small">
+                      Volver a la tienda
+                    </Button>
+                  </Stack>
+                )}
               </Stack>
             </Box>
           </Stack>
