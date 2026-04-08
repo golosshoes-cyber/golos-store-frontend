@@ -324,7 +324,7 @@ export default function ProductDetailPage() {
                   {selectedVariant ? currencyFormatter.format(Number(selectedVariant.price)) : '---'}
                 </Typography>
                 {selectedVariant && selectedVariant.stock <= 5 && selectedVariant.stock > 0 && (
-                  <Chip label={`¡Solo ${selectedVariant.stock} left!`} size="small" color="error" sx={{ fontWeight: 800, fontSize: 10, height: 20 }} />
+                  <Chip label={`¡Solo queda${selectedVariant.stock === 1 ? '' : 'n'} ${selectedVariant.stock}!`} size="small" color="error" sx={{ fontWeight: 800, fontSize: 10, height: 20 }} />
                 )}
               </Box>
 

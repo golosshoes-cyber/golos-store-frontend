@@ -63,10 +63,10 @@ const SnapshotTab: React.FC<SnapshotTabProps> = ({
             variant="contained"
             onClick={onCreateSnapshot}
             disabled={isCreatingSnapshot}
-            sx={{ 
-              height: 32, 
-              fontSize: '11px', 
-              fontWeight: 700, 
+            sx={{
+              height: 32,
+              fontSize: '11px',
+              fontWeight: 700,
               borderRadius: 1.5,
               bgcolor: 'text.primary',
               color: 'background.paper',
@@ -79,10 +79,10 @@ const SnapshotTab: React.FC<SnapshotTabProps> = ({
             size="small"
             variant="outlined"
             onClick={onExportExcel}
-            sx={{ 
-              height: 32, 
-              fontSize: '11px', 
-              fontWeight: 700, 
+            sx={{
+              height: 32,
+              fontSize: '11px',
+              fontWeight: 700,
               borderRadius: 1.5,
               borderColor: 'divider',
               color: 'text.primary',
@@ -141,8 +141,8 @@ const SnapshotTab: React.FC<SnapshotTabProps> = ({
                     </TableRow>
                   ) : (
                     items.map((snapshot: InventorySnapshotItem) => (
-                      <TableRow 
-                        key={snapshot.id} 
+                      <TableRow
+                        key={snapshot.id}
                         hover
                         sx={{ '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.01) } }}
                       >
@@ -164,7 +164,7 @@ const SnapshotTab: React.FC<SnapshotTabProps> = ({
                           <Typography sx={{ fontSize: '12px', color: 'success.main', fontWeight: 700 }}>+{snapshot.total_in}</Typography>
                         </TableCell>
                         <TableCell align="right">
-                          <Typography sx={{ fontSize: '12px', color: 'error.main', fontWeight: 700 }}>{snapshot.total_out}</Typography>
+                          <Typography sx={{ fontSize: '12px', color: 'error.main', fontWeight: 700 }}>-{snapshot.total_out}</Typography>
                         </TableCell>
                         <TableCell align="right">
                           <Typography sx={{ fontSize: '12px', fontWeight: 700 }}>{snapshot.stock_closing}</Typography>
@@ -179,10 +179,10 @@ const SnapshotTab: React.FC<SnapshotTabProps> = ({
 
           {/* INTEGRATED PREMIUM FOOTER */}
           {!isMobile && items.length > 0 && (
-            <Box sx={{ 
-              p: 1.5, 
-              display: 'flex', 
-              justifyContent: 'space-between', 
+            <Box sx={{
+              p: 1.5,
+              display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
               borderTop: `1px solid ${theme.palette.divider}`,
               bgcolor: mode === 'light' ? alpha('#fff', 0.5) : alpha('#000', 0.1)

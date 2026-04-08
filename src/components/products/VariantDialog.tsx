@@ -5,6 +5,7 @@ import {
   MenuItem,
   CircularProgress,
   Box,
+  Typography,
 } from '@mui/material'
 import { useTheme, useMediaQuery } from '@mui/material'
 import { Product, ProductVariant } from '../../types'
@@ -32,6 +33,9 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
   const [formData, setFormData] = useState({
     product: '',
     size: '',
+    size_us: '',
+    size_uk: '',
+    size_cm: '',
     gender: '',
     color: '',
     price: '' as number | string,
@@ -44,6 +48,9 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
       setFormData({
         product: variant.product.toString(),
         size: variant.size || '',
+        size_us: variant.size_us || '',
+        size_uk: variant.size_uk || '',
+        size_cm: variant.size_cm || '',
         gender: variant.gender || '',
         color: variant.color || '',
         price: variant.price || 0,
@@ -54,6 +61,9 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
       setFormData({
         product: '',
         size: '',
+        size_us: '',
+        size_uk: '',
+        size_cm: '',
         gender: '',
         color: '',
         price: '',
@@ -153,7 +163,7 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
             name="size"
             autoFocus
             size="small"
-            label="Talla"
+            label="Talla Principal"
             fullWidth
             required
             value={formData.size}
@@ -173,6 +183,13 @@ const VariantDialog: React.FC<VariantDialogProps> = ({
             InputLabelProps={{ sx: { fontSize: '12px' } }}
             InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}
           />
+        </Box>
+
+        <Typography sx={{ fontSize: '10px', color: 'text.secondary', fontWeight: 600, mb: 1, textTransform: 'uppercase', letterSpacing: 1 }}>Conversión Internacional (Opcional)</Typography>
+        <Box display="flex" gap={1.5} mb={1.5}>
+          <TextField name="size_us" size="small" label="US" fullWidth value={formData.size_us} onChange={(e) => setFormData({ ...formData, size_us: e.target.value })} disabled={loading} InputLabelProps={{ sx: { fontSize: '12px' } }} InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }} />
+          <TextField name="size_uk" size="small" label="UK" fullWidth value={formData.size_uk} onChange={(e) => setFormData({ ...formData, size_uk: e.target.value })} disabled={loading} InputLabelProps={{ sx: { fontSize: '12px' } }} InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }} />
+          <TextField name="size_cm" size="small" label="CM/MM" fullWidth value={formData.size_cm} onChange={(e) => setFormData({ ...formData, size_cm: e.target.value })} disabled={loading} InputLabelProps={{ sx: { fontSize: '12px' } }} InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }} />
         </Box>
         <TextField
           name="gender"

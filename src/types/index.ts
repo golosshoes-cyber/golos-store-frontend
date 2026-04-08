@@ -95,6 +95,9 @@ export interface ProductVariant {
   image_url?: string | null;
   sku: string;
   size: string;
+  size_us?: string;
+  size_uk?: string;
+  size_cm?: string;
   gender: string;
   color?: string;
   stock: number;
