@@ -56,6 +56,9 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
 
   const [variantData, setVariantData] = useState({
     size: '',
+    size_us: '',
+    size_uk: '',
+    size_cm: '',
     gender: 'unisex',
     color: '',
     price: '' as number | string,
@@ -76,6 +79,9 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
       })
       setVariantData({
         size: '',
+        size_us: '',
+        size_uk: '',
+        size_cm: '',
         gender: 'unisex',
         color: '',
         price: '',
@@ -360,12 +366,18 @@ const ProductWizardDialog: React.FC<ProductWizardDialogProps> = ({ open, onClose
                 price: priceVal,
                 cost: costVal
               }, () => {
-                setVariantData(prev => ({ ...prev, size: '', color: '', price: '', cost: '' }))
+                setVariantData(prev => ({ ...prev, size: '', size_us: '', size_uk: '', size_cm: '', color: '', price: '', cost: '' }))
               })
             }}>
               <Box display="flex" gap={1.5} mb={1.5}>
-                <TextField name="size" size="small" label="Talla" fullWidth required value={variantData.size} onChange={(e) => setVariantData({ ...variantData, size: e.target.value })} disabled={isCreatingVariant} InputLabelProps={{ sx: { fontSize: '12px' } }} InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }} />
+                <TextField name="size" size="small" label="Talla (EUR/FR)" fullWidth required value={variantData.size} onChange={(e) => setVariantData({ ...variantData, size: e.target.value })} disabled={isCreatingVariant} InputLabelProps={{ sx: { fontSize: '12px' } }} InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }} />
                 <TextField name="color" size="small" label="Color" fullWidth value={variantData.color} onChange={(e) => setVariantData({ ...variantData, color: e.target.value })} disabled={isCreatingVariant} InputLabelProps={{ sx: { fontSize: '12px' } }} InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }} />
+              </Box>
+              <Typography sx={{ fontSize: '10px', color: 'text.secondary', fontWeight: 600, mb: 1, textTransform: 'uppercase', letterSpacing: 1 }}>Conversión Internacional (Opcional)</Typography>
+              <Box display="flex" gap={1.5} mb={1.5}>
+                <TextField name="size_us" size="small" label="US" fullWidth value={variantData.size_us} onChange={(e) => setVariantData({ ...variantData, size_us: e.target.value })} disabled={isCreatingVariant} InputLabelProps={{ sx: { fontSize: '12px' } }} InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }} />
+                <TextField name="size_uk" size="small" label="UK" fullWidth value={variantData.size_uk} onChange={(e) => setVariantData({ ...variantData, size_uk: e.target.value })} disabled={isCreatingVariant} InputLabelProps={{ sx: { fontSize: '12px' } }} InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }} />
+                <TextField name="size_cm" size="small" label="CM/MM" fullWidth value={variantData.size_cm} onChange={(e) => setVariantData({ ...variantData, size_cm: e.target.value })} disabled={isCreatingVariant} InputLabelProps={{ sx: { fontSize: '12px' } }} InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }} />
               </Box>
               <TextField name="gender" size="small" label="Género" select fullWidth required value={variantData.gender} onChange={(e) => setVariantData({ ...variantData, gender: e.target.value })} disabled={isCreatingVariant} sx={{ mb: 1.5 }} InputLabelProps={{ sx: { fontSize: '12px' } }} InputProps={{ sx: { fontSize: '13px', borderRadius: 1.5 } }}>
                 <MenuItem value="male">Masculino</MenuItem>

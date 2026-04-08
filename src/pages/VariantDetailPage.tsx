@@ -192,6 +192,9 @@ const VariantDetailPage: React.FC = () => {
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {variant.size} {variant.color && `— ${variant.color}`}
                 </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontStyle: 'italic', mt: 0.5 }}>
+                  {variant.size_us || '?'} US • {variant.size_uk || '?'} UK • {variant.size_cm || '?'} CM
+                </Typography>
               </Grid>
 
               <Grid item xs={12} sm={6}>
