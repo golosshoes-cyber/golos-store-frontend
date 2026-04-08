@@ -11,6 +11,9 @@ export interface StoreVariant {
   gender: 'male' | 'female' | 'unisex'
   color: string
   size: string
+  size_us?: string | null
+  size_uk?: string | null
+  size_cm?: string | null
   price: string
   stock: number
   stock_minimum: number

@@ -51,6 +51,7 @@ export default function ProductDetailPage() {
   const [activeImage, setActiveImage] = useState(0)
   const [wishlistVersion, setWishlistVersion] = useState(0)
   const [zoomShow, setZoomShow] = useState(false)
+  const [sizeFormat, setSizeFormat] = useState<'EUR' | 'US' | 'UK' | 'CM'>('EUR')
   const zoomImgRef = useRef<HTMLImageElement>(null)
 
   useEffect(() => {
@@ -335,27 +336,58 @@ export default function ProductDetailPage() {
 
               {/* Variants */}
               <Box sx={{ mb: 4 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: css.textMuted, display: 'block', mb: 1.5 }}>
-                  Talla / Color
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {product.variants.map((v) => (
-                    <Chip
-                      key={v.id}
-                      label={`${v.size} · ${v.color}`}
-                      onClick={() => v.stock > 0 && setSelectedVariantId(v.id)}
-                      disabled={v.stock <= 0}
-                      sx={{
-                        borderRadius: 1.5, height: 32, fontSize: 12,
-                        fontWeight: v.id === selectedVariantId ? 800 : 500,
-                        bgcolor: v.id === selectedVariantId ? css.accent : 'transparent',
-                        color: v.id === selectedVariantId ? css.accentFg : css.text,
-                        border: `1px solid ${v.id === selectedVariantId ? css.accent : css.border}`,
-                        '&:hover': { bgcolor: alpha(css.accent, 0.05) }
-                      }}
-                    />
-                  ))}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: css.textMuted }}>
+                    Talla / Color
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    {['EUR', 'US', 'UK', 'CM'].map((fmt) => (
+                      <Chip
+                        key={fmt}
+                        label={fmt}
+                        onClick={() => setSizeFormat(fmt as any)}
+                        sx={{
+                          height: 20, fontSize: 9, fontWeight: 800, cursor: 'pointer',
+                          bgcolor: sizeFormat === fmt ? css.accent : 'transparent',
+                          color: sizeFormat === fmt ? css.accentFg : css.textMuted,
+                          border: `1px solid ${sizeFormat === fmt ? css.accent : css.border}`
+                        }}
+                      />
+                    ))}
+                  </Box>
                 </Box>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+                  {product.variants.map((v) => {
+                    const labelValue = sizeFormat === 'EUR' ? v.size : 
+                                       sizeFormat === 'US' ? (v.size_us || v.size) : 
+                                       sizeFormat === 'UK' ? (v.size_uk || v.size) : 
+                                       (v.size_cm || v.size);
+                    return (
+                      <Chip
+                        key={v.id}
+                        label={`${labelValue} ${sizeFormat} · ${v.color}`}
+                        onClick={() => v.stock > 0 && setSelectedVariantId(v.id)}
+                        disabled={v.stock <= 0}
+                        sx={{
+                          borderRadius: 1.5, height: 32, fontSize: 12,
+                          fontWeight: v.id === selectedVariantId ? 800 : 500,
+                          bgcolor: v.id === selectedVariantId ? css.accent : 'transparent',
+                          color: v.id === selectedVariantId ? css.accentFg : css.text,
+                          border: `1px solid ${v.id === selectedVariantId ? css.accent : css.border}`,
+                          '&:hover': { bgcolor: alpha(css.accent, 0.05) }
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
+                
+                {/* Asistente "Double Check" */}
+                {selectedVariant && (
+                  <Typography variant="caption" sx={{ display: 'block', color: css.textMuted, fontSize: 11, fontStyle: 'italic', mt: 1, px: 0.5 }}>
+                   * Seleccionaste la talla <strong>{selectedVariant.size} EUR</strong>. 
+                   Equivale a <strong>{selectedVariant.size_us || '..'} US</strong> / <strong>{selectedVariant.size_cm || '..'} CM</strong>.
+                  </Typography>
+                )}
               </Box>
 
               {/* Action Buttons */}
