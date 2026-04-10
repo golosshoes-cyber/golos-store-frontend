@@ -52,6 +52,7 @@ const ReportsPage: React.FC = () => {
     handleSelectVariant,
     handleSelectAll,
     handleFetchInventoryHistory,
+    handleExportHistory,
     handlePageChange,
     setStartDate,
     setEndDate,
@@ -142,6 +143,7 @@ const ReportsPage: React.FC = () => {
               onMovementTypeFilterChange={setMovementTypeFilter}
               onFetchInventoryHistory={handleFetchInventoryHistory}
               onPageChange={handlePageChange}
+              onExportHistory={handleExportHistory}
             />
           )}
           {activeTab === 1 && (

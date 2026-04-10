@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useDebounce } from '../useDebounce'
 import { useQuery } from '@tanstack/react-query'
 import { useNotification } from '../useNotification'
 import { useReports } from './useReports'
 import { productService } from '../../services/productService'
 import type { InventoryHistoryParams, DailySummaryParams } from '../../types/reports'
-import * as XLSX from 'xlsx'
+import { api } from '../../services/api'
 
 export const useReportsLogic = () => {
   const { showSuccess, showError } = useNotification()
@@ -30,6 +31,13 @@ export const useReportsLogic = () => {
   const [variantFilter, setVariantFilter] = useState('')
   const [movementTypeFilter, setMovementTypeFilter] = useState('')
   const [inventoryHistoryParams, setInventoryHistoryParams] = useState<InventoryHistoryParams>({ page: 1 })
+
+  // Valores debounced para campos de texto libre (evita request por cada tecla)
+  const debouncedVariantFilter = useDebounce(variantFilter, 400)
+  const debouncedStartDate = useDebounce(startDate, 400)
+  const debouncedEndDate = useDebounce(endDate, 400)
+  // Ref para saber si es la primera carga (no disparar fetch en mount)
+  const isFirstRender = useRef(true)
 
   // Daily Summary filters
   const [dailyStartDate, setDailyStartDate] = useState('')
@@ -61,26 +69,29 @@ export const useReportsLogic = () => {
     fetchLowStockVariants,
   } = useReports({ showSuccess, showError })
 
-  // Products for filter
+  // Products for filter — cachear 5 min, no cambian frecuentemente
   const { data: productsDetailsData } = useQuery({
     queryKey: ['products-simple'],
     queryFn: () => productService.getProducts({}),
+    staleTime: 5 * 60_000,
   })
 
   const productsDetails = productsDetailsData?.results || []
 
-  // Daily Summary
+  // Daily Summary — solo ejecuta cuando el tab 2 está activo
   const { data: dailySummary, isLoading: isDailySummaryLoading, error: dailySummaryError, refetch: refetchDailySummary } = useQuery({
     queryKey: ['daily-summary', dailyStartDate, dailyEndDate],
     queryFn: () => productService.dailyInventorySummary({ start: dailyStartDate, end: dailyEndDate } as DailySummaryParams),
-    enabled: true
+    enabled: activeTab === 2,
+    staleTime: 30_000,
   })
 
-  // Financial Report Query
+  // Financial Report — solo ejecuta cuando el tab 4 está activo
   const { data: financialReport, isLoading: isFinancialReportLoading, error: financialReportError, refetch: refetchFinancialReport } = useQuery({
     queryKey: ['financial-report', financeStartDate, financeEndDate],
     queryFn: () => productService.financialReport({ start_date: financeStartDate, end_date: financeEndDate }),
-    enabled: true
+    enabled: activeTab === 4,
+    staleTime: 30_000,
   })
 
   // Effects
@@ -102,16 +113,14 @@ export const useReportsLogic = () => {
     }
   }, [activeTab, lowStockVariants, isLowStockLoading, lowStockError, fetchLowStockVariants])
 
+  // Auto-fetch: debounced para texto libre, inmediato para selects
   useEffect(() => {
-    if (activeTab === 4) {
-      refetchFinancialReport()
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
     }
-  }, [activeTab, financeStartDate, financeEndDate, refetchFinancialReport])
-
-  // Auto-fetch inventory history when filters change
-  useEffect(() => {
     handleFetchInventoryHistory()
-  }, [startDate, endDate, productFilter, variantFilter, movementTypeFilter])
+  }, [debouncedStartDate, debouncedEndDate, productFilter, debouncedVariantFilter, movementTypeFilter])
 
   // Read active tab from URL params on load
   useEffect(() => {
@@ -220,6 +229,7 @@ export const useReportsLogic = () => {
         return
       }
 
+      const XLSX = await import('xlsx')
       const exportData = allData.map((snapshot: any) => ({
         Mes: new Date(snapshot.month).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' }),
         Producto: snapshot.product,
@@ -233,18 +243,52 @@ export const useReportsLogic = () => {
       const ws = XLSX.utils.json_to_sheet(exportData)
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Snapshots')
-
       const now = new Date()
-      const year = now.getFullYear()
-      const month = String(now.getMonth() + 1).padStart(2, '0')
-      const filename = `Snapshot-Completo-${year}-${month}.xlsx`
-
-      XLSX.writeFile(wb, filename)
+      XLSX.writeFile(wb, `Snapshot-Completo-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}.xlsx`)
     } catch (error) {
       showError('Error al exportar los datos')
       console.error(error)
     }
   }, [showError])
+
+  const handleExportHistory = useCallback(async () => {
+    try {
+      const params = new URLSearchParams()
+      if (startDate) params.append('start_date', startDate)
+      if (endDate) params.append('end_date', endDate)
+      if (productFilter) params.append('product', productFilter)
+      if (variantFilter) params.append('variant', variantFilter)
+      if (movementTypeFilter) params.append('movement_type', movementTypeFilter)
+
+      const response = await api.get(`/api/inventory-history/export/?${params.toString()}`)
+      const allData: any[] = response.data.results || []
+
+      if (allData.length === 0) {
+        showError('No hay movimientos para exportar')
+        return
+      }
+
+      const rows = allData.map((item: any) => ({
+        Fecha: new Date(item.created_at).toLocaleDateString('es-ES'),
+        Hora: new Date(item.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+        Producto: item.product,
+        'Variante ID': item.variant,
+        Movimiento: item.movement_type_display,
+        Cantidad: item.quantity,
+        'Stock Después': item.stock_after,
+        Observación: item.observation || '',
+      }))
+
+      const XLSX = await import('xlsx')
+      const ws = XLSX.utils.json_to_sheet(rows)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Historial')
+      const now = new Date()
+      XLSX.writeFile(wb, `Historial-Inventario-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}.xlsx`)
+    } catch {
+      showError('Error al exportar el historial')
+    }
+  }, [startDate, endDate, productFilter, variantFilter, movementTypeFilter, showError])
 
   const handlePageChange = useCallback((page: number) => {
     setInventoryHistoryParams(prev => {
@@ -312,6 +356,7 @@ export const useReportsLogic = () => {
     handleCreateSnapshot,
     handleFetchMonthlyReport,
     handleExportExcel,
+    handleExportHistory,
     handlePageChange,
     handleSnapshotPageChange,
     

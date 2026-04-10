@@ -19,8 +19,11 @@ import {
   TableRow,
   Pagination,
   useMediaQuery,
+  IconButton,
+  Tooltip,
 } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
+import { FileDownload as FileDownloadIcon } from '@mui/icons-material'
 import type { Product } from '../../types'
 import type { InventoryHistoryItem, InventoryHistoryParams } from '../../types/reports'
 import InventoryHistoryCard from './InventoryHistoryCard'
@@ -44,9 +47,10 @@ interface InventoryHistoryTabProps {
   onMovementTypeFilterChange: (value: string) => void
   onFetchInventoryHistory: () => void
   onPageChange: (page: number) => void
+  onExportHistory: () => void
 }
 
-const InventoryHistoryTab: React.FC<InventoryHistoryTabProps> = ({
+const InventoryHistoryTab: React.FC<InventoryHistoryTabProps> = React.memo(({
   startDate,
   endDate,
   productFilter,
@@ -64,6 +68,7 @@ const InventoryHistoryTab: React.FC<InventoryHistoryTabProps> = ({
   onVariantFilterChange,
   onMovementTypeFilterChange,
   onPageChange,
+  onExportHistory,
 }) => {
   const theme = useTheme()
   const mode = theme.palette.mode
@@ -318,17 +323,26 @@ const InventoryHistoryTab: React.FC<InventoryHistoryTabProps> = ({
           )}
 
           {/* INTEGRATED PREMIUM FOOTER */}
-          <Box sx={{ 
-            p: 1.5, 
-            display: 'flex', 
-            justifyContent: 'space-between', 
+          <Box sx={{
+            p: 1.5,
+            display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
             borderTop: `1px solid ${theme.palette.divider}`,
             bgcolor: mode === 'light' ? alpha('#fff', 0.5) : alpha('#000', 0.1)
           }}>
-            <Typography sx={{ fontSize: '11px', color: 'text.disabled' }}>
-              {totalCount} movimientos · Página {currentPage} de {totalPages}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography sx={{ fontSize: '11px', color: 'text.disabled' }}>
+                {totalCount} movimientos · Página {currentPage} de {totalPages}
+              </Typography>
+              {totalCount > 0 && (
+                <Tooltip title="Exportar Excel (todas las páginas)">
+                  <IconButton size="small" onClick={onExportHistory} sx={{ p: 0.5 }}>
+                    <FileDownloadIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
             <Pagination
               count={totalPages}
               page={currentPage}
@@ -353,6 +367,8 @@ const InventoryHistoryTab: React.FC<InventoryHistoryTabProps> = ({
       )}
     </Box>
   )
-}
+})
+
+InventoryHistoryTab.displayName = 'InventoryHistoryTab'
 
 export default InventoryHistoryTab

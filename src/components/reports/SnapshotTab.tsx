@@ -11,8 +11,11 @@ import {
   TableRow,
   Grid,
   useMediaQuery,
+  IconButton,
+  Tooltip,
 } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
+import { FileDownload as FileDownloadIcon } from '@mui/icons-material'
 import InventorySnapshotCard from './InventorySnapshotCard'
 
 interface MonthlyReportItem {
@@ -35,7 +38,7 @@ interface SnapshotTabProps {
   onSnapshotMonthChange: (month: string) => void
 }
 
-const SnapshotTab: React.FC<SnapshotTabProps> = ({
+const SnapshotTab: React.FC<SnapshotTabProps> = React.memo(({
   monthlyReport,
   isMonthlyReportLoading,
   snapshotMonth,
@@ -48,6 +51,25 @@ const SnapshotTab: React.FC<SnapshotTabProps> = ({
   const monthLabel = snapshotMonth
     ? new Date(`${snapshotMonth}-15`).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })
     : ''
+
+  const handleExport = async () => {
+    if (monthlyReport.length === 0) return
+    const XLSX = await import('xlsx')
+    const rows = monthlyReport.map(item => ({
+      Producto: item.product,
+      SKU: item.product_sku,
+      Color: item.variant_color,
+      Talla: item.variant_size,
+      'Stock Inicial': item.stock_opening,
+      Entradas: item.total_in,
+      Salidas: item.total_out,
+      'Stock Final': item.stock_closing,
+    }))
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Snapshot')
+    XLSX.writeFile(wb, `Snapshot-${snapshotMonth}.xlsx`)
+  }
 
   return (
     <Box>
@@ -84,14 +106,23 @@ const SnapshotTab: React.FC<SnapshotTabProps> = ({
             }}
           />
         </Box>
-        <Typography sx={{ fontSize: '11px', color: 'text.disabled' }}>
-          {isMonthlyReportLoading
-            ? 'Calculando...'
-            : monthlyReport.length === 0
-              ? `Sin actividad en ${monthLabel}`
-              : `${monthlyReport.length} producto${monthlyReport.length !== 1 ? 's' : ''} con movimientos en ${monthLabel}`
-          }
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography sx={{ fontSize: '11px', color: 'text.disabled' }}>
+            {isMonthlyReportLoading
+              ? 'Calculando...'
+              : monthlyReport.length === 0
+                ? `Sin actividad en ${monthLabel}`
+                : `${monthlyReport.length} producto${monthlyReport.length !== 1 ? 's' : ''} con movimientos en ${monthLabel}`
+            }
+          </Typography>
+          {!isMonthlyReportLoading && monthlyReport.length > 0 && (
+            <Tooltip title="Exportar Excel">
+              <IconButton size="small" onClick={handleExport} sx={{ p: 0.5 }}>
+                <FileDownloadIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
       </Box>
 
       {isMonthlyReportLoading ? (
@@ -168,6 +199,8 @@ const SnapshotTab: React.FC<SnapshotTabProps> = ({
       )}
     </Box>
   )
-}
+})
+
+SnapshotTab.displayName = 'SnapshotTab'
 
 export default SnapshotTab
