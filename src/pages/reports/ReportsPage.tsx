@@ -23,6 +23,8 @@ const ReportsPage: React.FC = () => {
     selectedVariants,
     snapshotMonth,
     setSnapshotMonth,
+    monthlyReport,
+    isMonthlyReportLoading,
     startDate,
     endDate,
     productFilter,
@@ -152,16 +154,10 @@ const ReportsPage: React.FC = () => {
           )}
           {activeTab === 1 && (
             <SnapshotTab
-              snapshots={snapshots}
-              snapshotsParams={snapshotsParams}
-              isSnapshotsLoading={isSnapshotsLoading}
-              snapshotsError={snapshotsError ? { message: snapshotsError.message } : undefined}
-              isCreatingSnapshot={isCreatingSnapshot}
+              monthlyReport={monthlyReport}
+              isMonthlyReportLoading={isMonthlyReportLoading}
               snapshotMonth={snapshotMonth}
               onSnapshotMonthChange={setSnapshotMonth}
-              onCreateSnapshot={handleCreateSnapshot}
-              onExportExcel={handleExportExcel}
-              onPageChange={handleSnapshotPageChange}
             />
           )}
           {activeTab === 2 && (

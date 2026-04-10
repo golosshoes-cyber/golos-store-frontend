@@ -14,12 +14,14 @@ export const useReportsLogic = () => {
   // Snapshot filters/pagination
   const [snapshotsParams, setSnapshotsParams] = useState<{ page: number }>({ page: 1 })
 
-  // Snapshot month picker — por defecto el mes anterior (es el que normalmente se cierra)
+  // Reporte mensual: mes seleccionado, por defecto el mes anterior
   const [snapshotMonth, setSnapshotMonth] = useState(() => {
     const d = new Date()
     d.setMonth(d.getMonth() - 1)
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
   })
+  const [monthlyReport, setMonthlyReport] = useState<any[]>([])
+  const [isMonthlyReportLoading, setIsMonthlyReportLoading] = useState(false)
   
   // Inventory History filters
   const [startDate, setStartDate] = useState('')
@@ -179,6 +181,27 @@ export const useReportsLogic = () => {
     createMonthlySnapshot({ month: `${snapshotMonth}-01` })
   }, [createMonthlySnapshot, snapshotMonth])
 
+  const handleFetchMonthlyReport = useCallback(async (month: string) => {
+    if (!month) return
+    setIsMonthlyReportLoading(true)
+    try {
+      const data = await productService.getMonthlyReport(month)
+      setMonthlyReport(data)
+    } catch {
+      showError('Error al cargar el reporte mensual')
+      setMonthlyReport([])
+    } finally {
+      setIsMonthlyReportLoading(false)
+    }
+  }, [showError])
+
+  // Cargar reporte cuando cambia el mes o cuando se activa el tab
+  useEffect(() => {
+    if (activeTab === 1 && snapshotMonth) {
+      handleFetchMonthlyReport(snapshotMonth)
+    }
+  }, [activeTab, snapshotMonth, handleFetchMonthlyReport])
+
   const handleExportExcel = useCallback(async () => {
     try {
       let allData: any[] = []
@@ -261,14 +284,16 @@ export const useReportsLogic = () => {
     inventoryHistory,
     snapshots,
     snapshotsParams,
+    monthlyReport,
     lowStockVariants,
     dailySummary,
     financialReport,
-    
+
     // Loading states
     isInventoryHistoryLoading,
     isSnapshotsLoading,
     isCreatingSnapshot,
+    isMonthlyReportLoading,
     isDailySummaryLoading,
     isFinancialReportLoading,
     
@@ -285,6 +310,7 @@ export const useReportsLogic = () => {
     handleSelectAll,
     handleFetchInventoryHistory,
     handleCreateSnapshot,
+    handleFetchMonthlyReport,
     handleExportExcel,
     handlePageChange,
     handleSnapshotPageChange,

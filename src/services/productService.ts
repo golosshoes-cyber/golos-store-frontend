@@ -143,6 +143,12 @@ export const productService = {
     return response.data
   },
 
+  getMonthlyReport: async (month: string): Promise<any[]> => {
+    // month formato "YYYY-MM"
+    const response = await api.get(`/api/inventory-monthly-report/?month=${month}`)
+    return response.data
+  },
+
   bulkPurchase: async (data: any): Promise<any> => {
     const response = await api.post('/api/batch/bulk_purchase/', data)
     return response.data
