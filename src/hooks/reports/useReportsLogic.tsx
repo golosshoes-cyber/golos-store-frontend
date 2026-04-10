@@ -13,6 +13,13 @@ export const useReportsLogic = () => {
   
   // Snapshot filters/pagination
   const [snapshotsParams, setSnapshotsParams] = useState<{ page: number }>({ page: 1 })
+
+  // Snapshot month picker — por defecto el mes anterior (es el que normalmente se cierra)
+  const [snapshotMonth, setSnapshotMonth] = useState(() => {
+    const d = new Date()
+    d.setMonth(d.getMonth() - 1)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  })
   
   // Inventory History filters
   const [startDate, setStartDate] = useState('')
@@ -168,12 +175,9 @@ export const useReportsLogic = () => {
   }, [startDate, endDate, productFilter, variantFilter, movementTypeFilter, fetchInventoryHistory])
 
   const handleCreateSnapshot = useCallback(() => {
-    // Get current month in YYYY-MM-DD format (first day of month)
-    const now = new Date()
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-    
-    createMonthlySnapshot({ month: currentMonth })
-  }, [createMonthlySnapshot])
+    // snapshotMonth tiene formato "YYYY-MM", el backend espera "YYYY-MM-DD"
+    createMonthlySnapshot({ month: `${snapshotMonth}-01` })
+  }, [createMonthlySnapshot, snapshotMonth])
 
   const handleExportExcel = useCallback(async () => {
     try {
@@ -239,6 +243,7 @@ export const useReportsLogic = () => {
     // State
     activeTab,
     selectedVariants,
+    snapshotMonth,
     startDate,
     endDate,
     productFilter,
@@ -285,6 +290,7 @@ export const useReportsLogic = () => {
     handleSnapshotPageChange,
     
     // Setters
+    setSnapshotMonth,
     setStartDate,
     setEndDate,
     setProductFilter,

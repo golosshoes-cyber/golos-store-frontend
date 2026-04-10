@@ -21,6 +21,8 @@ const ReportsPage: React.FC = () => {
   const {
     activeTab,
     selectedVariants,
+    snapshotMonth,
+    setSnapshotMonth,
     startDate,
     endDate,
     productFilter,
@@ -155,6 +157,8 @@ const ReportsPage: React.FC = () => {
               isSnapshotsLoading={isSnapshotsLoading}
               snapshotsError={snapshotsError ? { message: snapshotsError.message } : undefined}
               isCreatingSnapshot={isCreatingSnapshot}
+              snapshotMonth={snapshotMonth}
+              onSnapshotMonthChange={setSnapshotMonth}
               onCreateSnapshot={handleCreateSnapshot}
               onExportExcel={handleExportExcel}
               onPageChange={handleSnapshotPageChange}

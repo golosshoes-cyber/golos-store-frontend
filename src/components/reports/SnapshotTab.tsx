@@ -25,6 +25,8 @@ interface SnapshotTabProps {
   isSnapshotsLoading: boolean
   snapshotsError?: { message: string }
   isCreatingSnapshot: boolean
+  snapshotMonth: string
+  onSnapshotMonthChange: (month: string) => void
   onCreateSnapshot: () => void
   onExportExcel: () => void
   onPageChange: (page: number) => void
@@ -36,6 +38,8 @@ const SnapshotTab: React.FC<SnapshotTabProps> = ({
   isSnapshotsLoading,
   snapshotsError,
   isCreatingSnapshot,
+  snapshotMonth,
+  onSnapshotMonthChange,
   onCreateSnapshot,
   onExportExcel,
   onPageChange,
@@ -57,12 +61,29 @@ const SnapshotTab: React.FC<SnapshotTabProps> = ({
         borderBottom: `1px solid ${theme.palette.divider}`,
         bgcolor: mode === 'light' ? alpha('#fff', 0.5) : alpha('#000', 0.1)
       }}>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <input
+            type="month"
+            value={snapshotMonth}
+            onChange={e => onSnapshotMonthChange(e.target.value)}
+            style={{
+              height: 32,
+              padding: '0 8px',
+              fontSize: '11px',
+              fontWeight: 600,
+              borderRadius: 6,
+              border: `1px solid ${theme.palette.divider}`,
+              background: theme.palette.background.paper,
+              color: theme.palette.text.primary,
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+          />
           <Button
             size="small"
             variant="contained"
             onClick={onCreateSnapshot}
-            disabled={isCreatingSnapshot}
+            disabled={isCreatingSnapshot || !snapshotMonth}
             sx={{
               height: 32,
               fontSize: '11px',
