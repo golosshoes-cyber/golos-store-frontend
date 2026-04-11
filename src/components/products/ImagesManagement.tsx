@@ -12,7 +12,6 @@ import {
   alpha,
   IconButton,
   Tooltip,
-  Chip,
 } from '@mui/material'
 import {
   Add as AddIcon,
@@ -298,7 +297,6 @@ const ImagesManagement: React.FC<ImagesManagementProps> = ({
                     onSetPrimary={handleSetPrimary}
                     settingPrimaryId={settingPrimaryId}
                     queryClient={queryClient}
-                    theme={theme}
                   />
                 </Grid>
               ))}
@@ -319,12 +317,12 @@ interface ImageCardProps {
   onSetPrimary: (image: ProductImage) => void
   settingPrimaryId: number | null
   queryClient: ReturnType<typeof useQueryClient>
-  theme: ReturnType<typeof useTheme>
 }
 
 const ImageCard: React.FC<ImageCardProps> = ({
-  image, variants, selectedProduct, onDelete, onSetPrimary, settingPrimaryId, queryClient, theme,
+  image, variants, selectedProduct, onDelete, onSetPrimary, settingPrimaryId, queryClient,
 }) => {
+  const theme = useTheme()
   const [hovered, setHovered] = useState(false)
   const isPrimary = image.is_primary
   const isSettingPrimary = settingPrimaryId === image.id
