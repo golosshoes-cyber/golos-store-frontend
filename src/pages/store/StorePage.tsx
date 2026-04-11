@@ -595,11 +595,11 @@ export default function StorePage() {
                       {product.variants.length > 0 && (
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
                           {product.variants.map((v) => (
-                            <motion.button 
-                              key={v.id} 
+                            <motion.button
+                              key={v.id}
                               whileHover={v.stock > 0 ? { scale: 1.05 } : {}}
                               whileTap={v.stock > 0 ? { scale: 0.95 } : {}}
-                              onClick={() => handleVariantChange(product.id, v.id)} style={{
+                              onClick={(e) => { e.stopPropagation(); handleVariantChange(product.id, v.id) }} style={{
                               padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
                               background: selectedVariant?.id === v.id ? css.accent : css.bgSubtle,
                               color: selectedVariant?.id === v.id ? css.accentFg : css.textMuted,
@@ -619,12 +619,12 @@ export default function StorePage() {
                       {/* Qty + Add */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 'auto' }}>
                         <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${css.border}`, borderRadius: 6, overflow: 'hidden' }}>
-                          <motion.button whileTap={{ scale: 0.9 }} onClick={() => handleQuantityChange(product, quantity - 1)} disabled={!canAdd || quantity <= 1} style={{
+                          <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); handleQuantityChange(product, quantity - 1) }} disabled={!canAdd || quantity <= 1} style={{
                             width: 30, height: 32, border: 'none', background: css.bgSubtle, color: css.textMuted,
                             fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
                           }}>−</motion.button>
                           <div style={{ width: 32, textAlign: 'center', fontSize: 13, fontWeight: 500, color: css.text, background: css.bg, borderLeft: `1px solid ${css.border}`, borderRight: `1px solid ${css.border}`, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{quantity}</div>
-                          <motion.button whileTap={{ scale: 0.9 }} onClick={() => handleQuantityChange(product, quantity + 1)} disabled={!canAdd || quantity >= (selectedVariant?.stock || 1)} style={{
+                          <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); handleQuantityChange(product, quantity + 1) }} disabled={!canAdd || quantity >= (selectedVariant?.stock || 1)} style={{
                             width: 30, height: 32, border: 'none', background: css.bgSubtle, color: css.textMuted,
                             fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
                           }}>+</motion.button>
@@ -633,7 +633,7 @@ export default function StorePage() {
                           disabled={!canAdd}
                           whileHover={canAdd ? { scale: 1.02, backgroundColor: css.textMuted } : {}}
                           whileTap={canAdd ? { scale: 0.98 } : {}}
-                          onClick={() => { void handleAddToCart(product) }}
+                          onClick={(e) => { e.stopPropagation(); void handleAddToCart(product) }}
                           style={{
                             flex: 1, padding: '0 14px', height: 32, background: canAdd ? css.accent : css.textFaint,
                             color: css.accentFg, border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600,
