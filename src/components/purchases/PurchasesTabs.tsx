@@ -10,7 +10,7 @@ import {
   Button,
   Pagination,
 } from '@mui/material'
-import { useTheme, alpha } from '@mui/material'
+import { useTheme, alpha, useMediaQuery } from '@mui/material'
 import {
   Search as SearchIcon,
   FilterList as FilterIcon,
@@ -20,6 +20,7 @@ import {
 } from '@mui/icons-material'
 import { useThemeMode } from '../../contexts/ThemeModeContext'
 import PurchasesTable from './PurchasesTable'
+import PurchasesCards from './PurchasesCards'
 import type { Purchase } from '../../types/purchases'
 
 interface PurchasesTabsProps {
@@ -55,6 +56,7 @@ const PurchasesTabs: React.FC<PurchasesTabsProps> = ({
 }) => {
   const theme = useTheme()
   const { mode } = useThemeMode()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   // Menu States
   const [filterAnchor, setFilterAnchor] = React.useState<null | HTMLElement>(null)
@@ -330,13 +332,20 @@ const PurchasesTabs: React.FC<PurchasesTabsProps> = ({
         </Menu>
       </Box>
 
-      <Box sx={{ p: 0 }}>
-        <PurchasesTable
-          purchases={purchases}
-          isLoading={loading}
-          currentSort={purchaseSort}
-          onSortChange={onSortChange}
-        />
+      <Box sx={{ p: isMobile ? 1.5 : 0 }}>
+        {isMobile ? (
+          <PurchasesCards
+            purchases={purchases}
+            isLoading={loading}
+          />
+        ) : (
+          <PurchasesTable
+            purchases={purchases}
+            isLoading={loading}
+            currentSort={purchaseSort}
+            onSortChange={onSortChange}
+          />
+        )}
       </Box>
 
       {/* FOOTER / PAGINATION INTEGRATED */}

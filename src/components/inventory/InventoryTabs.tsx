@@ -8,13 +8,14 @@ import {
   Checkbox,
   LinearProgress,
 } from '@mui/material'
-import { useTheme, alpha } from '@mui/material'
+import { useTheme, alpha, useMediaQuery } from '@mui/material'
 import {
   Search as SearchIcon,
   ErrorOutline as LowStockIcon,
 } from '@mui/icons-material'
 import { useThemeMode } from '../../contexts/ThemeModeContext'
 import InventoryTable from './InventoryTable'
+import InventoryCards from './InventoryCards'
 import { Pagination } from '@mui/material'
 
 interface InventoryTabsProps {
@@ -48,6 +49,7 @@ const InventoryTabs: React.FC<InventoryTabsProps> = ({
 }) => {
   const theme = useTheme()
   const { mode } = useThemeMode()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   return (
     <Box sx={{
@@ -166,13 +168,22 @@ const InventoryTabs: React.FC<InventoryTabsProps> = ({
         />
       </Box>
 
-      <Box sx={{ p: 0 }}>
-        <InventoryTable
-          variants={variants}
-          getProductInfo={getProductInfo}
-          getStockStatus={getStockStatus}
-          onAdjustStock={onAdjustStock}
-        />
+      <Box sx={{ p: isMobile ? 1.5 : 0 }}>
+        {isMobile ? (
+          <InventoryCards
+            variants={variants}
+            getProductInfo={getProductInfo}
+            getStockStatus={getStockStatus}
+            onAdjustStock={onAdjustStock}
+          />
+        ) : (
+          <InventoryTable
+            variants={variants}
+            getProductInfo={getProductInfo}
+            getStockStatus={getStockStatus}
+            onAdjustStock={onAdjustStock}
+          />
+        )}
       </Box>
 
       {/* FOOTER / PAGINATION INTEGRATED */}

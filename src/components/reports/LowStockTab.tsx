@@ -15,7 +15,6 @@ import {
   Card,
   CardContent,
   useMediaQuery,
-  Chip,
 } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import { useNavigate } from 'react-router-dom'
@@ -159,16 +158,22 @@ const LowStockTab: React.FC<LowStockTabProps> = ({
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
                         Stock Actual
-                        {stockFilter !== null ? (
-                          <Chip
-                            label={stockFilter}
-                            size="small"
-                            color="primary"
-                            onDelete={(e) => { e.stopPropagation(); setStockFilter(null) }}
-                            sx={{ height: 16, fontSize: '10px', fontWeight: 700, '.MuiChip-deleteIcon': { fontSize: '12px' } }}
-                          />
-                        ) : (
-                          <Box component="span" sx={{ fontSize: '9px', opacity: 0.5 }}>▲▼</Box>
+                        <Box component="span" sx={{
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          minWidth: 16, fontSize: '9px', fontWeight: 800, lineHeight: 1,
+                          color: stockFilter !== null ? 'primary.main' : 'inherit',
+                          opacity: stockFilter !== null ? 1 : 0.4,
+                        }}>
+                          {stockFilter !== null ? stockFilter : '▲▼'}
+                        </Box>
+                        {stockFilter !== null && (
+                          <Box
+                            component="span"
+                            onClick={(e) => { e.stopPropagation(); setStockFilter(null) }}
+                            sx={{ fontSize: '9px', opacity: 0.5, lineHeight: 1, '&:hover': { opacity: 1 } }}
+                          >
+                            ✕
+                          </Box>
                         )}
                       </Box>
                     </TableCell>

@@ -8,12 +8,14 @@ import {
   Pagination,
   alpha,
   useTheme,
+  useMediaQuery,
 } from '@mui/material'
 import {
   Search as SearchIcon,
 } from '@mui/icons-material'
 import { useThemeMode } from '../../contexts/ThemeModeContext'
 import SuppliersTable from './SuppliersTable'
+import SuppliersCards from './SuppliersCards'
 import { Supplier } from '../../types'
 
 interface SuppliersTabsProps {
@@ -41,6 +43,7 @@ const SuppliersTabs: React.FC<SuppliersTabsProps> = ({
 }) => {
   const theme = useTheme()
   const { mode } = useThemeMode()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   return (
     <Box sx={{
@@ -135,15 +138,24 @@ const SuppliersTabs: React.FC<SuppliersTabsProps> = ({
         </Box>
       </Box>
 
-      {/* TABLE AREA */}
-      <Box sx={{ p: 0 }}>
-        <SuppliersTable
-          suppliers={suppliers}
-          loading={loading}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          search={searchTerm}
-        />
+      {/* TABLE / CARDS AREA */}
+      <Box sx={{ p: isMobile ? 1.5 : 0 }}>
+        {isMobile ? (
+          <SuppliersCards
+            suppliers={suppliers}
+            loading={loading}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ) : (
+          <SuppliersTable
+            suppliers={suppliers}
+            loading={loading}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            search={searchTerm}
+          />
+        )}
       </Box>
 
       {/* FOOTER / PAGINATION INTEGRATED */}

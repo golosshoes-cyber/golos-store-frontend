@@ -21,6 +21,7 @@ import {
 import { Menu, MenuItem, ListItemText } from '@mui/material'
 import type { Product, ProductVariant, ProductImage } from '../../types'
 import ProductsTable from './ProductsTable'
+import ProductsMobileList from './ProductsMobileList'
 import VariantsTable from './VariantsTable'
 import VariantsCards from './VariantsCards'
 import ImagesManagement from './ImagesManagement'
@@ -414,22 +415,38 @@ const ProductsTabs: React.FC<ProductsTabsProps> = ({
         {/* CONTENT AREA */}
         <Box sx={{ p: 0 }}>
           {activeTab === 0 && (
-            <ProductsTable
-              products={processedProducts}
-              loading={isLoading}
-              page={page}
-              totalCount={productsData?.count || 0}
-              onPageChange={onPageChange}
-              onEdit={onEditProduct}
-              onDelete={onDeleteProduct}
-              search={productSearch}
-              onUpdate={onUpdateProduct}
-              onView={onViewProduct}
-              selectedIds={selectedProducts}
-              onSelectionChange={setSelectedProducts}
-              currentSort={productSort}
-              onSortChange={setProductSort}
-            />
+            isMobile ? (
+              <Box p={2}>
+                <ProductsMobileList
+                  products={processedProducts}
+                  loading={isLoading}
+                  page={page}
+                  totalCount={productsData?.count || 0}
+                  onPageChange={onPageChange}
+                  onEdit={onEditProduct}
+                  onDelete={onDeleteProduct}
+                  search={productSearch}
+                  onView={onViewProduct}
+                />
+              </Box>
+            ) : (
+              <ProductsTable
+                products={processedProducts}
+                loading={isLoading}
+                page={page}
+                totalCount={productsData?.count || 0}
+                onPageChange={onPageChange}
+                onEdit={onEditProduct}
+                onDelete={onDeleteProduct}
+                search={productSearch}
+                onUpdate={onUpdateProduct}
+                onView={onViewProduct}
+                selectedIds={selectedProducts}
+                onSelectionChange={setSelectedProducts}
+                currentSort={productSort}
+                onSortChange={setProductSort}
+              />
+            )
           )}
 
           {activeTab === 1 && (
