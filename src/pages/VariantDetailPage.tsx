@@ -119,7 +119,7 @@ const VariantDetailPage: React.FC = () => {
         }
       />
 
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         {/* Imagen */}
         <Grid item xs={12} md={5}>
           <Box 
@@ -150,20 +150,20 @@ const VariantDetailPage: React.FC = () => {
 
         {/* Información */}
         <Grid item xs={12} md={7}>
-          <Box 
-            sx={{ 
-              p: 4, 
+          <Box
+            sx={{
+              p: { xs: 2, sm: 3, md: 4 },
               borderRadius: 3,
               border: `1px solid ${theme.palette.divider}`,
               bgcolor: 'background.paper',
               height: '100%'
             }}
           >
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 4 }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: { xs: 2, sm: 3, md: 4 }, fontSize: { xs: '1.1rem', sm: '1.5rem' } }}>
               Detalles del Producto
             </Typography>
 
-            <Grid container spacing={4}>
+            <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
               <Grid item xs={12} sm={6}>
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block', mb: 0.5 }}>
                   SKU
@@ -238,7 +238,7 @@ const VariantDetailPage: React.FC = () => {
               </Grid>
             </Grid>
 
-            <Box display="flex" gap={2} mt={6}>
+            <Box display="flex" gap={1.5} mt={{ xs: 3, sm: 4, md: 6 }} flexWrap="wrap">
               <GradientButton
                 startIcon={<ShoppingCart />}
                 onClick={() => navigate(`/sales?prefillVariant=${variant.id}`)}
