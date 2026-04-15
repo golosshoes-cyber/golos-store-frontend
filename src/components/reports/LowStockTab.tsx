@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Box,
   Typography,
@@ -15,6 +15,7 @@ import {
   Card,
   CardContent,
   useMediaQuery,
+  Chip,
 } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import { useNavigate } from 'react-router-dom'
@@ -40,7 +41,22 @@ const LowStockTab: React.FC<LowStockTabProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const navigate = useNavigate()
 
-  const items = lowStockVariants?.products || []
+  const [stockFilter, setStockFilter] = useState<number | null>(null)
+
+  const allItems = lowStockVariants?.products || []
+  const uniqueStockValues = Array.from(new Set(allItems.map(i => i.current_stock))).sort((a, b) => a - b)
+
+  const handleStockFilterClick = () => {
+    if (stockFilter === null) {
+      setStockFilter(uniqueStockValues[0] ?? null)
+    } else {
+      const idx = uniqueStockValues.indexOf(stockFilter)
+      const next = uniqueStockValues[idx + 1]
+      setStockFilter(next !== undefined ? next : null)
+    }
+  }
+
+  const items = stockFilter === null ? allItems : allItems.filter(i => i.current_stock === stockFilter)
   const isAnySelected = selectedVariants.size > 0
 
   return (
@@ -58,7 +74,7 @@ const LowStockTab: React.FC<LowStockTabProps> = ({
           Variantes en Alerta de Stock
         </Typography>
         <Typography sx={{ fontSize: '11px', color: 'text.disabled' }}>
-          {items.length} variantes encontradas
+          {stockFilter !== null ? `${items.length} de ${allItems.length}` : allItems.length} variantes encontradas
         </Typography>
       </Box>
 
@@ -131,7 +147,31 @@ const LowStockTab: React.FC<LowStockTabProps> = ({
                       </Box>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }}>Producto / Variante</TableCell>
-                    <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }} align="right">Stock Actual</TableCell>
+                    <TableCell
+                      align="right"
+                      onClick={handleStockFilterClick}
+                      sx={{
+                        fontWeight: 700, py: 1.2, fontSize: '11px', textTransform: 'uppercase',
+                        cursor: 'pointer', userSelect: 'none',
+                        color: stockFilter !== null ? 'primary.main' : 'text.secondary',
+                        '&:hover': { color: 'primary.main' },
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                        Stock Actual
+                        {stockFilter !== null ? (
+                          <Chip
+                            label={stockFilter}
+                            size="small"
+                            color="primary"
+                            onDelete={(e) => { e.stopPropagation(); setStockFilter(null) }}
+                            sx={{ height: 16, fontSize: '10px', fontWeight: 700, '.MuiChip-deleteIcon': { fontSize: '12px' } }}
+                          />
+                        ) : (
+                          <Box component="span" sx={{ fontSize: '9px', opacity: 0.5 }}>▲▼</Box>
+                        )}
+                      </Box>
+                    </TableCell>
                     <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }} align="right">Stock Mínimo</TableCell>
                     <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }} align="right">Estado</TableCell>
                     <TableCell sx={{ fontWeight: 700, py: 1.2, fontSize: '11px', color: 'text.secondary', textTransform: 'uppercase' }} align="right">Acción</TableCell>
