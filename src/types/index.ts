@@ -80,6 +80,7 @@ export interface Product {
   active: boolean;
   created_at: string;
   updated_at: string;
+  image_url?: string | null;
   images: ProductImage[];
   variants: ProductVariant[];
 }
@@ -116,7 +117,9 @@ export interface ProductImage {
   id: number;
   product: number;
   variant: number | null;
+  variant_info?: string;
   image: string;
+  url?: string;
   alt_text?: string;
   is_primary: boolean;
   file_size?: number;

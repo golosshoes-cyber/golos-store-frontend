@@ -501,7 +501,6 @@ const ProductsTabs: React.FC<ProductsTabsProps> = ({
                 images={productImages || []}
                 loading={imagesLoading}
                 uploadLoading={false}
-                variants={variantsData?.results || []}
               />
             </Box>
           )}

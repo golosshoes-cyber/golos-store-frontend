@@ -115,6 +115,13 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                   <TableCell sx={{ 
                     borderBottom: `1px solid ${theme.palette.divider}`,
                     fontSize: '10px', fontWeight: 600, color: 'text.disabled',
+                    textTransform: 'uppercase', letterSpacing: '0.5px'
+                  }}>
+                    Imagen
+                  </TableCell>
+                  <TableCell sx={{ 
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                    fontSize: '10px', fontWeight: 600, color: 'text.disabled',
                     textTransform: 'uppercase', letterSpacing: '0.5px', py: 1.2
                   }}>
                     Producto / Modelo
@@ -190,6 +197,23 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                             }
                           }}
                         />
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ 
+                          width: 44, height: 44, borderRadius: 2, 
+                          overflow: 'hidden', border: `1px solid ${theme.palette.divider}`,
+                          bgcolor: 'background.default', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          {product.image_url ? (
+                            <img 
+                              src={product.image_url} 
+                              alt={product.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <Typography sx={{ fontSize: '18px', opacity: 0.3 }}>👟</Typography>
+                          )}
+                        </Box>
                       </TableCell>
                       <TableCell sx={{ py: 1.5 }}>
                         {editingProductId === product.id ? (

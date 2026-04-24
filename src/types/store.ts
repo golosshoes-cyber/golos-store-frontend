@@ -1,34 +1,19 @@
-export interface StoreImage {
-  id: number
-  url: string | null
-  is_primary: boolean
-  alt_text?: string
-  variant_id: number | null
-}
+// Tipos admin/Ops para gestión de la tienda.
+// Los tipos puramente storefront (cart, checkout, auth cliente, productos públicos)
+// viven en el proyecto golos-public-store.
 
-export interface StoreVariant {
+export interface StoreHeroSlide {
   id: number
-  gender: 'male' | 'female' | 'unisex'
-  color: string
-  size: string
-  size_us?: string | null
-  size_uk?: string | null
-  size_cm?: string | null
-  price: string
-  stock: number
-  stock_minimum: number
-  image_url?: string | null
-}
-
-export interface StoreProduct {
-  id: number
-  name: string
-  brand: string
-  description: string | null
-  product_type: string
-  image_url: string | null
-  images: StoreImage[]
-  variants: StoreVariant[]
+  order: number
+  image_url: string
+  eyebrow: string
+  title: string
+  subtitle: string
+  cta_text: string
+  cta_href: string
+  enabled: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 export interface StoreBranding {
@@ -39,6 +24,7 @@ export interface StoreBranding {
   hero_title: string
   hero_subtitle: string
   hero_image_url: string | null
+  hero_slides?: StoreHeroSlide[]
   legal_representative_name: string
   legal_id_type: string
   legal_id_number: string
@@ -60,6 +46,22 @@ export interface StoreBranding {
   updated_at?: string
 }
 
+export interface StoreHeroSlideListResponse {
+  detail: string
+  code: string
+  slides: StoreHeroSlide[]
+}
+
+export interface StoreHeroSlideResponse {
+  detail: string
+  code: string
+  slide: StoreHeroSlide
+}
+
+export interface StoreHeroSlideReorderPayload {
+  order: number[]
+}
+
 export interface StoreBrandingResponse {
   detail: string
   code: string
@@ -70,69 +72,6 @@ export interface StoreOpsBrandingUpdateResponse {
   detail: string
   code: string
   branding: StoreBranding
-}
-
-export interface StoreProductsResponse {
-  detail: string
-  code: string
-  count: number
-  page: number
-  page_size: number
-  has_next: boolean
-  products: StoreProduct[]
-}
-
-export interface StoreProductsSimpleResponse {
-  detail: string
-  code: string
-  count: number
-  products: StoreProduct[]
-}
-
-export interface StoreProductDetailResponse {
-  detail: string
-  code: string
-  product: StoreProduct
-}
-
-export interface StoreCartItemInput {
-  variant_id: number
-  quantity: number
-}
-
-export interface StoreCartValidationItem {
-  variant_id: number
-  product_name: string
-  variant_info: string
-  quantity: number
-  unit_price: string
-  subtotal: string
-  available_stock: number
-  image_url?: string | null
-}
-
-export interface StoreCartValidationResponse {
-  detail: string
-  code: string
-  items: StoreCartValidationItem[]
-  total: string
-  commercial?: StoreCommercialSummary
-}
-
-export interface StoreCommercialSummary {
-  shipping_zone: 'local' | 'regional' | 'national'
-  estimated_weight_grams: number
-  gross_total: string
-  product_cost_total: string
-  payment_fee_total: string
-  shipping_estimate: string
-  packaging_cost: string
-  risk_cost: string
-  variable_cost_total: string
-  projected_profit: string
-  projected_margin_percent: string
-  min_margin_percent: string
-  is_viable_online: boolean
 }
 
 export interface StoreShippingAddress {
@@ -146,36 +85,6 @@ export interface StoreShippingAddress {
   postal_code?: string
   recipient_name: string
   recipient_phone: string
-}
-
-export interface StoreCheckoutRequest {
-  customer_name: string
-  customer_contact?: string
-  items: StoreCartItemInput[]
-  is_order?: boolean
-  shipping_zone?: 'local' | 'regional' | 'national'
-  estimated_weight_grams?: number
-  shipping_address: StoreShippingAddress;
-  invoice_required?: boolean;
-  billing_data?: {
-    id_type: string;
-    id_number: string;
-    name: string;
-    email: string;
-  };
-}
-
-export interface StoreCheckoutResponse {
-  detail: string
-  code: string
-  order: {
-    sale_id: number
-    status: string
-    is_order: boolean
-    total: string
-    items_count: number
-  }
-  commercial?: StoreCommercialSummary
 }
 
 export interface StoreOrderStatusDetail {
@@ -227,92 +136,15 @@ export interface StoreOrder {
   updated_at: string
   items: StoreOrderItem[]
   timeline: StoreOrderTimelineEvent[]
-  shipment?: StoreShipment | null;
-  shipping_address?: StoreShippingAddress;
-  invoice_required?: boolean;
+  shipment?: StoreShipment | null
+  shipping_address?: StoreShippingAddress
+  invoice_required?: boolean
   billing_data?: {
-    id_type: string;
-    id_number: string;
-    name: string;
-    email: string;
-  };
-}
-
-export interface StoreOrderStatusResponse {
-  detail: string
-  code: string
-  order: StoreOrder
-}
-
-export interface StoreOrderLookupResponse {
-  detail: string
-  code: string
-  count: number
-  orders: StoreOrder[]
-}
-
-export interface StoreOrderPaymentResponse {
-  detail: string
-  code: string
-  payment: {
-    reference: string
-    method: string | null
-    preferred_method?: string
-    status: string
-    paid_at: string | null
-    checkout_url?: string
+    id_type: string
+    id_number: string
+    name: string
+    email: string
   }
-  order: StoreOrder
-}
-
-export interface StoreWompiVerifyResponse {
-  detail: string
-  code: string
-  transaction: {
-    id: string
-    status: string
-    reference: string
-  }
-  order: StoreOrder
-}
-
-export interface StoreCustomerAuthUser {
-  id: number
-  username: string
-  email: string
-  first_name?: string
-  last_name?: string
-  is_staff: boolean
-  is_superuser: boolean
-  groups: string[]
-}
-
-export interface StoreCustomerRegisterRequest {
-  username: string
-  email: string
-  password: string
-  first_name?: string
-  last_name?: string
-}
-
-export interface StoreCustomerLoginRequest {
-  username: string
-  password: string
-}
-
-export interface StoreCustomerAuthResponse {
-  detail: string
-  code: string
-  access: string
-  refresh: string
-  user: StoreCustomerAuthUser
-}
-
-export interface StoreMyOrdersResponse {
-  detail: string
-  code: string
-  count: number
-  orders: StoreOrder[]
 }
 
 export interface StoreOpsOrdersResponse {
@@ -377,7 +209,3 @@ export interface StoreWompiHealthResponse {
   checkout_base_url: string
   missing: string[]
 }
-
-
-
-

@@ -34,7 +34,7 @@ interface ImagesManagementProps {
   images: ProductImage[]
   loading: boolean
   uploadLoading: boolean
-  variants: ProductVariant[]
+  // variants prop removed as we will fetch them specifically here
 }
 
 const ImagesManagement: React.FC<ImagesManagementProps> = ({
@@ -46,13 +46,29 @@ const ImagesManagement: React.FC<ImagesManagementProps> = ({
   images,
   loading,
   uploadLoading,
-  variants,
 }) => {
   const queryClient = useQueryClient()
   const theme = useTheme()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const [settingPrimaryId, setSettingPrimaryId] = useState<number | null>(null)
+  const [localVariants, setLocalVariants] = useState<ProductVariant[]>([])
+  const [variantsLoading, setVariantsLoading] = useState(false)
+
+  // Fetch variants only for the selected product
+  React.useEffect(() => {
+    if (selectedProduct) {
+      setVariantsLoading(true)
+      // Usar product_id filter en la API
+      productService.getVariants({ limit: 100, product: selectedProduct } as any)
+        .then(res => {
+          setLocalVariants(res.results)
+        })
+        .finally(() => setVariantsLoading(false))
+    } else {
+      setLocalVariants([])
+    }
+  }, [selectedProduct])
 
   const productOptions = useMemo(() => {
     const base = allProducts.map((p) => ({ label: p.name, id: p.id }))
@@ -100,10 +116,7 @@ const ImagesManagement: React.FC<ImagesManagementProps> = ({
     }
   }, [queryClient, selectedProduct])
 
-  const productVariants = useMemo(
-    () => variants.filter(v => v.product === selectedProduct),
-    [variants, selectedProduct]
-  )
+  const productVariants = localVariants
 
   const isDark = theme.palette.mode === 'dark'
 
@@ -292,6 +305,7 @@ const ImagesManagement: React.FC<ImagesManagementProps> = ({
                   <ImageCard
                     image={image}
                     variants={productVariants}
+                    variantsLoading={variantsLoading}
                     selectedProduct={selectedProduct}
                     onDelete={onDelete}
                     onSetPrimary={handleSetPrimary}
@@ -312,6 +326,7 @@ const ImagesManagement: React.FC<ImagesManagementProps> = ({
 interface ImageCardProps {
   image: ProductImage
   variants: ProductVariant[]
+  variantsLoading: boolean
   selectedProduct: number | null
   onDelete: (id: number) => void
   onSetPrimary: (image: ProductImage) => void
@@ -320,7 +335,7 @@ interface ImageCardProps {
 }
 
 const ImageCard: React.FC<ImageCardProps> = ({
-  image, variants, selectedProduct, onDelete, onSetPrimary, settingPrimaryId, queryClient,
+  image, variants, variantsLoading, selectedProduct, onDelete, onSetPrimary, settingPrimaryId, queryClient,
 }) => {
   const theme = useTheme()
   const [hovered, setHovered] = useState(false)
@@ -411,6 +426,7 @@ const ImageCard: React.FC<ImageCardProps> = ({
         <TextField
           select
           size="small"
+          disabled={variantsLoading}
           value={image.variant || ''}
           onChange={(e) => {
             const variantId = Number(e.target.value) || null
@@ -425,10 +441,16 @@ const ImageCard: React.FC<ImageCardProps> = ({
           }}
           SelectProps={{
             displayEmpty: true,
+            IconComponent: variantsLoading ? () => <CircularProgress size={10} sx={{ mr: 1 }} /> : undefined,
             renderValue: (value) => {
+              if (variantsLoading) return <Box sx={{ color: 'text.disabled', fontSize: '10px' }}>Cargando...</Box>
               if (value === '') return (
                 <Box sx={{ color: 'text.disabled', fontSize: '10px' }}>Sin variante</Box>
               )
+              // Priorizar la información que ya viene del servidor
+              if (image.variant_info && image.variant_info !== 'Sin variante') {
+                return image.variant_info
+              }
               const v = variants.find(variant => variant.id === Number(value))
               if (!v) return 'Variante'
               const gLabel = v.gender === 'male' ? 'H' : v.gender === 'female' ? 'M' : 'U'

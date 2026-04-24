@@ -392,16 +392,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Typography variant="overline" sx={{ px: 1, display: 'block', mb: 1, fontSize: '10px', color: 'text.disabled', fontWeight: 600 }}>
             Acciones Rápidas
           </Typography>
-          <Button 
-             fullWidth size="small" variant="outlined" 
-             onClick={() => { setMobileOpen(false); window.open(import.meta.env.VITE_SITE_URL || '#', '_blank'); }} 
-             sx={{ mb: 1, borderRadius: 1.5, fontSize: '12px', justifyContent: 'flex-start', px: 2 }}
-          >
-            Ver Tienda
-          </Button>
-          <Button 
-             fullWidth size="small" variant="contained" 
-             onClick={() => { setMobileOpen(false); navigate('/inventory/products?create=true'); }} 
+          <Button
+             fullWidth size="small" variant="contained"
+             onClick={() => { setMobileOpen(false); navigate('/inventory/products?create=true'); }}
              sx={{ mb: 1, borderRadius: 1.5, fontSize: '12px', justifyContent: 'flex-start', px: 2, bgcolor: 'text.primary', color: 'background.default' }}
           >
             + Nuevo Producto
@@ -789,29 +782,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <NotificacionesIcon sx={{ fontSize: 16 }} />
               </Badge>
             </IconButton>
-
-            <Button
-              onClick={() => window.open(import.meta.env.VITE_SITE_URL || '#', '_blank')}
-              variant="outlined"
-              size="small"
-              sx={{
-                display: { xs: 'none', sm: 'inline-flex' },
-                fontSize: '11px',
-                height: 30,
-                minWidth: 'auto',
-                px: 1.2,
-                borderRadius: 1.5,
-                color: 'text.secondary',
-                borderColor: theme.palette.divider,
-                textTransform: 'none',
-                fontWeight: 400,
-                bgcolor: 'background.paper',
-                whiteSpace: 'nowrap',
-                '&:hover': { borderColor: theme.palette.text.disabled, bgcolor: 'background.paper', color: 'text.primary' }
-              }}
-            >
-              Tienda
-            </Button>
 
             <Button
               onClick={() => navigate('/inventory/products?create=true')}

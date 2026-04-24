@@ -101,7 +101,7 @@ export const productService = {
   getImages: async (productId?: number): Promise<ProductImage[]> => {
     const url = productId ? `/api/product-images/?product=${productId}` : '/api/product-images/'
     const response = await api.get(url)
-    return response.data.results
+    return response.data
   },
 
   uploadImage: async (productId: number, formData: FormData): Promise<ProductImage> => {

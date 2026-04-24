@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import {
   Alert,
   Box,
   Button,
+  IconButton,
   MenuItem,
   Pagination,
   Stack,
+  Switch,
   TextField,
   Typography,
   Grid,
@@ -19,10 +21,17 @@ import {
   Search as SearchIcon,
   LocalShippingOutlined as ShippingIcon,
   EngineeringOutlined as MaintenanceIcon,
+  ViewCarouselOutlined as CarouselIcon,
+  AddPhotoAlternateOutlined as AddImageIcon,
+  ArrowUpward as ArrowUpIcon,
+  ArrowDownward as ArrowDownIcon,
+  DeleteOutline as DeleteIcon,
+  EditOutlined as EditIcon,
 } from '@mui/icons-material'
 import { storeService } from '../../services/storeService'
 import type {
   StoreBranding,
+  StoreHeroSlide,
   StoreOpsSummaryResponse,
   StoreOpsManualShipmentPayload,
   StoreOrder,
@@ -57,6 +66,30 @@ const STATUS_LABELS: Record<string, string> = {
   canceled: 'Cancelado',
 }
 
+const HERO_SLIDES_MAX = 10
+
+interface HeroSlideFormState {
+  eyebrow: string
+  title: string
+  subtitle: string
+  cta_text: string
+  cta_href: string
+  enabled: boolean
+  image_file: File | null
+  image_preview: string | null
+}
+
+const EMPTY_HERO_SLIDE_FORM: HeroSlideFormState = {
+  eyebrow: '',
+  title: '',
+  subtitle: '',
+  cta_text: '',
+  cta_href: '/catalogo',
+  enabled: true,
+  image_file: null,
+  image_preview: null,
+}
+
 export default function StoreOpsPage() {
   const theme = useTheme()
   const [summary, setSummary] = useState<StoreOpsSummaryResponse['summary'] | null>(null)
@@ -83,6 +116,15 @@ export default function StoreOpsPage() {
     status: 'in_transit',
     currency: 'COP',
   })
+
+  // Hero Carousel state
+  const [heroDialogOpen, setHeroDialogOpen] = useState(false)
+  const [heroSlides, setHeroSlides] = useState<StoreHeroSlide[]>([])
+  const [heroSlidesLoading, setHeroSlidesLoading] = useState(false)
+  const [editingSlide, setEditingSlide] = useState<StoreHeroSlide | null>(null)
+  const [heroFormOpen, setHeroFormOpen] = useState(false)
+  const [heroForm, setHeroForm] = useState<HeroSlideFormState>(EMPTY_HERO_SLIDE_FORM)
+  const [heroFormSaving, setHeroFormSaving] = useState(false)
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE))
 
@@ -194,6 +236,146 @@ export default function StoreOpsPage() {
     }
   }
 
+  // Hero Carousel handlers
+  const loadHeroSlides = async () => {
+    try {
+      setHeroSlidesLoading(true)
+      const resp = await storeService.listHeroSlides()
+      setHeroSlides(resp.slides)
+    } catch {
+      setErrorMessage('No se pudieron cargar los slides del hero.')
+    } finally {
+      setHeroSlidesLoading(false)
+    }
+  }
+
+  const openHeroDialog = async () => {
+    setHeroDialogOpen(true)
+    await loadHeroSlides()
+  }
+
+  const openHeroFormForCreate = () => {
+    if (heroSlides.length >= HERO_SLIDES_MAX) {
+      setErrorMessage(`Máximo ${HERO_SLIDES_MAX} slides permitidos.`)
+      return
+    }
+    setEditingSlide(null)
+    setHeroForm(EMPTY_HERO_SLIDE_FORM)
+    setHeroFormOpen(true)
+  }
+
+  const openHeroFormForEdit = (slide: StoreHeroSlide) => {
+    setEditingSlide(slide)
+    setHeroForm({
+      eyebrow: slide.eyebrow,
+      title: slide.title,
+      subtitle: slide.subtitle,
+      cta_text: slide.cta_text,
+      cta_href: slide.cta_href,
+      enabled: slide.enabled,
+      image_file: null,
+      image_preview: slide.image_url,
+    })
+    setHeroFormOpen(true)
+  }
+
+  const handleHeroImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setHeroForm((prev) => ({
+        ...prev,
+        image_file: file,
+        image_preview: (e.target?.result as string) || null,
+      }))
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleSaveHeroSlide = async () => {
+    if (!heroForm.title.trim()) {
+      setErrorMessage('El título es obligatorio.')
+      return
+    }
+    if (!editingSlide && !heroForm.image_file) {
+      setErrorMessage('La imagen es obligatoria al crear un slide.')
+      return
+    }
+
+    try {
+      setHeroFormSaving(true)
+      const formData = new FormData()
+      if (heroForm.image_file) formData.append('image', heroForm.image_file)
+      formData.append('eyebrow', heroForm.eyebrow)
+      formData.append('title', heroForm.title)
+      formData.append('subtitle', heroForm.subtitle)
+      formData.append('cta_text', heroForm.cta_text)
+      formData.append('cta_href', heroForm.cta_href)
+      formData.append('enabled', heroForm.enabled ? 'true' : 'false')
+
+      if (editingSlide) {
+        await storeService.updateHeroSlide(editingSlide.id, formData)
+        setSuccessMessage('Slide actualizado.')
+      } else {
+        await storeService.createHeroSlide(formData)
+        setSuccessMessage('Slide creado.')
+      }
+
+      setHeroFormOpen(false)
+      setEditingSlide(null)
+      setHeroForm(EMPTY_HERO_SLIDE_FORM)
+      await loadHeroSlides()
+    } catch {
+      setErrorMessage('Error al guardar el slide.')
+    } finally {
+      setHeroFormSaving(false)
+    }
+  }
+
+  const handleDeleteHeroSlide = async (slide: StoreHeroSlide) => {
+    if (!window.confirm(`¿Eliminar el slide "${slide.title}"?`)) return
+    try {
+      await storeService.deleteHeroSlide(slide.id)
+      setSuccessMessage('Slide eliminado.')
+      await loadHeroSlides()
+    } catch {
+      setErrorMessage('Error al eliminar el slide.')
+    }
+  }
+
+  const handleMoveHeroSlide = async (slide: StoreHeroSlide, direction: 'up' | 'down') => {
+    const idx = heroSlides.findIndex((s) => s.id === slide.id)
+    if (idx === -1) return
+    const swapWith = direction === 'up' ? idx - 1 : idx + 1
+    if (swapWith < 0 || swapWith >= heroSlides.length) return
+
+    const reordered = [...heroSlides]
+    ;[reordered[idx], reordered[swapWith]] = [reordered[swapWith], reordered[idx]]
+    const orderIds = reordered.map((s) => s.id)
+
+    // Optimistic UI
+    setHeroSlides(reordered)
+    try {
+      const resp = await storeService.reorderHeroSlides(orderIds)
+      setHeroSlides(resp.slides)
+    } catch {
+      setErrorMessage('Error al reordenar.')
+      await loadHeroSlides()
+    }
+  }
+
+  const handleToggleHeroEnabled = async (slide: StoreHeroSlide) => {
+    try {
+      const formData = new FormData()
+      formData.append('enabled', !slide.enabled ? 'true' : 'false')
+      await storeService.updateHeroSlide(slide.id, formData)
+      await loadHeroSlides()
+    } catch {
+      setErrorMessage('Error al cambiar estado.')
+    }
+  }
+
   return (
     <PageShell>
       <GlobalSectionHeader
@@ -285,15 +467,47 @@ export default function StoreOpsPage() {
                     <Typography variant="caption" color={branding.maintenance_mode ? 'warning.dark' : 'text.secondary'} sx={{ flexGrow: 1, lineHeight: 1.4 }}>
                       {branding.maintenance_mode ? 'La tienda está oculta por mantenimiento.' : 'La tienda está visible al público.'}
                     </Typography>
-                    <Button 
-                      size="small" 
-                      variant={branding.maintenance_mode ? 'contained' : 'outlined'} 
-                      color={branding.maintenance_mode ? 'warning' : 'primary'} 
-                      startIcon={<MaintenanceIcon sx={{ fontSize: 16 }} />} 
-                      onClick={() => setMaintenanceDialogOpen(true)} 
+                    <Button
+                      size="small"
+                      variant={branding.maintenance_mode ? 'contained' : 'outlined'}
+                      color={branding.maintenance_mode ? 'warning' : 'primary'}
+                      startIcon={<MaintenanceIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => setMaintenanceDialogOpen(true)}
                       sx={{ mt: 2, minWidth: '100%', borderRadius: 1.5, fontSize: '12px', boxShadow: 'none' }}
                     >
                       {branding.maintenance_mode ? 'En Mantenimiento' : 'Configurar'}
+                    </Button>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                  <Box sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Carrusel Hero</Typography>
+                      {branding.hero_slides && branding.hero_slides.length > 0 && (
+                        <Box sx={{
+                          px: 1, py: 0.25, borderRadius: '999px', fontSize: '10px', fontWeight: 700,
+                          bgcolor: alpha(theme.palette.success.main, 0.08),
+                          color: 'success.main',
+                          border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`
+                        }}>
+                          {branding.hero_slides.length} activos
+                        </Box>
+                      )}
+                    </Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1, lineHeight: 1.4 }}>
+                      {branding.hero_slides && branding.hero_slides.length > 0
+                        ? 'Slides dinámicos en el home de la tienda.'
+                        : 'Sin slides — el home usa imágenes por defecto.'}
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={openHeroDialog}
+                      startIcon={<CarouselIcon sx={{ fontSize: 16 }} />}
+                      sx={{ mt: 2, minWidth: '100%', borderRadius: 1.5, fontSize: '12px' }}
+                    >
+                      Gestionar Slides
                     </Button>
                   </Box>
                 </Grid>
@@ -836,6 +1050,281 @@ export default function StoreOpsPage() {
             <Alert severity="info" sx={{ '& .MuiAlert-message': { fontSize: '11px' } }}>
               Como administrador, tú siempre podrás ver la tienda normalmente para revisar tus cambios, incluso si el mantenimiento está activo.
             </Alert>
+          </Stack>
+        </Box>
+      </DialogShell>
+
+      {/* Hero Carousel: lista de slides */}
+      <DialogShell
+        open={heroDialogOpen}
+        onClose={() => setHeroDialogOpen(false)}
+        maxWidth="md"
+        dialogTitle="Carrusel del Home"
+        subtitle={`Hasta ${HERO_SLIDES_MAX} slides — sólo se muestran los habilitados`}
+        actions={
+          <>
+            <Button variant="text" sx={{ color: 'text.secondary' }} onClick={() => setHeroDialogOpen(false)}>Cerrar</Button>
+            <Button
+              variant="contained"
+              startIcon={<AddImageIcon sx={{ fontSize: 16 }} />}
+              onClick={openHeroFormForCreate}
+              disabled={heroSlides.length >= HERO_SLIDES_MAX}
+              sx={{ bgcolor: 'text.primary', color: 'background.default', '&:hover': { bgcolor: 'text.secondary' } }}
+            >
+              Nuevo Slide
+            </Button>
+          </>
+        }
+      >
+        <Box sx={{ mt: 2 }}>
+          {heroSlidesLoading ? (
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+              Cargando slides...
+            </Typography>
+          ) : heroSlides.length === 0 ? (
+            <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: `1px dashed ${theme.palette.divider}` }}>
+              <CarouselIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
+              <Typography variant="body2" color="text.secondary">
+                Aún no tienes slides creados.
+              </Typography>
+              <Typography variant="caption" color="text.disabled" display="block" sx={{ mt: 0.5 }}>
+                El home mostrará imágenes por defecto hasta que agregues uno.
+              </Typography>
+            </Box>
+          ) : (
+            <Stack spacing={1.5}>
+              {heroSlides.map((slide, idx) => (
+                <Box
+                  key={slide.id}
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    p: 1.5,
+                    borderRadius: 2,
+                    border: `1px solid ${theme.palette.divider}`,
+                    bgcolor: slide.enabled ? 'background.paper' : alpha(theme.palette.text.primary, 0.02),
+                    opacity: slide.enabled ? 1 : 0.65,
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={slide.image_url}
+                    alt={slide.title}
+                    sx={{
+                      width: 120,
+                      height: 70,
+                      objectFit: 'cover',
+                      borderRadius: 1,
+                      border: `1px solid ${theme.palette.divider}`,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                    {slide.eyebrow && (
+                      <Typography variant="caption" color="primary" sx={{ fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                        {slide.eyebrow}
+                      </Typography>
+                    )}
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.3, mb: 0.25 }} noWrap>
+                      {slide.title}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {slide.subtitle || '—'}
+                    </Typography>
+                    <Typography variant="caption" color="text.disabled" sx={{ fontSize: '10px' }}>
+                      Orden: {slide.order} · CTA: {slide.cta_text || '(sin botón)'}
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <Switch
+                      size="small"
+                      checked={slide.enabled}
+                      onChange={() => handleToggleHeroEnabled(slide)}
+                    />
+                    <IconButton size="small" disabled={idx === 0} onClick={() => handleMoveHeroSlide(slide, 'up')}>
+                      <ArrowUpIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" disabled={idx === heroSlides.length - 1} onClick={() => handleMoveHeroSlide(slide, 'down')}>
+                      <ArrowDownIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => openHeroFormForEdit(slide)}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" color="error" onClick={() => handleDeleteHeroSlide(slide)}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+          )}
+
+          <Alert severity="info" sx={{ mt: 2, '& .MuiAlert-message': { fontSize: '11px' } }}>
+            Recomendación: imágenes 1920×800 px en JPG/WebP optimizado. Si no hay slides habilitados, el home muestra el carrusel por defecto.
+          </Alert>
+        </Box>
+      </DialogShell>
+
+      {/* Hero Carousel: editor de slide */}
+      <DialogShell
+        open={heroFormOpen}
+        onClose={() => {
+          setHeroFormOpen(false)
+          setEditingSlide(null)
+          setHeroForm(EMPTY_HERO_SLIDE_FORM)
+        }}
+        maxWidth="sm"
+        dialogTitle={editingSlide ? 'Editar Slide' : 'Nuevo Slide'}
+        subtitle="Imagen de fondo + textos superpuestos del carrusel"
+        actions={
+          <>
+            <Button
+              variant="text"
+              sx={{ color: 'text.secondary' }}
+              onClick={() => {
+                setHeroFormOpen(false)
+                setEditingSlide(null)
+                setHeroForm(EMPTY_HERO_SLIDE_FORM)
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSaveHeroSlide}
+              disabled={heroFormSaving}
+              sx={{ bgcolor: 'text.primary', color: 'background.default', '&:hover': { bgcolor: 'text.secondary' } }}
+            >
+              {heroFormSaving ? 'Guardando...' : editingSlide ? 'Actualizar' : 'Crear Slide'}
+            </Button>
+          </>
+        }
+      >
+        <Box sx={{ mt: 2 }}>
+          <Stack spacing={2.5}>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 600 }}>
+                Imagen del Slide {!editingSlide && <span style={{ color: theme.palette.error.main }}>*</span>}
+              </Typography>
+              {heroForm.image_preview && (
+                <Box
+                  component="img"
+                  src={heroForm.image_preview}
+                  alt="Preview"
+                  sx={{
+                    width: '100%',
+                    height: 180,
+                    objectFit: 'cover',
+                    borderRadius: 1.5,
+                    border: `1px solid ${theme.palette.divider}`,
+                    mb: 1,
+                  }}
+                />
+              )}
+              <Button
+                component="label"
+                variant="outlined"
+                size="small"
+                fullWidth
+                startIcon={<AddImageIcon sx={{ fontSize: 16 }} />}
+                sx={{ borderRadius: 1.5, borderStyle: 'dashed' }}
+              >
+                {heroForm.image_preview ? 'Cambiar Imagen' : 'Subir Imagen'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={handleHeroImageChange}
+                />
+              </Button>
+              <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5, fontSize: '10px' }}>
+                Recomendado 1920×800 px · JPG/PNG/WebP
+              </Typography>
+            </Box>
+
+            <Divider />
+
+            <TextField
+              label="Eyebrow (texto pequeño superior)"
+              value={heroForm.eyebrow}
+              onChange={(e) => setHeroForm((p) => ({ ...p, eyebrow: e.target.value }))}
+              fullWidth
+              size="small"
+              placeholder="Ej: Nueva Colección 2026"
+              inputProps={{ maxLength: 80 }}
+            />
+
+            <TextField
+              label="Título principal *"
+              value={heroForm.title}
+              onChange={(e) => setHeroForm((p) => ({ ...p, title: e.target.value }))}
+              fullWidth
+              size="small"
+              placeholder="Ej: Estilo que define"
+              inputProps={{ maxLength: 140 }}
+              required
+            />
+
+            <TextField
+              label="Subtítulo"
+              value={heroForm.subtitle}
+              onChange={(e) => setHeroForm((p) => ({ ...p, subtitle: e.target.value }))}
+              fullWidth
+              size="small"
+              multiline
+              rows={2}
+              placeholder="Párrafo descriptivo opcional debajo del título"
+              inputProps={{ maxLength: 280 }}
+            />
+
+            <Grid container spacing={2}>
+              <Grid item xs={5}>
+                <TextField
+                  label="Texto del Botón"
+                  value={heroForm.cta_text}
+                  onChange={(e) => setHeroForm((p) => ({ ...p, cta_text: e.target.value }))}
+                  fullWidth
+                  size="small"
+                  placeholder="Ej: Ver Catálogo"
+                  helperText="Vacío oculta el botón"
+                  inputProps={{ maxLength: 40 }}
+                />
+              </Grid>
+              <Grid item xs={7}>
+                <TextField
+                  label="URL Destino"
+                  value={heroForm.cta_href}
+                  onChange={(e) => setHeroForm((p) => ({ ...p, cta_href: e.target.value }))}
+                  fullWidth
+                  size="small"
+                  placeholder="/catalogo"
+                  inputProps={{ maxLength: 220 }}
+                />
+              </Grid>
+            </Grid>
+
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 1.5,
+              borderRadius: 1.5,
+              border: `1px solid ${theme.palette.divider}`,
+              bgcolor: alpha(theme.palette.text.primary, 0.02),
+            }}>
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  Visible en el carrusel
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Si está apagado, el slide no se mostrará en el home.
+                </Typography>
+              </Box>
+              <Switch
+                checked={heroForm.enabled}
+                onChange={(e) => setHeroForm((p) => ({ ...p, enabled: e.target.checked }))}
+              />
+            </Box>
           </Stack>
         </Box>
       </DialogShell>

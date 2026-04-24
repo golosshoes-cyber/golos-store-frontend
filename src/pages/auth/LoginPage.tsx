@@ -10,8 +10,6 @@ import {
   CircularProgress,
   Stack,
 } from '@mui/material'
-import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
-import { Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { LoginCredentials } from '../../types'
 import { extractApiErrorMessage } from '../../utils/apiError'
@@ -186,25 +184,8 @@ const LoginPage: React.FC = () => {
                   Volver a poner contraseña
                 </Button>
               )}
-
-              {!isOtpRequired && (
-                <Button
-                  component={RouterLink}
-                  to="/store"
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<StorefrontRoundedIcon />}
-                  disabled={isLoading}
-                >
-                  Ir a la tienda pública
-                </Button>
-              )}
             </Stack>
           </Box>
-
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 2 }}>
-            Si eres cliente, puedes comprar directamente en la tienda.
-          </Typography>
         </Paper>
       </Box>
     </Container>
