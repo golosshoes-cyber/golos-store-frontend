@@ -133,10 +133,7 @@ export const useProductsLogic = () => {
     isLoading: imagesLoading,
   } = useQuery({
     queryKey: ['product-images', selectedProductForImages],
-    queryFn: async () => {
-      const allImages = await productService.getImages();
-      return selectedProductForImages ? allImages.filter(img => img.product === selectedProductForImages) : [];
-    },
+    queryFn: () => productService.getImages(selectedProductForImages ?? undefined),
     enabled: !!selectedProductForImages,
   })
 
