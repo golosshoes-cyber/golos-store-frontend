@@ -315,6 +315,8 @@ export const useProductsLogic = () => {
       productService.uploadImage(productId, formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['product-images', selectedProductForImages] })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      queryClient.invalidateQueries({ queryKey: ['all-products'] })
     },
     onError: (err: any) => {
       setError(extractApiErrorMessage(err, 'Error al subir imagen'))
@@ -326,6 +328,8 @@ export const useProductsLogic = () => {
     mutationFn: productService.deleteImage,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['product-images', selectedProductForImages] })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      queryClient.invalidateQueries({ queryKey: ['all-products'] })
     },
     onError: (err: any) => {
       setError(extractApiErrorMessage(err, 'Error al eliminar imagen'))
