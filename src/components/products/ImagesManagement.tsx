@@ -60,7 +60,7 @@ const ImagesManagement: React.FC<ImagesManagementProps> = ({
     if (selectedProduct) {
       setVariantsLoading(true)
       // Usar product_id filter en la API
-      productService.getVariants({ limit: 100, product: selectedProduct } as any)
+      productService.getVariants({ limit: 100, product: selectedProduct })
         .then(res => {
           setLocalVariants(res.results)
         })

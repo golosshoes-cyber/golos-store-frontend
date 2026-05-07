@@ -33,11 +33,12 @@ export const productService = {
   },
 
   // Servicios para variantes
-  getVariants: async (params: { page?: number; limit?: number; search?: string } = {}): Promise<{ count: number; next?: string; previous?: string; results: ProductVariant[] }> => {
+  getVariants: async (params: { page?: number; limit?: number; search?: string; product?: number } = {}): Promise<{ count: number; next?: string; previous?: string; results: ProductVariant[] }> => {
     const query = new URLSearchParams()
     if (params.page) query.append('page', params.page.toString())
     if (params.limit) query.append('limit', params.limit.toString())
     if (params.search) query.append('search', params.search)
+    if (params.product) query.append('product', params.product.toString())
     const response = await api.get(`/api/product-variants/?${query.toString()}`)
     return response.data
   },
@@ -99,9 +100,12 @@ export const productService = {
 
   // Servicios para imagenes 
   getImages: async (productId?: number): Promise<ProductImage[]> => {
-    const url = productId ? `/api/product-images/?product=${productId}` : '/api/product-images/'
-    const response = await api.get(url)
-    return response.data
+    const params = new URLSearchParams()
+    if (productId) params.append('product', productId.toString())
+    params.append('limit', '1000')
+    const response = await api.get(`/api/product-images/?${params.toString()}`)
+    const data = response.data
+    return Array.isArray(data) ? data : (data.results ?? [])
   },
 
   uploadImage: async (productId: number, formData: FormData): Promise<ProductImage> => {
