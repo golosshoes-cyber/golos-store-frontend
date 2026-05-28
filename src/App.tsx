@@ -6,7 +6,6 @@ import type { User } from './types'
 import { storeService } from './services/storeService'
 import MainLayout from './layouts/MainLayout'
 import ProtectedRoute from './components/admin/ProtectedRoute'
-import { useStockWebsocket } from './hooks/useStockWebsocket'
 
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
@@ -22,6 +21,9 @@ const FinancePage = lazy(() => import('./pages/admin/FinancePage'))
 const ReceivablesPage = lazy(() => import('./pages/receivables/ReceivablesPage'))
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'))
 const StoreOpsPage = lazy(() => import('./pages/store-ops/StoreOpsPage'))
+const LowStockPage = lazy(() => import('./pages/low-stock/LowStockPage'))
+const ExportsPage = lazy(() => import('./pages/exports/ExportsPage'))
+const VariantDetailPage = lazy(() => import('./pages/VariantDetailPage'))
 
 const extractGroupNames = (user: User | null): string[] => {
   if (!user || !Array.isArray(user.groups)) return []
@@ -46,9 +48,6 @@ const canAccessManagement = (user: User | null): boolean => {
 function App() {
   const { isAuthenticated, isLoading, user } = useAuth()
   const managementAccess = canAccessManagement(user)
-
-  // Conectar WebSockets para actualizaciones de stock en tiempo real
-  useStockWebsocket()
 
   useEffect(() => {
     let mounted = true
@@ -122,9 +121,11 @@ function App() {
                 <Routes>
                   <Route path="dashboard" element={<DashboardPage />} />
                   <Route path="inventory/products" element={<ProductsPage />} />
+                  <Route path="inventory/products/variant/:id" element={<VariantDetailPage />} />
                   <Route path="sales/orders" element={<SalesPage />} />
                   <Route path="sales/receivables" element={<ReceivablesPage />} />
                   <Route path="inventory/stock" element={<InventoryPage />} />
+                  <Route path="inventory/low-stock" element={<LowStockPage />} />
                   <Route path="profile" element={<ProfilePage />} />
                   <Route path="inventory/purchases" element={<PurchasePage />} />
                   <Route path="inventory/suppliers" element={<SuppliersPage />} />
@@ -149,6 +150,17 @@ function App() {
                         fallback={<Navigate to="/dashboard" replace />}
                       >
                         <ReportsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="analytics/exports"
+                    element={
+                      <ProtectedRoute
+                        requiredPermissions={['inventory.view_sale', 'auth.view_user']}
+                        fallback={<Navigate to="/dashboard" replace />}
+                      >
+                        <ExportsPage />
                       </ProtectedRoute>
                     }
                   />

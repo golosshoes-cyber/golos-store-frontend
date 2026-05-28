@@ -68,36 +68,6 @@ export const productService = {
     return response.data
   },
 
-  createPurchase: async (items: {variantId: number, quantity: number, unitCost: number, supplierId?: number}[], paymentMethod: string = 'none') => {
-    // Group items by supplierId
-    const itemsBySupplier: Record<number, any[]> = {}
-    
-    for (const item of items) {
-      const supplierId = item.supplierId || 1 // fallback to 1 if not provided
-      if (!itemsBySupplier[supplierId]) {
-        itemsBySupplier[supplierId] = []
-      }
-      itemsBySupplier[supplierId].push({
-        variant: item.variantId,
-        quantity: item.quantity
-      })
-    }
-    
-    // Make a bulk purchase request for each supplier group
-    let lastResponse = null
-    for (const [supplierIdStr, supplierItems] of Object.entries(itemsBySupplier)) {
-      const supplierId = parseInt(supplierIdStr)
-      lastResponse = await api.post('/api/purchases/bulk_purchase/', { 
-        supplier: supplierId, 
-        items: supplierItems,
-        payment_method: paymentMethod
-      })
-    }
-    
-    // Return the data of the last response (or we could combine them if needed)
-    return lastResponse?.data
-  },
-
   // Servicios para imagenes 
   getImages: async (productId?: number): Promise<ProductImage[]> => {
     const params = new URLSearchParams()

@@ -44,6 +44,7 @@ import {
   NavigateNext as NavigateNextIcon,
   Payments as FinanzasIcon,
   AccountBalanceWallet as CxCIcon,
+  FileDownload as FileDownloadIcon,
 } from '@mui/icons-material'
 import {
   TextField,
@@ -75,6 +76,7 @@ const menuSections = [
     items: [
       { text: 'Productos', icon: <AddBoxIcon />, path: '/inventory/products' },
       { text: 'Stock', icon: <InventarioIcon />, path: '/inventory/stock' },
+      { text: 'Stock Bajo', icon: <InventarioIcon />, path: '/inventory/low-stock' },
       { text: 'Compras', icon: <ComprasIcon />, path: '/inventory/purchases' },
       { text: 'Proveedores', icon: <ProveedoresIcon />, path: '/inventory/suppliers' },
     ]
@@ -90,6 +92,7 @@ const menuSections = [
     label: 'Análisis',
     items: [
       { text: 'Reportes', icon: <ReportesIcon />, path: '/analytics/reports' },
+      { text: 'Exportaciones', icon: <FileDownloadIcon />, path: '/analytics/exports' },
       { text: 'Finanzas', icon: <FinanzasIcon />, path: '/analytics/finance' },
     ]
   },

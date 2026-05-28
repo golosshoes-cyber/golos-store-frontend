@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { dashboardService } from '../../services/dashboardService'
+import { salesService } from '../../services/salesService'
 
 export const useSalesData = () => {
   const [page, setPage] = useState(1)
@@ -30,7 +30,7 @@ export const useSalesData = () => {
     error,
   } = useQuery({
     queryKey: ['sales', page, searchTerm, filterStatus],
-    queryFn: () => dashboardService.getSales({
+    queryFn: () => salesService.getSales({
       page,
       limit: 20,
       search: searchTerm,

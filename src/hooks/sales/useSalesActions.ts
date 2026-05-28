@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTheme } from '@mui/material/styles'
-import { dashboardService } from '../../services/dashboardService'
+import { salesService } from '../../services/salesService'
 import { Sale } from '../../types'
 import { showAcrylicConfirm } from '../../utils/showAcrylicConfirm'
 import { extractApiErrorMessage } from '../../utils/apiError'
@@ -23,7 +23,7 @@ export const useSalesActions = ({ showSuccess, showError }: UseSalesActionsProps
 
   // Mutación para crear venta
   const createSaleMutation = useMutation({
-    mutationFn: dashboardService.createSale,
+    mutationFn: salesService.createSale,
     onSuccess: () => {
       setCreateSaleDialogOpen(false)
       setEditingSale(null)
@@ -38,7 +38,7 @@ export const useSalesActions = ({ showSuccess, showError }: UseSalesActionsProps
   // Mutación para confirmar venta
   const confirmSaleMutation = useMutation({
     mutationFn: ({ id, invoicing_method }: { id: number; invoicing_method?: string }) => 
-      dashboardService.confirmSale(id, { invoicing_method }),
+      salesService.confirmSale(id, { invoicing_method }),
     onSuccess: (_, variables) => {
       const isElectronic = variables.invoicing_method === 'AUTOMATIC' || variables.invoicing_method === 'MANUAL'
       showSuccess(isElectronic ? 'Venta confirmada y Factura Electrónica emitida' : 'Venta confirmada exitosamente')
@@ -53,7 +53,7 @@ export const useSalesActions = ({ showSuccess, showError }: UseSalesActionsProps
 
   // Mutación para cancelar venta
   const cancelSaleMutation = useMutation({
-    mutationFn: dashboardService.cancelSale,
+    mutationFn: salesService.cancelSale,
     onSuccess: () => {
       showSuccess('Venta cancelada exitosamente')
       queryClient.invalidateQueries({ queryKey: ['sales'] })
@@ -132,7 +132,7 @@ export const useSalesActions = ({ showSuccess, showError }: UseSalesActionsProps
     })
 
     if (confirmed) {
-      await Promise.all(ids.map(id => dashboardService.confirmSale(id)))
+      await Promise.all(ids.map(id => salesService.confirmSale(id)))
       queryClient.invalidateQueries({ queryKey: ['sales'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
       showSuccess(`${ids.length} ventas confirmadas`)
@@ -153,7 +153,7 @@ export const useSalesActions = ({ showSuccess, showError }: UseSalesActionsProps
     })
 
     if (confirmed) {
-      await Promise.all(ids.map(id => dashboardService.cancelSale(id)))
+      await Promise.all(ids.map(id => salesService.cancelSale(id)))
       queryClient.invalidateQueries({ queryKey: ['sales'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
       showSuccess(`${ids.length} ventas canceladas`)

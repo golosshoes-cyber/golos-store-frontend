@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { productService } from '../../services/productService'
+import { purchaseService } from '../../services/purchaseService'
 import { extractApiErrorMessage } from '../../utils/apiError'
 
 interface PurchaseItemData {
@@ -26,7 +26,7 @@ export const usePurchaseForm = () => {
 
   const createPurchaseMutation = useMutation({
     mutationFn: ({ items, paymentMethod }: { items: PurchaseItemData[], paymentMethod: string }) => 
-      productService.createPurchase(items, paymentMethod),
+      purchaseService.createPurchase(items, paymentMethod),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['low-stock-products'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })

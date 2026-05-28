@@ -15,7 +15,7 @@ import {
 import { alpha, Button } from '@mui/material'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNotification } from '../../hooks/useNotification'
-import { dashboardService } from '../../services/dashboardService'
+import { salesService } from '../../services/salesService'
 import { useSalesData } from '../../hooks/sales/useSalesData'
 import { useSalesActions } from '../../hooks/sales/useSalesActions'
 import { useSalesFilters } from '../../hooks/sales/useSalesFilters'
@@ -126,7 +126,7 @@ const SalesPage: React.FC = () => {
   const handleSaleFormSubmit = async (saleData: any) => {
     try {
       // 1. Crear la venta (sin detalles)
-      const createdSale = await dashboardService.createSale({
+      const createdSale = await salesService.createSale({
         customer: saleData.customer,
         is_order: saleData.is_order,
         payment_method: saleData.payment_method,
@@ -143,7 +143,7 @@ const SalesPage: React.FC = () => {
           quantity: parseInt(item.quantity),
           price: parseFloat(item.price),
         }
-        await dashboardService.createSaleDetail(detailData)
+        await salesService.createSaleDetail(detailData)
       }
       
       // 3. Limpiar formulario y refrescar datos
