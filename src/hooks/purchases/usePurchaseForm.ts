@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { purchaseService } from '../../services/purchaseService'
+import { productService } from '../../services/productService'
 import { extractApiErrorMessage } from '../../utils/apiError'
 
 interface PurchaseItemData {

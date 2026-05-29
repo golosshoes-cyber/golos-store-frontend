@@ -18,8 +18,6 @@ import {
 } from '@mui/material'
 import {
   Menu as MenuIcon,
-  AccountCircle as AccountCircleIcon,
-  Logout as LogoutIcon,
   DarkMode,
   LightMode,
   GridView as GridViewIcon,

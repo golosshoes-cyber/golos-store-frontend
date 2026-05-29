@@ -20,19 +20,7 @@ import {
   Logout as LogoutIcon,
   AdminPanelSettings as AdminPanelSettingsIcon,
   GroupWork as GroupWorkIcon,
-  GridView as GridViewIcon,
-  AddBox as AddBoxIcon,
-  Tune as InventarioIcon,
-  HexagonOutlined as ComprasIcon,
-  StoreOutlined as ProveedoresIcon,
-  ShoppingCartOutlined as ShoppingCartIcon,
-  AccountBalanceWallet as CxCIcon,
-  AssessmentOutlined as ReportesIcon,
-  FileDownload as FileDownloadIcon,
-  Payments as FinanzasIcon,
 } from '@mui/icons-material'
-
-const drawerWidth = 220
 
 interface NavItem {
   text: string
@@ -62,7 +50,7 @@ interface SidebarDrawerProps {
   onMobileClose?: () => void
 }
 
-const navItemSx = (selected: boolean, mode: 'light' | 'dark', theme?: any) => ({
+const navItemSx = (selected: boolean, mode: 'light' | 'dark') => ({
   borderRadius: 1.2,
   mx: 0.5,
   my: 0.1,
