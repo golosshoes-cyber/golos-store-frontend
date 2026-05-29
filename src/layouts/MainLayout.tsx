@@ -6,30 +6,20 @@ import {
   IconButton,
   List,
   ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   Toolbar,
   Typography,
-  Avatar,
-  Divider,
   Button,
   alpha,
   useTheme,
-  MenuItem,
   Menu,
   Badge,
   Breadcrumbs,
   Link as MuiLink,
-  ClickAwayListener,
-  Paper as PopoverPaper,
 } from '@mui/material'
 import {
   Menu as MenuIcon,
   AccountCircle as AccountCircleIcon,
   Logout as LogoutIcon,
-  AdminPanelSettings as AdminPanelSettingsIcon,
-  GroupWork as GroupWorkIcon,
   DarkMode,
   LightMode,
   GridView as GridViewIcon,
@@ -61,6 +51,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useCommonPermissions } from '../hooks/auth/usePermissions'
 import { useThemeMode } from '../contexts/ThemeModeContext'
 import { useStockWebsocket } from '../hooks/useStockWebsocket'
+import SidebarDrawer from '../components/layout/SidebarDrawer'
 
 const drawerWidth = 220
 
@@ -191,6 +182,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { data: brandingData } = useQuery({
     queryKey: ['store-branding-ops'],
     queryFn: () => storeService.getBranding(),
+    staleTime: 5 * 60_000,
   })
   const branding = brandingData?.branding
 
@@ -227,38 +219,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
-  const navItemSx = (selected: boolean) => ({
-    borderRadius: 0.8,
-    mx: 0.8,
-    my: 0,
-    px: 1,
-    py: 0.25,
-    minHeight: 30, // Extremely compact
-    transition: 'all 0.1s ease',
-    '& .MuiListItemIcon-root': {
-      minWidth: 24,
-      color: selected ? theme.palette.text.primary : theme.palette.text.secondary,
-      opacity: selected ? 1 : 0.7,
-    },
-    '& .MuiListItemText-primary': {
-      fontSize: '13px',
-      fontWeight: selected ? 500 : 400,
-      color: selected ? theme.palette.text.primary : theme.palette.text.secondary,
-    },
-    '&.Mui-selected': {
-      backgroundColor: mode === 'light' ? theme.palette.action.hover : alpha('#fff', 0.04),
-      color: theme.palette.text.primary,
-      fontWeight: 500,
-      '&:hover': {
-        backgroundColor: mode === 'light' ? theme.palette.action.selected : alpha('#fff', 0.06),
-      },
-    },
-    '&:hover': {
-      backgroundColor: mode === 'light' ? theme.palette.action.hover : alpha('#fff', 0.03),
-      color: theme.palette.text.primary,
-    },
-  })
-
   const getVisibleItems = (items: any[]) => items.filter((item) => {
     if (['/analytics/reports', '/notifications'].includes(item.path)) return canViewReports
     if (item.path === '/analytics/finance') return canViewFinance
@@ -274,255 +234,47 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     items: getVisibleItems(section.items)
   })).filter(section => section.items.length > 0)
 
-  const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
-      <Box sx={{
-        height: 52,
-        display: 'flex',
-        alignItems: 'center',
-        px: 2,
-        gap: 1.5,
-        borderBottom: `1px solid ${theme.palette.divider}`
-      }}>
-        <Box sx={{
-          width: 26,
-          height: 26,
-          bgcolor: 'text.primary',
-          color: 'background.default',
-          borderRadius: 1.5,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '11px',
-          fontWeight: 600,
-          letterSpacing: '-0.5px',
-          overflow: 'hidden'
-        }}>
-          {branding?.logo_url ? (
-            <img src={branding.logo_url} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            (branding?.store_name || 'Golos Store').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-          )}
-        </Box>
-        <Typography variant="body2" noWrap sx={{ fontWeight: 500, fontSize: '13px', letterSpacing: '-0.3px' }}>
-          {branding?.store_name || 'Golos Store'}
-        </Typography>
-      </Box>
-
-      <Box sx={{ flex: 1, minHeight: 0, py: 0.5, overflowY: 'auto' }}>
-        {visibleSections.map((section) => (
-          <Box key={section.label} sx={{ mb: 0.8 }}>
-            {section.label && (
-              <Typography variant="caption" sx={{
-                px: 2,
-                py: 0.2,
-                display: 'block',
-                fontSize: '10px',
-                fontWeight: 500,
-                color: 'text.secondary',
-                opacity: 0.5,
-                letterSpacing: '0.6px',
-                textTransform: 'uppercase'
-              }}>
-                {section.label}
-              </Typography>
-            )}
-            <List sx={{ px: 0, py: 0.1 }}>
-              {section.items.map((item: any) => (
-                <ListItem key={item.text} disablePadding sx={{ mb: 0 }}>
-                  <ListItemButton
-                    selected={location.pathname.includes(item.path)}
-                    onClick={() => navigate(item.path)}
-                    sx={navItemSx(location.pathname.includes(item.path))}
-                  >
-                    <ListItemIcon>
-                      {React.cloneElement(item.icon, { sx: { fontSize: 16 } })}
-                    </ListItemIcon>
-                    <ListItemText primary={item.text} />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        ))}
-
-        {canAccessAdmin && (
-          <Box sx={{ mb: 0.5 }}>
-            <Typography variant="caption" sx={{
-              px: 2,
-              py: 0.3,
-              display: 'block',
-              fontSize: '8px',
-              fontWeight: 600,
-              color: 'text.secondary',
-              opacity: 0.3,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase'
-            }}>
-              Administración
-            </Typography>
-            <List sx={{ px: 0, py: 0 }}>
-              <ListItem disablePadding sx={{ mb: 0.2 }}>
-                <ListItemButton
-                  selected={location.pathname.includes('/settings/users')}
-                  onClick={() => navigate('/settings/users')}
-                  sx={navItemSx(location.pathname.includes('/settings/users'))}
-                >
-                  <ListItemIcon>
-                    <AdminPanelSettingsIcon sx={{ fontSize: 16 }} />
-                  </ListItemIcon>
-                  <ListItemText primary="Usuarios" />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding sx={{ mb: 0.2 }}>
-                <ListItemButton
-                  selected={location.pathname.includes('/settings/groups')}
-                  onClick={() => navigate('/settings/groups')}
-                  sx={navItemSx(location.pathname.includes('/settings/groups'))}
-                >
-                  <ListItemIcon>
-                    <GroupWorkIcon sx={{ fontSize: 16 }} />
-                  </ListItemIcon>
-                  <ListItemText primary="Grupos" />
-                </ListItemButton>
-              </ListItem>
-            </List>
-          </Box>
-        )}
-
-        {/* Acciones Rápidas Móvil (Solo Visible en XS) */}
-        <Box sx={{ display: { xs: 'block', sm: 'none' }, mt: 2, mb: 2, px: 2 }}>
-          <Typography variant="overline" sx={{ px: 1, display: 'block', mb: 1, fontSize: '10px', color: 'text.disabled', fontWeight: 600 }}>
-            Acciones Rápidas
-          </Typography>
-          <Button
-             fullWidth size="small" variant="contained"
-             onClick={() => { setMobileOpen(false); navigate('/inventory/products?create=true'); }}
-             sx={{ mb: 1, borderRadius: 1.5, fontSize: '12px', justifyContent: 'flex-start', px: 2, bgcolor: 'text.primary', color: 'background.default' }}
-          >
-            + Nuevo Producto
-          </Button>
-          <Button 
-             fullWidth size="small" variant="contained" 
-             onClick={() => { setMobileOpen(false); navigate('/sales/orders?create=true'); }} 
-             sx={{ borderRadius: 1.5, fontSize: '12px', justifyContent: 'flex-start', px: 2, bgcolor: 'text.primary', color: 'background.default' }}
-          >
-            + Nueva Venta
-          </Button>
-        </Box>
-      </Box>
-
-      <Box sx={{ p: 1, borderTop: `1px solid ${theme.palette.divider}`, position: 'relative' }}>
-        {/* Inline dropdown - positioned relative to this box, no portal */}
-        {Boolean(anchorEl) && (
-          <ClickAwayListener onClickAway={handleMenuClose}>
-            <PopoverPaper
-              elevation={4}
-              sx={{
-                position: 'absolute',
-                bottom: 'calc(100% + 4px)',
-                left: 8,
-                right: 8,
-                zIndex: 9999,
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: 1.5,
-                overflow: 'hidden',
-                boxShadow: theme.palette.mode === 'light' 
-                  ? '0 -4px 20px rgba(0,0,0,0.1)'
-                  : '0 -4px 20px rgba(0,0,0,0.4)',
-              }}
-            >
-              <MenuItem
-                onClick={() => { navigate('/profile'); handleMenuClose(); }}
-                sx={{ fontSize: '13px', py: 1, gap: 1 }}
-              >
-                <AccountCircleIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-                Mi Perfil
-              </MenuItem>
-              <Divider sx={{ my: 0 }} />
-              <MenuItem
-                onClick={handleLogout}
-                sx={{ fontSize: '13px', py: 1, gap: 1, color: 'error.main' }}
-              >
-                <LogoutIcon sx={{ fontSize: 18 }} />
-                Cerrar Sesión
-              </MenuItem>
-            </PopoverPaper>
-          </ClickAwayListener>
-        )}
-
-        <Box
-          ref={profileButtonRef}
-          onClick={handleMenuOpen}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.2,
-            p: 1,
-            borderRadius: 1.5,
-            cursor: 'pointer',
-            '&:hover': { bgcolor: 'action.hover' }
-          }}
-        >
-          <Avatar sx={{
-            width: 28,
-            height: 28,
-            fontSize: '11px',
-            fontWeight: 600,
-            bgcolor: 'text.primary',
-            color: 'background.default'
-          }}>
-            {user?.username?.charAt(0).toUpperCase()}
-          </Avatar>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography variant="body2" sx={{ fontSize: '13px', fontWeight: 500 }} noWrap>
-              {user?.username}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: '11px', color: 'text.secondary', display: 'block' }}>
-              {isAdmin ? 'Administrador' : 'Usuario'}
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
-    </Box>
-  )
-
   return (
     <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
       <AppBar
         position="fixed"
         sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          ml: { md: `${drawerWidth}px` },
           bgcolor: 'background.default',
           color: 'text.primary',
           borderBottom: `1px solid ${theme.palette.divider}`,
           boxShadow: 'none',
-          zIndex: (theme) => ({ xs: theme.zIndex.appBar, sm: theme.zIndex.drawer + 1 }),
+          zIndex: (theme) => ({ xs: theme.zIndex.appBar, md: theme.zIndex.drawer + 1 }),
         }}
       >
         <Toolbar
           sx={{
-            minHeight: { xs: 'auto', sm: 52 },
-            px: { xs: 1.5, sm: 3 },
-            py: { xs: 1.5, sm: 0 },
-            flexDirection: 'column',
+            minHeight: { xs: 'auto', md: 52 },
+            px: { xs: 1.5, md: 3 },
+            py: { xs: 1.5, md: 0 },
+            flexDirection: { xs: 'column', md: 'row' },
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: { xs: 0, md: 2 }
           }}
         >
           {/* TOP ROW: Menu toggle + Title + Mode toggle */}
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
-            width: '100%',
-            minHeight: { xs: 32, sm: 52 },
-            gap: 1.5
+            width: { xs: '100%', md: 'auto' },
+            minHeight: { xs: 32, md: 52 },
+            gap: 1.5,
+            flexGrow: 1,
+            overflow: 'hidden'
           }}>
             <IconButton
               color="inherit"
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ display: { sm: 'none' } }}
+              sx={{ display: { md: 'none' } }}
             >
               <MenuIcon sx={{ fontSize: 20 }} />
             </IconButton>
@@ -532,22 +284,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               display: 'flex', 
               alignItems: 'center',
               minWidth: 0, // Critical for text-overflow to work in flex
-              mr: { sm: 20 }, // Reserve space for absolute actions on desktop
-              overflow: 'hidden'
             }}>
               <Breadcrumbs 
                 separator={<NavigateNextIcon sx={{ fontSize: 14, opacity: 0.5 }} />}
                 aria-label="breadcrumb"
                 sx={{ 
-                  '& .MuiBreadcrumbs-ol': { alignItems: 'center' },
-                  '& .MuiBreadcrumbs-separator': { mx: 0.5 }
+                  minWidth: 0,
+                  width: '100%',
+                  '& .MuiBreadcrumbs-ol': { 
+                    alignItems: 'center', 
+                    flexWrap: 'nowrap',
+                    minWidth: 0,
+                  },
+                  '& .MuiBreadcrumbs-li': {
+                    minWidth: 0,
+                    display: 'flex',
+                  },
+                  '& .MuiBreadcrumbs-li:last-child': {
+                    flexShrink: 1, // allow the last item to shrink most
+                    minWidth: 0,
+                  },
+                  '& .MuiBreadcrumbs-separator': { mx: 0.5, flexShrink: 0 },
                 }}
               >
                 <MuiLink
                   component="button"
                   onClick={() => navigate('/dashboard')}
                   sx={{ 
-                    fontSize: { xs: '12px', sm: '13px' }, 
+                    fontSize: { xs: '12px', md: '13px' }, 
                     fontWeight: 500, 
                     color: 'text.secondary',
                     textDecoration: 'none',
@@ -557,7 +321,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     border: 'none',
                     p: 0,
                     cursor: 'pointer',
-                    '&:hover': { color: 'text.primary' }
+                    '&:hover': { color: 'text.primary' },
+                    flexShrink: 0
                   }}
                 >
                   Golos
@@ -572,9 +337,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                       <Typography 
                         key={path}
                         sx={{ 
-                          fontSize: { xs: '12px', sm: '13px' }, 
+                          fontSize: { xs: '12px', md: '13px' }, 
                           fontWeight: 600, 
-                          color: 'text.primary' 
+                          color: 'text.primary',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: 'block'
                         }}
                       >
                         {label}
@@ -588,7 +357,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                       component="button"
                       onClick={() => navigate(path)}
                       sx={{ 
-                        fontSize: { xs: '12px', sm: '13px' }, 
+                        fontSize: { xs: '12px', md: '13px' }, 
                         fontWeight: 500, 
                         color: 'text.secondary',
                         textDecoration: 'none',
@@ -596,7 +365,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                         border: 'none',
                         p: 0,
                         cursor: 'pointer',
-                        '&:hover': { color: 'text.primary' }
+                        '&:hover': { color: 'text.primary' },
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0
                       }}
                     >
                       {label}
@@ -612,8 +383,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               borderRadius: 1.5,
               border: `1px solid ${theme.palette.divider}`,
               color: 'text.secondary',
-              display: { xs: 'flex', sm: 'none' }, // Only show mode toggle here on mobile
-              '&:hover': { borderColor: theme.palette.text.disabled, color: 'text.primary' }
+              display: { xs: 'flex', md: 'none' }, // Only show mode toggle here on mobile
+              '&:hover': { borderColor: theme.palette.text.disabled, color: 'text.primary' },
+              flexShrink: 0
             }}>
               {mode === 'dark' ? <LightMode style={{ fontSize: 13 }} /> : <DarkMode style={{ fontSize: 13 }} />}
             </IconButton>
@@ -623,19 +395,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
-            width: '100%',
-            mt: { xs: 1.5, sm: 0 },
+            width: { xs: '100%', md: 'auto' },
+            mt: { xs: 1.5, md: 0 },
             gap: 1,
-            // In desktop it stays integrated with the row above via position absolute or flex layout
-            // But here we use Toolbar flex-direction column to stack it
-            position: { xs: 'relative', sm: 'absolute' },
-            right: { sm: 24 },
-            top: { sm: 0 },
-            height: { sm: '100%' },
             justifyContent: 'flex-end',
-            maxWidth: { xs: '100%', sm: 'auto' },
-            overflowX: { xs: 'auto', sm: 'visible' },
-            pb: { xs: 0.5, sm: 0 },
+            flexShrink: 1, // Allow this container to shrink
+            minWidth: 0,   // Crucial for flex shrinkage
+            overflowX: { xs: 'auto', md: 'visible' },
+            pb: { xs: 0.5, md: 0 },
             // Scrollbar styling for horizontal actions on mobile
             '&::-webkit-scrollbar': { height: 0 },
           }}>
@@ -678,7 +445,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                       fontSize: '11px',
                       '& fieldset': { borderColor: theme.palette.divider },
                     },
-                    minWidth: { xs: 120, sm: 280 },
+                    width: { xs: '100%', md: 280 }, // Let it be 280px by default
+                    minWidth: { xs: 120, md: 130 }, // But allow it to shrink down to 130px on md
+                    flexShrink: 1,
                   }}
                 />
               )}
@@ -791,11 +560,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               variant="contained"
               size="small"
               sx={{
-                display: { xs: 'none', sm: 'inline-flex' },
+                display: { xs: 'none', md: 'inline-flex' },
                 fontSize: '10px',
                 height: 30,
                 minWidth: 'auto',
-                px: 1.2,
+                px: { md: 1, lg: 1.2 },
                 borderRadius: 1.5,
                 bgcolor: 'text.primary',
                 color: 'background.default',
@@ -806,7 +575,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 '&:hover': { bgcolor: 'text.secondary', boxShadow: 'none' }
               }}
             >
-              + Producto
+              <AddBoxIcon sx={{ fontSize: 16, mr: { lg: 0.5 } }} />
+              <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>Producto</Box>
             </Button>
 
             <Button
@@ -814,11 +584,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               variant="contained"
               size="small"
               sx={{
-                display: { xs: 'none', sm: 'inline-flex' },
+                display: { xs: 'none', md: 'inline-flex' },
                 fontSize: '10px',
                 height: 30,
                 minWidth: 'auto',
-                px: 1.2,
+                px: { md: 1, lg: 1.2 },
                 borderRadius: 1.5,
                 bgcolor: 'text.primary',
                 color: 'background.default',
@@ -829,7 +599,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 '&:hover': { bgcolor: 'text.secondary', boxShadow: 'none' }
               }}
             >
-              + Venta
+              <ShoppingCartIcon sx={{ fontSize: 16, mr: { lg: 0.5 } }} />
+              <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>Venta</Box>
             </Button>
 
             <IconButton onClick={toggleColorMode} size="small" sx={{
@@ -838,7 +609,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               borderRadius: 1.5,
               border: `1px solid ${theme.palette.divider}`,
               color: 'text.secondary',
-              display: { xs: 'none', sm: 'flex' },
+              display: { xs: 'none', md: 'flex' },
               '&:hover': { borderColor: theme.palette.text.disabled, color: 'text.primary' }
             }}>
               {mode === 'dark' ? <LightMode style={{ fontSize: 13 }} /> : <DarkMode style={{ fontSize: 13 }} />}
@@ -963,7 +734,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
       <Box
         component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
       >
         <Drawer
           variant="temporary"
@@ -971,30 +742,60 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           onClose={handleDrawerToggle}
           ModalProps={{ keepMounted: true }}
           sx={{
-            display: { xs: 'block', sm: 'none' },
+            display: { xs: 'block', md: 'none' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
           }}
         >
-          {drawer}
+          <SidebarDrawer
+  mode={mode}
+  branding={branding}
+  visibleSections={visibleSections}
+  pathname={location.pathname}
+  onNavigate={navigate}
+  username={user?.username}
+  isAdmin={isAdmin}
+  canAccessAdmin={canAccessAdmin}
+  anchorEl={anchorEl}
+  onMenuOpen={handleMenuOpen}
+  onMenuClose={handleMenuClose}
+  onLogout={handleLogout}
+  profileButtonRef={profileButtonRef}
+  onMobileClose={() => setMobileOpen(false)}
+/>
         </Drawer>
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: 'none', sm: 'block' },
+            display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, borderRight: `1px solid ${theme.palette.divider}` },
           }}
           open
         >
-          {drawer}
+          <SidebarDrawer
+  mode={mode}
+  branding={branding}
+  visibleSections={visibleSections}
+  pathname={location.pathname}
+  onNavigate={navigate}
+  username={user?.username}
+  isAdmin={isAdmin}
+  canAccessAdmin={canAccessAdmin}
+  anchorEl={anchorEl}
+  onMenuOpen={handleMenuOpen}
+  onMenuClose={handleMenuClose}
+  onLogout={handleLogout}
+  profileButtonRef={profileButtonRef}
+  onMobileClose={() => setMobileOpen(false)}
+/>
         </Drawer>
       </Box>
 
       <Box component="main" sx={{
         flexGrow: 1,
-        p: { xs: 2, sm: 3 },
-        width: { sm: `calc(100% - ${drawerWidth}px)` },
+        p: { xs: 2, md: 3 },
+        width: { md: `calc(100% - ${drawerWidth}px)` },
         // Adjust for taller header on mobile
-        pt: { xs: '110px !important', sm: '75px !important' }
+        pt: { xs: '110px !important', md: '75px !important' }
       }}>
         {children}
       </Box>

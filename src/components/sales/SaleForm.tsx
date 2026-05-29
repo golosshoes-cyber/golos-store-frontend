@@ -44,12 +44,14 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onSubmit, onCancel, loading =
   const { data: variantsData } = useQuery({
     queryKey: ['variants'],
     queryFn: () => productService.getVariants({ limit: 1000 }),
+    staleTime: 5 * 60_000,
   })
 
   // Fetch products to get product names
   const { data: productsData } = useQuery({
     queryKey: ['products'],
     queryFn: () => productService.getProducts({ limit: 1000 }),
+    staleTime: 5 * 60_000,
   })
 
   const variants = variantsData?.results || []

@@ -1,7 +1,6 @@
 import { api } from './api'
 import { LoginCredentials, AuthResponse, User } from '../types'
 
-// TODO: Implementar servicios de autenticación
 export const authService = {
   login: async (credentials: LoginCredentials): Promise<any> => {
     const response = await api.post('/api/token/', credentials)

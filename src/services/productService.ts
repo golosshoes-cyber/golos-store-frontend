@@ -1,7 +1,6 @@
 import { api } from './api'
 import { Product, ProductVariant, ProductImage } from '../types'
 
-// TODO: Implementar servicios de productos
 export const productService = {
   // Servicios para Productos
   getProducts: async (params: { page?: number; limit?: number; search?: string } = {}): Promise<{ count: number; next?: string; previous?: string; results: Product[] }> => {

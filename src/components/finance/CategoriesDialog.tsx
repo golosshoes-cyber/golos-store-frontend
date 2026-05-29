@@ -40,7 +40,8 @@ const CategoriesDialog: React.FC<CategoriesDialogProps> = ({ open, onClose }) =>
   const { data: categories } = useQuery({
     queryKey: ['financial-categories-all'],
     queryFn: () => financeService.getCategories({}),
-    enabled: open
+    enabled: open,
+    staleTime: 5 * 60_000,
   })
 
   const createMutation = useMutation({

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { productService } from '../../services/productService'
 import { supplierService } from '../../services/supplierService'
 import { purchaseService } from '../../services/purchaseService'
@@ -43,22 +43,26 @@ export const usePurchaseLogic = () => {
   const { data: purchasesData, isLoading: detailsLoading, refetch: refetchPurchases } = useQuery({
     queryKey: ['purchases', detailsPage, filters],
     queryFn: () => purchaseService.getPurchases(detailsPage, filters),
+    placeholderData: keepPreviousData,
   })
 
   // We only need these for the creation dialog and filters
   const { data: suppliersData } = useQuery({
     queryKey: ['suppliers'],
     queryFn: () => supplierService.getSuppliers(),
+    staleTime: 5 * 60_000,
   })
 
   const { data: allProductsData } = useQuery({
     queryKey: ['all-products'],
     queryFn: () => productService.getProducts(),
+    staleTime: 5 * 60_000,
   })
 
   const { data: variantsData } = useQuery({
     queryKey: ['variants-details'],
     queryFn: () => productService.getVariants(),
+    staleTime: 5 * 60_000,
   })
 
   // Processed data

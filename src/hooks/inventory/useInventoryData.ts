@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { productService } from '../../services/productService'
 import { extractApiErrorMessage } from '../../utils/apiError'
 
@@ -30,12 +30,14 @@ export const useInventoryData = ({ showSuccess, showError }: UseInventoryDataPro
   } = useQuery({
     queryKey: ['variants', page, searchTerm, lowStockOnly],
     queryFn: () => productService.getVariants({ page, search: searchTerm, limit: 20 }),
+    placeholderData: keepPreviousData,
   })
 
   // Fetch products to get product names
   const { data: productsData } = useQuery({
     queryKey: ['products'],
     queryFn: () => productService.getProducts({ limit: 1000 }),
+    staleTime: 5 * 60_000,
   })
 
   const products = productsData?.results || []

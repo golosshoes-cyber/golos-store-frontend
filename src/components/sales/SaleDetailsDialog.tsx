@@ -38,13 +38,15 @@ const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({ sale, open, onClo
   const { data: allProductsData } = useQuery({
     queryKey: ['all-products'],
     queryFn: () => productService.getProducts({}),
-    enabled: open && sale?.details && sale.details.length > 0
+    enabled: open && sale?.details && sale.details.length > 0,
+    staleTime: 5 * 60_000,
   })
 
   const { data: brandingData } = useQuery({
     queryKey: ['ops-branding'],
     queryFn: () => storeService.getOpsBranding(),
-    enabled: open
+    enabled: open,
+    staleTime: 5 * 60_000,
   })
 
   const branding = brandingData?.branding

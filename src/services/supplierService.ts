@@ -1,7 +1,6 @@
 import { api } from './api'
 import { Supplier } from '../types'
 
-// TODO: Implementar servicios de proveedores
 export const supplierService = {
   // Servicios para Proveedores
   getSuppliers: async (params: { page?: number; limit?: number; search?: string } = {}): Promise<{ count: number; next?: string; previous?: string; results: Supplier[] }> => {

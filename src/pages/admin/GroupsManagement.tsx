@@ -48,11 +48,13 @@ const GroupsManagement: React.FC = () => {
   const { data: groupsData, isLoading: groupsLoading } = useQuery({
     queryKey: ['groups'],
     queryFn: () => userService.getGroups(),
+    staleTime: 5 * 60_000,
   })
 
   const { data: permissionsData = [] } = useQuery({
     queryKey: ['permissions'],
     queryFn: () => userService.getPermissions(),
+    staleTime: 10 * 60_000,
   })
 
   const groups = useMemo(() => groupsData?.results || [], [groupsData])

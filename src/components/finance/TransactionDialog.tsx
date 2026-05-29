@@ -39,6 +39,7 @@ const TransactionDialog: React.FC<TransactionDialogProps> = ({
     queryKey: ['financial-categories', type],
     queryFn: () => financeService.getCategories({ is_income: type === 'income', is_active: true }),
     enabled: open,
+    staleTime: 5 * 60_000,
   })
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -14,7 +14,7 @@ import {
   Divider,
 } from '@mui/material'
 import { Add as AddIcon, Group as GroupIcon } from '@mui/icons-material'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { userService } from '../../services/userService'
 import { useCommonPermissions } from '../../hooks/auth/usePermissions'
 import UserFormSimple from '../../components/admin/UserFormSimple'
@@ -50,11 +50,13 @@ const UsersManagement: React.FC = () => {
   } = useQuery({
     queryKey: ['users', page],
     queryFn: () => userService.getUsers({ page: page + 1 }),
+    placeholderData: keepPreviousData,
   })
 
   const { data: groupsData } = useQuery({
     queryKey: ['groups'],
     queryFn: () => userService.getGroups(),
+    staleTime: 5 * 60_000,
   })
 
   const createUserMutation = useMutation({

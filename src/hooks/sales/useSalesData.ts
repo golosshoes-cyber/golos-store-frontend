@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { salesService } from '../../services/salesService'
 
 export const useSalesData = () => {
@@ -36,6 +36,7 @@ export const useSalesData = () => {
       search: searchTerm,
       status: filterStatus,
     }),
+    placeholderData: keepPreviousData,
   })
 
   // Procesamiento local de ordenamiento

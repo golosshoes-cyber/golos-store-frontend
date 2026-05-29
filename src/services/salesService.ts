@@ -1,28 +1,28 @@
 import { Sale, ApiResponse } from '../types'
 import { api } from './api'
 
+const SALE_STATUS_MAP: Record<string, string> = {
+  '': '',
+  'pending': 'pending',
+  'confirmed': 'active',
+  'completed': 'completed',
+  'canceled': 'canceled',
+}
+
+const mapParams = (params?: Record<string, any>): Record<string, any> =>
+  Object.fromEntries(
+    Object.entries(params || {})
+      .filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+      .map(([key, value]) =>
+        key === 'status' && SALE_STATUS_MAP[value as string]
+          ? [key, SALE_STATUS_MAP[value as string]]
+          : [key, value]
+      )
+  )
+
 export const salesService = {
   getSales: async (params?: any): Promise<ApiResponse<Sale>> => {
-    const statusMapping: { [key: string]: string } = {
-      '': '',
-      'pending': 'pending',
-      'confirmed': 'active',
-      'completed': 'completed',
-      'canceled': 'canceled',
-    }
-
-    const filteredParams = Object.fromEntries(
-      Object.entries(params || {})
-        .filter(([_, value]) => value !== '' && value !== null && value !== undefined)
-        .map(([key, value]) => {
-          if (key === 'status' && statusMapping[value as string]) {
-            return [key, statusMapping[value as string]]
-          }
-          return [key, value]
-        })
-    )
-
-    const response = await api.get('/api/sales/', { params: filteredParams })
+    const response = await api.get('/api/sales/', { params: mapParams(params) })
     return response.data
   },
 

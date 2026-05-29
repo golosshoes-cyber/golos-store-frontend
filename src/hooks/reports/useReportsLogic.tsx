@@ -1,17 +1,19 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useDebounce } from '../useDebounce'
-import { useQuery } from '@tanstack/react-query'
 import { useNotification } from '../useNotification'
-import { useReports } from './useReports'
 import { productService } from '../../services/productService'
-import type { InventoryHistoryParams, DailySummaryParams } from '../../types/reports'
 import { api } from '../../services/api'
+import type { ProductVariant } from '../../types'
+import type { InventoryHistoryParams, DailySummaryParams } from '../../types/reports'
+import { extractApiErrorMessage } from '../../utils/apiError'
 
 export const useReportsLogic = () => {
   const { showSuccess, showError } = useNotification()
+  const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState(0)
   const [selectedVariants, setSelectedVariants] = useState<Set<number>>(new Set())
-  
+
   // Snapshot filters/pagination
   const [snapshotsParams, setSnapshotsParams] = useState<{ page: number }>({ page: 1 })
 
@@ -23,7 +25,7 @@ export const useReportsLogic = () => {
   })
   const [monthlyReport, setMonthlyReport] = useState<any[]>([])
   const [isMonthlyReportLoading, setIsMonthlyReportLoading] = useState(false)
-  
+
   // Inventory History filters
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -46,30 +48,78 @@ export const useReportsLogic = () => {
   // Financial Report filters
   const [financeStartDate, setFinanceStartDate] = useState(() => {
     const d = new Date()
-    d.setDate(1) // First day of current month
+    d.setDate(1)
     return d.toISOString().split('T')[0]
   })
   const [financeEndDate, setFinanceEndDate] = useState(new Date().toISOString().split('T')[0])
 
-  const {
-    variants,
-    inventoryHistory,
-    isInventoryHistoryLoading,
-    inventoryHistoryError,
-    fetchInventoryHistory,
-    snapshots,
-    isSnapshotsLoading,
-    snapshotsError,
-    fetchSnapshots,
-    createMonthlySnapshot,
-    isCreatingSnapshot,
-    lowStockVariants,
-    isLowStockLoading,
-    lowStockError,
-    fetchLowStockVariants,
-  } = useReports({ showSuccess, showError })
+  // Variants for mapping (cache 5 min)
+  const variantsQuery = useQuery({
+    queryKey: ['variants'],
+    queryFn: async () => {
+      let allVariants: ProductVariant[] = []
+      let url = '/api/product-variants/?limit=1000'
+      while (url) {
+        const response = await api.get(url)
+        allVariants.push(...(response.data.results as ProductVariant[]))
+        url = response.data.next
+      }
+      return { count: allVariants.length, results: allVariants, next: null, previous: null }
+    },
+    staleTime: 1000 * 60 * 5,
+  })
 
-  // Products for filter — cachear 5 min, no cambian frecuentemente
+  // Inventory History Query
+  const inventoryHistoryQuery = useQuery({
+    queryKey: ['inventory-history', inventoryHistoryParams],
+    queryFn: () => productService.inventoryHistory(inventoryHistoryParams),
+    enabled: true,
+  })
+
+  // Inventory Snapshots Query
+  const snapshotsQuery = useQuery({
+    queryKey: ['inventory-snapshots', snapshotsParams],
+    queryFn: () => api.get('/api/inventory-snapshots/', { params: snapshotsParams }).then(r => r.data),
+  })
+
+  // Create Monthly Snapshot Mutation
+  const createSnapshotMutation = useMutation({
+    mutationFn: productService.createMonthlySnapshot,
+    onSuccess: () => {
+      showSuccess('Snapshot mensual creado exitosamente')
+      queryClient.invalidateQueries({ queryKey: ['inventory-history'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory-snapshots'] })
+    },
+    onError: (error: any) => {
+      const errorMessage = extractApiErrorMessage(error, 'Error al crear el snapshot mensual')
+      showError(errorMessage)
+    },
+  })
+
+  // Low Stock Variants Query
+  const lowStockQuery = useQuery({
+    queryKey: ['low-stock-variants'],
+    queryFn: productService.lowStockVariants,
+    enabled: false,
+  })
+
+  const fetchInventoryHistory = useCallback((params: InventoryHistoryParams) => {
+    setInventoryHistoryParams(params)
+  }, [])
+
+  const fetchSnapshots = useCallback((page: number) => {
+    setSnapshotsParams({ page })
+  }, [])
+
+  const createMonthlySnapshot = useCallback((data?: { month?: string }) => {
+    createSnapshotMutation.mutate(data)
+  }, [createSnapshotMutation])
+
+  const fetchLowStockVariants = useCallback(() => {
+    lowStockQuery.refetch()
+  }, [lowStockQuery])
+
+  // Products for filter — cachear 5 min
   const { data: productsDetailsData } = useQuery({
     queryKey: ['products-simple'],
     queryFn: () => productService.getProducts({}),
@@ -108,10 +158,10 @@ export const useReportsLogic = () => {
   }, [activeTab, snapshotsParams, fetchSnapshots])
 
   useEffect(() => {
-    if (activeTab === 3 && !lowStockVariants && !isLowStockLoading && !lowStockError) {
+    if (activeTab === 3 && !lowStockQuery.data && !lowStockQuery.isLoading && !lowStockQuery.error) {
       fetchLowStockVariants()
     }
-  }, [activeTab, lowStockVariants, isLowStockLoading, lowStockError, fetchLowStockVariants])
+  }, [activeTab, lowStockQuery.data, lowStockQuery.isLoading, lowStockQuery.error, fetchLowStockVariants])
 
   // Auto-fetch: debounced para texto libre, inmediato para selects
   useEffect(() => {
@@ -137,8 +187,7 @@ export const useReportsLogic = () => {
   // Event handlers
   const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
-    setSelectedVariants(new Set()) // Reset selection on tab change
-    // Update URL with tab parameter
+    setSelectedVariants(new Set())
     const url = new URL(window.location.href)
     url.searchParams.set('tab', newValue.toString())
     window.history.replaceState({}, '', url.toString())
@@ -149,7 +198,7 @@ export const useReportsLogic = () => {
       setSelectedVariants(new Set())
       return
     }
-    
+
     setSelectedVariants(prev => {
       const newSet = new Set(prev)
       if (newSet.has(id)) {
@@ -163,14 +212,14 @@ export const useReportsLogic = () => {
 
   const handleSelectAll = useCallback(() => {
     setSelectedVariants(prev => {
-      const variantsList = lowStockVariants?.products || []
+      const variantsList = lowStockQuery.data?.products || []
       if (prev.size === variantsList.length) {
         return new Set()
       } else {
         return new Set(variantsList.map((p: any) => p.id))
       }
     })
-  }, [lowStockVariants])
+  }, [lowStockQuery.data])
 
   const handleFetchInventoryHistory = useCallback(() => {
     const params: InventoryHistoryParams = {
@@ -186,7 +235,6 @@ export const useReportsLogic = () => {
   }, [startDate, endDate, productFilter, variantFilter, movementTypeFilter, fetchInventoryHistory])
 
   const handleCreateSnapshot = useCallback(() => {
-    // snapshotMonth tiene formato "YYYY-MM", el backend espera "YYYY-MM-DD"
     createMonthlySnapshot({ month: `${snapshotMonth}-01` })
   }, [createMonthlySnapshot, snapshotMonth])
 
@@ -321,33 +369,33 @@ export const useReportsLogic = () => {
     dailyEndDate,
     financeStartDate,
     financeEndDate,
-    
+
     // Data
     productsDetails,
-    variants,
-    inventoryHistory,
-    snapshots,
+    variants: variantsQuery.data,
+    inventoryHistory: inventoryHistoryQuery.data,
+    snapshots: snapshotsQuery.data,
     snapshotsParams,
     monthlyReport,
-    lowStockVariants,
+    lowStockVariants: lowStockQuery.data,
     dailySummary,
     financialReport,
 
     // Loading states
-    isInventoryHistoryLoading,
-    isSnapshotsLoading,
-    isCreatingSnapshot,
+    isInventoryHistoryLoading: inventoryHistoryQuery.isLoading,
+    isSnapshotsLoading: snapshotsQuery.isLoading,
+    isCreatingSnapshot: createSnapshotMutation.isPending,
     isMonthlyReportLoading,
     isDailySummaryLoading,
     isFinancialReportLoading,
-    
+
     // Error states
-    inventoryHistoryError,
-    snapshotsError,
-    lowStockError,
+    inventoryHistoryError: inventoryHistoryQuery.error,
+    snapshotsError: snapshotsQuery.error,
+    lowStockError: lowStockQuery.error,
     dailySummaryError,
     financialReportError,
-    
+
     // Event handlers
     handleTabChange,
     handleSelectVariant,
@@ -359,7 +407,7 @@ export const useReportsLogic = () => {
     handleExportHistory,
     handlePageChange,
     handleSnapshotPageChange,
-    
+
     // Setters
     setSnapshotMonth,
     setStartDate,

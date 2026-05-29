@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useLocation } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import { productService } from '../../services/productService'
@@ -119,6 +119,8 @@ export const useProductsLogic = () => {
   } = useQuery({
     queryKey: ['products', page, productSearch],
     queryFn: () => productService.getProducts({ page, limit: 20, search: productSearch }),
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
   })
 
   const {
@@ -126,6 +128,7 @@ export const useProductsLogic = () => {
   } = useQuery({
     queryKey: ['all-products'],
     queryFn: () => productService.getProducts({ limit: 1000 }),
+    staleTime: 5 * 60_000,
   })
 
   const {
@@ -151,6 +154,7 @@ export const useProductsLogic = () => {
   } = useQuery({
     queryKey: ['variants', variantPage, variantSearch],
     queryFn: () => productService.getVariants({ page: variantPage, limit: 20, search: variantSearch }),
+    placeholderData: keepPreviousData,
   })
 
   // Local Sort & Filter Logic
@@ -342,8 +346,13 @@ export const useProductsLogic = () => {
     setWizardOpen(true)
   }
 
-  const handleViewProduct = (product: Product) => {
-    setViewingProduct(product)
+  const handleViewProduct = async (product: Product) => {
+    try {
+      const full = await productService.getProduct(product.id)
+      setViewingProduct(full)
+    } catch {
+      setViewingProduct(product)
+    }
     setViewDialogOpen(true)
   }
 

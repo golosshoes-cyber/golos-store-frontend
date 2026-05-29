@@ -9,7 +9,7 @@ import {
   Add as AddIcon,
   Business as BusinessIcon,
 } from '@mui/icons-material'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { supplierService } from '../../services/supplierService'
 import { Supplier } from '../../types'
 import SuppliersTabs from '../../components/suppliers/SuppliersTabs'
@@ -55,23 +55,19 @@ const SuppliersPage: React.FC = () => {
   // Obtiene el cliente de la query
   const queryClient = useQueryClient()
 
-  // Fetch proveedores
+  // Fetch proveedores con paginación y búsqueda por API
   const { data: suppliersData, isLoading } = useQuery({
-    queryKey: ['suppliers'],
-    queryFn: () => supplierService.getSuppliers({}),
+    queryKey: ['suppliers', page, supplierSearch],
+    queryFn: () => supplierService.getSuppliers({
+      page,
+      limit: 20,
+      search: supplierSearch || undefined,
+    }),
+    placeholderData: keepPreviousData,
   })
 
-  // Local filtering and pagination
-  const allSuppliers = suppliersData?.results || []
-  const filteredSuppliers = allSuppliers.filter(supplier =>
-    supplier.name.toLowerCase().includes(supplierSearch.toLowerCase()) ||
-    supplier.nit?.toLowerCase().includes(supplierSearch.toLowerCase()) ||
-    supplier.phone?.includes(supplierSearch)
-  )
-  const totalFiltered = filteredSuppliers.length
-  const startIndex = (page - 1) * 20
-  const endIndex = startIndex + 20
-  const paginatedSuppliers = filteredSuppliers.slice(startIndex, endIndex)
+  const paginatedSuppliers = suppliersData?.results || []
+  const totalFiltered = suppliersData?.count || 0
 
   // Reset page when search changes
   React.useEffect(() => {

@@ -35,10 +35,10 @@ const ProductViewDialog: React.FC<ProductViewDialogProps> = ({
   const getDisplayImage = () => {
     if (selectedVariantId !== null) {
       const variantImg = product.images?.find(img => img.variant === selectedVariantId)
-      if (variantImg) return variantImg.image || (variantImg as any)?.url || null
+      if (variantImg) return variantImg.url || variantImg.image || null
     }
     const primaryImage = product.images?.find(img => img.is_primary && !img.variant) || product.images?.find(img => img.is_primary) || product.images?.[0]
-    return primaryImage?.image || (primaryImage as any)?.url || null
+    return primaryImage?.url || primaryImage?.image || null
   }
   const imageUrl = getDisplayImage()
   const priceRange = product.variants.length > 0

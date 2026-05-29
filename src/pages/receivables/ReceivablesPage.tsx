@@ -91,6 +91,7 @@ const ReceivablesPage: React.FC = () => {
   const { data: customersData } = useQuery({
     queryKey: ['customers'],
     queryFn: () => receivableService.getCustomers({ limit: 500 }),
+    staleTime: 5 * 60_000,
   })
 
   const receivables = receivablesData?.results || []

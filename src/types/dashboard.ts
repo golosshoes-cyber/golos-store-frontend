@@ -1,6 +1,7 @@
-import type { DashboardStats } from './index'
+import type { DashboardStats, ProductVariant } from './index'
 
 export { DashboardStats }
+export type { ProductVariant }
 
 export interface RecentMovement {
   id: number
@@ -48,19 +49,6 @@ export interface SalesChartData {
 
 export interface SalesChartResponse {
   chart_data: SalesChartData[]
-}
-
-export interface ProductVariant {
-  id: number
-  sku: string
-  product: number
-  size: string
-  color?: string
-  gender: string
-  stock: number
-  price: number
-  cost: number
-  active: boolean
 }
 
 export interface SearchResultsResponse {

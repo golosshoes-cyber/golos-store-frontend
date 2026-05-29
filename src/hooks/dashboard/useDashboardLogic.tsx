@@ -88,6 +88,7 @@ export const useDashboardLogic = () => {
   const { data: productsData } = useQuery({
     queryKey: ['products-for-search'],
     queryFn: () => productService.getProducts({ limit: 1000 }),
+    staleTime: 5 * 60_000,
   })
 
   // Query para búsqueda de variantes

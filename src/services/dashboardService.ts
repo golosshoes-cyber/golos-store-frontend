@@ -8,7 +8,6 @@ const unwrap = <T extends Record<string, any>>(payload: T): T => {
   return payload
 }
 
-// TODO: Implementar servicios de dashboard
 export const dashboardService = {
   getStats: async (): Promise<DashboardStats> => {
     const response = await api.get('/api/dashboard/overview/')

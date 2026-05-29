@@ -222,6 +222,7 @@ const ProductsTabs: React.FC<ProductsTabsProps> = ({
             display: 'flex',
             gap: 1.2,
             alignItems: 'center',
+            flexWrap: 'wrap',
             borderBottom: `1px solid ${theme.palette.divider}`,
             bgcolor: mode === 'light' ? alpha('#fff', 0.5) : alpha('#000', 0.1)
           }}>

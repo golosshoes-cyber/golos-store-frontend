@@ -133,10 +133,10 @@ const ImagesManagement: React.FC<ImagesManagementProps> = ({
         borderBottom: `1px solid ${theme.palette.divider}`,
         bgcolor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'flex-start', sm: 'center' },
         justifyContent: 'space-between',
+        flexDirection: { xs: 'column', sm: 'row' },
         gap: 2,
-        flexWrap: 'wrap',
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Box sx={{
@@ -159,7 +159,7 @@ const ImagesManagement: React.FC<ImagesManagementProps> = ({
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: { xs: '100%', sm: 'auto' } }}>
           <Autocomplete
             options={productOptions}
             value={selectedOption}
@@ -171,12 +171,11 @@ const ImagesManagement: React.FC<ImagesManagementProps> = ({
                 placeholder="Seleccionar producto..."
                 size="small"
                 sx={{
-                  width: 280,
                   '& .MuiInputBase-root': { fontSize: '12px', height: 32 },
                 }}
               />
             )}
-            sx={{ width: 'auto' }}
+            sx={{ width: { xs: '100%', sm: 280 }, minWidth: { xs: 0, sm: 280 } }}
           />
 
           {selectedProduct && (
@@ -203,6 +202,7 @@ const ImagesManagement: React.FC<ImagesManagementProps> = ({
                     bgcolor: 'text.primary', color: 'background.default',
                     '&:hover': { bgcolor: 'text.secondary' },
                     '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   {uploadLoading ? <CircularProgress size={14} /> : 'Subir Fotos'}
