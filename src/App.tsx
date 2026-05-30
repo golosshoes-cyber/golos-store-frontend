@@ -8,6 +8,8 @@ import MainLayout from './layouts/MainLayout'
 import ProtectedRoute from './components/admin/ProtectedRoute'
 
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'))
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
 const ProductsPage = lazy(() => import('./pages/products/ProductsPage'))
 const SalesPage = lazy(() => import('./pages/sales/SalesPage'))
@@ -112,6 +114,8 @@ function App() {
             )
           }
         />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route
           path="/*"

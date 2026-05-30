@@ -27,6 +27,27 @@ export const extractApiErrorMessage = (error: any, fallback: string): string => 
     return trimmed
   }
 
+  if (error?.message === 'Network Error' || error?.code === 'ERR_NETWORK' || error?.code === 'ECONNABORTED') {
+    return 'No se pudo conectar con el servidor. Verifica si el servidor está encendido.'
+  }
+
+  if (error?.response?.status) {
+    const status = error.response.status
+    if (status === 405) {
+      return 'Error del servidor: Método no permitido (405). Revisa la configuración del servidor.'
+    }
+    if (status >= 500) {
+      return `Error interno del servidor (${status}). Por favor, intenta más tarde.`
+    }
+    if (status === 404) {
+      return 'El servicio no fue encontrado (404). Verifica que el servidor esté activo y la ruta sea correcta.'
+    }
+    if (status === 429) {
+      return 'Demasiadas solicitudes (429). Por favor, intenta más tarde.'
+    }
+    // Para 401 y 403, si hay un mensaje específico lo sacamos, si no usamos fallback.
+  }
+
   const data = error?.response?.data
 
   if (Array.isArray(data) && data.length > 0) {
