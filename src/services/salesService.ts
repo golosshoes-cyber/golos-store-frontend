@@ -39,6 +39,7 @@ export const salesService = {
     invoice_required?: boolean;
     invoicing_method?: 'NONE' | 'AUTOMATIC' | 'MANUAL';
     created_by?: string;
+    customer_entity?: number;
   }): Promise<Sale> => {
     const response = await api.post('/api/sales/', saleData)
     return response.data

@@ -26,6 +26,7 @@ const StoreOpsPage = lazy(() => import('./pages/store-ops/StoreOpsPage'))
 const LowStockPage = lazy(() => import('./pages/low-stock/LowStockPage'))
 const ExportsPage = lazy(() => import('./pages/exports/ExportsPage'))
 const VariantDetailPage = lazy(() => import('./pages/VariantDetailPage'))
+const PosPage = lazy(() => import('./pages/pos/PosPage'))
 
 const extractGroupNames = (user: User | null): string[] => {
   if (!user || !Array.isArray(user.groups)) return []
@@ -127,6 +128,7 @@ function App() {
                   <Route path="inventory/products" element={<ProductsPage />} />
                   <Route path="inventory/products/variant/:id" element={<VariantDetailPage />} />
                   <Route path="sales/orders" element={<SalesPage />} />
+                  <Route path="sales/pos" element={<PosPage />} />
                   <Route path="sales/receivables" element={<ReceivablesPage />} />
                   <Route path="inventory/stock" element={<InventoryPage />} />
                   <Route path="inventory/low-stock" element={<LowStockPage />} />

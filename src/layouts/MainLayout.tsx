@@ -33,6 +33,7 @@ import {
   Payments as FinanzasIcon,
   AccountBalanceWallet as CxCIcon,
   FileDownload as FileDownloadIcon,
+  PointOfSale as PosIcon,
 } from '@mui/icons-material'
 import {
   TextField,
@@ -73,6 +74,7 @@ const menuSections = [
   {
     label: 'Ventas',
     items: [
+      { text: 'Punto de Venta', icon: <PosIcon />, path: '/sales/pos' },
       { text: 'Órdenes', icon: <ShoppingCartIcon />, path: '/sales/orders' },
       { text: 'Cuentas x Cobrar', icon: <CxCIcon />, path: '/sales/receivables' },
     ]
@@ -220,7 +222,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const getVisibleItems = (items: any[]) => items.filter((item) => {
     if (['/analytics/reports', '/notifications'].includes(item.path)) return canViewReports
     if (item.path === '/analytics/finance') return canViewFinance
-    if (item.path === '/sales/orders' || item.path === '/sales/receivables') return canCreateSale
+    // Ventas y CxC: requiere change_sale para POS y Órdenes
+    if (item.path === '/sales/orders' || item.path === '/sales/receivables' || item.path === '/sales/pos') return canCreateSale
     if (['/inventory/products', '/inventory/purchases', '/inventory/suppliers', '/inventory/stock', '/settings/store'].includes(item.path)) {
       return canCreateProduct || canCreatePurchase
     }
