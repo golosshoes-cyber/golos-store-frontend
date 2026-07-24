@@ -33,7 +33,11 @@ export const extractApiErrorMessage = (error: any, fallback: string): string => 
 
   if (error?.response?.status) {
     const status = error.response.status
-    console.log('API Error Status:', status, 'Message:', error?.response?.data || error?.message)
+    console.log('API Error Status:', status, 'Message:', error?.response?.data || 'Message2:' ,error?.message)
+    console.log('API Error Response:', error?.response)
+    console.log('API Error Config:', error?.config)
+    console.log('API Error Request:', error?.request)
+    console.log('API Error Stack:', error?.stack)
     if (status === 405) {
       return 'Error del servidor: Método no permitido (405). Revisa la configuración del servidor.'
     }
