@@ -2,12 +2,12 @@ import axios from 'axios'
 
 // Cliente separado para el refresh (sin interceptores)
 const authApi = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 })
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30_000,
 })
